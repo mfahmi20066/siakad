@@ -1,0 +1,319 @@
+/* ================================================================
+   SIA SMA NEGERI 4 PALOPO — alert.css
+   Sistem Alert Modern: Modal Konfirmasi + Toast Notification
+   Tema konsisten Navy #163A63 / Gold #F09000 (token dari style.css)
+   ================================================================ */
+
+/* ── Overlay Modal ── */
+.sia-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(13, 37, 64, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.22s ease;
+}
+
+.sia-overlay.sia-open { opacity: 1; }
+
+/* ── Card Modal ── */
+.sia-modal {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card, #FFFFFF);
+    border-radius: 20px;
+    padding: 32px 28px 26px;
+    text-align: center;
+    box-shadow: var(--shadow-lg, 0 18px 44px rgba(13, 37, 64, 0.14));
+    border: 1px solid var(--border-color, #E2E8F0);
+    transform: translateY(24px) scale(0.94);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+}
+
+.sia-overlay.sia-open .sia-modal {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.sia-overlay.sia-close .sia-modal {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+}
+
+/* ── Ikon Modal ── */
+.sia-icon {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 18px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+}
+
+.sia-icon::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 30px;
+    border: 2px solid currentColor;
+    opacity: 0.18;
+}
+
+.sia-icon-success  { background: rgba(16, 185, 129, 0.12); color: var(--success, #10B981); }
+.sia-icon-error    { background: rgba(225, 29, 72, 0.10);  color: var(--danger, #E11D48); }
+.sia-icon-danger   { background: rgba(225, 29, 72, 0.10);  color: var(--danger, #E11D48); }
+.sia-icon-warning  { background: rgba(245, 158, 11, 0.12); color: var(--warning, #F59E0B); }
+.sia-icon-info     { background: rgba(59, 130, 246, 0.10);  color: var(--info, #3B82F6); }
+.sia-icon-question { background: rgba(240, 144, 0, 0.12);  color: var(--gold, #F09000); }
+.sia-icon-logout   { background: rgba(22, 58, 99, 0.08);   color: var(--primary, #163A63); }
+
+/* ── Teks Modal ── */
+.sia-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-dark, #1A202C);
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.sia-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-muted, #4A5568);
+    margin-bottom: 22px;
+}
+
+/* ── Tombol Modal ── */
+.sia-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.sia-btn {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    min-width: 108px;
+}
+
+.sia-btn:active { transform: scale(0.97); }
+
+.sia-btn-confirm {
+    background: linear-gradient(135deg, var(--primary, #163A63) 0%, var(--primary-light, #2C5A8F) 100%);
+    color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(22, 58, 99, 0.28);
+}
+
+.sia-btn-confirm:hover { background: var(--primary-dark, #0D2540); }
+
+.sia-btn-confirm.sia-btn-danger {
+    background: linear-gradient(135deg, var(--danger, #E11D48) 0%, #F43F5E 100%);
+    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.28);
+}
+
+.sia-btn-confirm.sia-btn-danger:hover { background: var(--danger, #E11D48); }
+
+.sia-btn-cancel {
+    background: var(--bg-soft, #F5F7FB);
+    color: var(--text-muted, #4A5568);
+    border: 1px solid var(--border-color, #E2E8F0);
+}
+
+.sia-btn-cancel:hover { background: var(--border-color, #E2E8F0); color: var(--text-dark, #1A202C); }
+
+/* ════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATION (top-right)
+   ════════════════════════════════════════════════════════════════ */
+.sia-toast-container {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 360px;
+    max-width: calc(100vw - 36px);
+    pointer-events: none;
+}
+
+.sia-toast {
+    pointer-events: auto;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    background: var(--bg-card, #FFFFFF);
+    border-radius: 16px;
+    padding: 15px 38px 15px 16px;
+    box-shadow: 0 12px 32px rgba(13, 37, 64, 0.14);
+    border: 1px solid var(--border-color, #E2E8F0);
+    border-left: 4px solid var(--info, #3B82F6);
+    overflow: hidden;
+    transform: translateX(calc(100% + 30px));
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.sia-toast.sia-in {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.sia-toast-success { border-left-color: var(--success, #10B981); }
+.sia-toast-error   { border-left-color: var(--danger, #E11D48); }
+.sia-toast-warning { border-left-color: var(--warning, #F59E0B); }
+.sia-toast-info    { border-left-color: var(--info, #3B82F6); }
+
+.sia-toast-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.sia-toast-success .sia-toast-icon { background: rgba(16, 185, 129, 0.12); color: var(--success, #10B981); }
+.sia-toast-error   .sia-toast-icon { background: rgba(225, 29, 72, 0.10);  color: var(--danger, #E11D48); }
+.sia-toast-warning .sia-toast-icon { background: rgba(245, 158, 11, 0.12); color: var(--warning, #F59E0B); }
+.sia-toast-info    .sia-toast-icon { background: rgba(59, 130, 246, 0.10);  color: var(--info, #3B82F6); }
+
+.sia-toast-body { flex: 1; min-width: 0; }
+
+.sia-toast-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-dark, #1A202C);
+    margin-bottom: 2px;
+}
+
+.sia-toast-msg {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-muted, #4A5568);
+    word-break: break-word;
+}
+
+.sia-toast-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    color: var(--text-light, #94A3B8);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sia-toast-close:hover { background: var(--bg-soft, #F5F7FB); color: var(--text-dark, #1A202C); }
+
+.sia-toast-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: var(--info, #3B82F6);
+    border-radius: 0 0 0 16px;
+}
+
+.sia-toast-success .sia-toast-progress { background: var(--success, #10B981); }
+.sia-toast-error   .sia-toast-progress { background: var(--danger, #E11D48); }
+.sia-toast-warning .sia-toast-progress { background: var(--warning, #F59E0B); }
+.sia-toast-info    .sia-toast-progress { background: var(--info, #3B82F6); }
+
+/* ════════════════════════════════════════════════════════════════
+   MODERNISASI Bootstrap .alert (flash message halaman)
+   ════════════════════════════════════════════════════════════════ */
+.alert {
+    border: none;
+    border-left: 4px solid var(--info, #3B82F6);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    box-shadow: var(--shadow-sm, 0 8px 24px rgba(13, 37, 64, 0.08));
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: sia-fade-slide 0.3s ease;
+}
+
+.alert i { font-size: 17px; }
+
+.alert-success {
+    background: #ECFDF5;
+    color: #065F46;
+    border-left-color: var(--success, #10B981);
+}
+
+.alert-success i { color: var(--success, #10B981); }
+
+.alert-danger {
+    background: #FFF1F2;
+    color: #BE123C;
+    border-left-color: var(--danger, #E11D48);
+}
+
+.alert-danger i { color: var(--danger, #E11D48); }
+
+.alert-warning {
+    background: #FFFBEB;
+    color: #92400E;
+    border-left-color: var(--warning, #F59E0B);
+}
+
+.alert-warning i { color: var(--warning, #F59E0B); }
+
+.alert-info {
+    background: #EFF6FF;
+    color: #1E40AF;
+    border-left-color: var(--info, #3B82F6);
+}
+
+.alert-info i { color: var(--info, #3B82F6); }
+
+/* ── Animasi ── */
+@keyframes sia-fade-slide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+    .sia-modal { padding: 26px 20px 22px; }
+    .sia-toast-container { top: 12px; right: 12px; width: calc(100vw - 24px); }
+    .sia-buttons { flex-direction: column-reverse; }
+    .sia-btn { width: 100%; }
+}

@@ -1,0 +1,24 @@
+# Nonaktifkan directory listing
+Options -Indexes
+
+# Proteksi file sensitif
+<FilesMatch "\.(sql|log|env|bak|sh)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Blokir akses langsung ke folder config
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Blokir akses ke config/
+    RewriteRule ^config/ - [F,L]
+
+    # Redirect root ke index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^$ /siakad/index.php [R=302,L]
+</IfModule>
+
+# Karakter encoding default
+AddDefaultCharset UTF-8

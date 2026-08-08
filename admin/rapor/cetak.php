@@ -1,0 +1,405 @@
+<?php
+include '../../config/koneksi.php';
+include '../../config/session.php';
+cekAdmin();
+
+$id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
+
+$rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
+         "SELECT r.*, ta.nama_tahun_ajaran AS nama_tahun, s.nama, s.nis, s.jenis_kelamin,
+                 s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
+                 k.nama_kelas, k.tingkat,
+                 g.nama_lengkap AS wali_kelas, g.nip AS wali_nip
+          FROM rapor r
+          JOIN siswa s ON r.siswa_id = s.id
+          JOIN kelas k ON r.kelas_id = k.id
+          JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id
+          LEFT JOIN guru g ON k.wali_kelas = g.id
+          WHERE r.id = '$id'"));
+
+// Cek apakah kolom kelompok/kkm sudah tersedia (migrasi sudah dijalankan atau belum)
+$cek_kelompok = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kelompok'");
+$ada_kelompok = mysqli_num_rows($cek_kelompok) > 0;
+
+$select_mapel_extra = $ada_kelompok ? "m.kelompok, m.kkm," : "'Umum' AS kelompok, 75 AS kkm,";
+$select_urutan = $ada_kelompok
+    ? "CASE m.kelompok WHEN 'Normatif' THEN 1 WHEN 'Adaptif' THEN 2 WHEN 'Produktif' THEN 3 WHEN 'Muatan Lokal' THEN 4 ELSE 5 END AS urutan_kelompok"
+    : "5 AS urutan_kelompok";
+
+$nilai = mysqli_query($koneksi,
+         "SELECT n.*, m.nama_mapel, m.kode_mapel, $select_mapel_extra
+                 $select_urutan
+          FROM nilai n
+          JOIN mata_pelajaran m ON n.mapel_id = m.id
+          WHERE n.siswa_id = '{$rapor['siswa_id']}'
+            AND n.semester  = '{$rapor['semester']}'
+            AND n.tahun_ajaran_id = '{$rapor['tahun_ajaran_id']}'
+          ORDER BY urutan_kelompok, m.nama_mapel");
+
+$hadir = mysqli_fetch_row(mysqli_query($koneksi,
+         "SELECT COUNT(*) FROM absensi 
+          WHERE siswa_id='{$rapor['siswa_id']}' AND status='Hadir'"))[0] ?? 0;
+$sakit = mysqli_fetch_row(mysqli_query($koneksi,
+         "SELECT COUNT(*) FROM absensi 
+          WHERE siswa_id='{$rapor['siswa_id']}' AND status='Sakit'"))[0] ?? 0;
+$izin  = mysqli_fetch_row(mysqli_query($koneksi,
+         "SELECT COUNT(*) FROM absensi 
+          WHERE siswa_id='{$rapor['siswa_id']}' AND status='Izin'"))[0] ?? 0;
+$alpa  = mysqli_fetch_row(mysqli_query($koneksi,
+         "SELECT COUNT(*) FROM absensi 
+          WHERE siswa_id='{$rapor['siswa_id']}' AND status='Alpa'"))[0] ?? 0;
+
+// Ambil data pengaturan sekolah
+$q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
+$setting = mysqli_fetch_assoc($q_setting);
+
+// Kepribadian & ekstrakurikuler (aman kalau kolom belum ada / migrasi belum jalan)
+$kerajinan = $rapor['kerajinan'] ?? 'Baik';
+$kelakuan  = $rapor['kelakuan']  ?? 'Baik';
+$kerapihan = $rapor['kerapihan'] ?? 'Baik';
+$eskul     = $rapor['ekstrakurikuler'] ?? '';
+
+// Helper: nomor romawi sederhana untuk kelompok
+function romawi($n) {
+    $map = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V'];
+    return $map[$n] ?? (string)$n;
+}
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Hasil Belajar — <?= htmlspecialchars($rapor['nama'] ?? 'Siswa') ?></title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: Arial, sans-serif;
+    font-size: 11.5px;
+    padding: 22px 30px;
+    color: #000;
+}
+.btn-print {
+    display: inline-block;
+    margin-bottom: 15px;
+    padding: 8px 20px;
+    background: #163A63;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.btn-pdf {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    margin-left: 8px;
+    width: 36px;
+    height: 36px;
+    background: #10B981;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: none;
+    vertical-align: middle;
+}
+.btn-pdf svg { width: 18px; height: 18px; }
+.btn-pdf:hover { background: #10B981; }
+
+/* ── Kop surat ala instansi resmi ── */
+.kop {
+    display: flex;
+    align-items: center;
+    border-bottom: 3px double #000;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+.kop img { width: 62px; height: 62px; object-fit: contain; }
+.kop .logo-kiri  { margin-right: 12px; }
+.kop .logo-kanan { margin-left: 12px; }
+.kop-text { text-align: center; flex: 1; line-height: 1.3; }
+.kop-text .instansi { font-size: 11px; }
+.kop-text .sekolah  { font-size: 15px; font-weight: bold; text-transform: uppercase; }
+.kop-text .jurusan  { font-size: 10.5px; }
+.kop-text .alamat   { font-size: 10px; }
+
+.judul {
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    text-decoration: underline;
+    margin: 12px 0 12px;
+}
+
+/* ── Info identitas siswa (2 kolom ala formulir) ── */
+.identitas { width: 100%; margin-bottom: 12px; border-collapse: collapse; }
+.identitas td { padding: 1px 3px; font-size: 11.5px; vertical-align: top; }
+.identitas .label { width: 150px; }
+.identitas .titik { width: 10px; }
+
+table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.rapor-table th, .rapor-table td { border: 1px solid #000; padding: 3px 6px; font-size: 11px; }
+.rapor-table th { text-align: center; font-weight: bold; background: #F5F7FB; }
+.text-center { text-align: center; }
+.grup-row td { font-weight: bold; background: #F5F7FB; }
+.merah { color: #E11D48; font-weight: bold; }
+
+.seksi-judul { font-weight: bold; margin: 14px 0 5px; font-size: 12px; }
+
+.catatan-box {
+    border: 1px solid #000;
+    min-height: 55px;
+    padding: 8px;
+    margin-bottom: 14px;
+    font-size: 11.5px;
+}
+
+.footer-ttd {
+    margin-top: 22px;
+    width: 100%;
+}
+.footer-ttd .tgl { text-align: right; margin-bottom: 4px; font-size: 11.5px; }
+.footer-ttd table { width: 100%; border-collapse: collapse; margin-top: 22px; }
+.footer-ttd td { text-align: center; font-size: 11.5px; vertical-align: top; padding: 0 10px; }
+.footer-ttd .garis { margin-top: 55px; border-bottom: 1px solid #000; }
+.footer-ttd .nama { margin-top: 3px; font-weight: bold; text-decoration: underline; }
+.footer-ttd .tgl-table { width: auto; margin-left: auto; margin-top: 0; border-collapse: collapse; }
+.footer-ttd .tgl-table td { padding: 0 2px; text-align: left; vertical-align: top; border: none; }
+.footer-ttd .tgl-table .tgl-label { width: 110px; text-align: left; white-space: nowrap; }
+.footer-ttd .tgl-table .tgl-titik { width: 12px; text-align: center; white-space: nowrap; }
+
+@media print {
+    .btn-print, .btn-pdf { display: none !important; }
+    body { padding: 8px 16px; }
+}
+
+@page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
+</style>
+</head>
+<body>
+
+<button class="btn-print" onclick="window.print()">Cetak</button>
+<a class="btn-pdf" href="cetak_pdf.php?id=<?= $id ?>&download=1" title="Simpan sebagai PDF">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+</a>
+
+<div class="kop">
+    <img class="logo-kiri" src="../../assets/img/logo-sekolah.png"
+         onerror="this.style.display='none'" alt="Logo">
+    <div class="kop-text">
+        <div class="instansi">PEMERINTAH KOTA PALOPO<br>DINAS PENDIDIKAN</div>
+        <div class="sekolah">SMA NEGERI 4 PALOPO</div>
+        <div class="alamat"><?= htmlspecialchars($setting['alamat_sekolah'] ?? '-') ?></div>
+    </div>
+    <img class="logo-kanan" src="../../assets/img/logo-sekolah.png"
+         onerror="this.style.display='none'" alt="Logo">
+</div>
+
+<div class="judul">LAPORAN HASIL BELAJAR</div>
+
+<table class="identitas">
+    <tr>
+        <td class="label">NAMA</td><td class="titik">:</td>
+        <td style="font-weight:bold"><?= htmlspecialchars($rapor['nama'] ?? '-') ?></td>
+        <td class="label" style="width:110px">Kelas</td><td class="titik">:</td>
+        <td><?= htmlspecialchars($rapor['nama_kelas'] ?? '-') ?></td>
+    </tr>
+    <tr>
+        <td class="label">NIS</td><td class="titik">:</td>
+        <td><?= htmlspecialchars($rapor['nis'] ?? '-') ?></td>
+        <td class="label">Semester</td><td class="titik">:</td>
+        <td><?= $rapor['semester'] == 1 ? 'Ganjil' : 'Genap' ?></td>
+    </tr>
+    <tr>
+        <td class="label">TEMPAT, TANGGAL LAHIR</td><td class="titik">:</td>
+        <td><?= htmlspecialchars($rapor['tempat_lahir'] ?? '-') ?>,
+            <?= isset($rapor['tanggal_lahir']) ? tanggal_indo($rapor['tanggal_lahir']) : '-' ?></td>
+        <td class="label">Tahun Pelajaran</td><td class="titik">:</td>
+        <td><?= htmlspecialchars($rapor['nama_tahun'] ?? $rapor['tahun_ajaran'] ?? '-') ?></td>
+    </tr>
+    <tr>
+        <td class="label">JENIS KELAMIN</td><td class="titik">:</td>
+        <td><?= (isset($rapor['jenis_kelamin']) && $rapor['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan' ?></td>
+        <td class="label">Wali Kelas</td><td class="titik">:</td>
+        <td><?= htmlspecialchars($rapor['wali_kelas'] ?? '-') ?></td>
+    </tr>
+</table>
+
+<div class="seksi-judul">I. Nilai Hasil Belajar</div>
+<table class="rapor-table">
+    <thead>
+        <tr>
+            <th rowspan="2" style="width:26px">No</th>
+            <th rowspan="2">Mata Pelajaran</th>
+            <th rowspan="2" style="width:45px">KKM</th>
+            <th colspan="2">Nilai Hasil Belajar</th>
+        </tr>
+        <tr>
+            <th style="width:55px">Angka</th>
+            <th style="width:80px">Predikat</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php
+    $no = 1; $total_na = 0; $jml_mapel = 0;
+    $kelompok_aktif = null;
+    $urutan_grup = 0;
+
+    if ($nilai && mysqli_num_rows($nilai) > 0):
+        while ($n = mysqli_fetch_assoc($nilai)):
+            $na  = $n['nilai_akhir'] ?? 0;
+            $kkm = $n['kkm'] ?? 75;
+            $kel = $n['kelompok'] ?? 'Umum';
+
+            // Baris judul kelompok setiap kali kelompok berganti
+            if ($kel !== $kelompok_aktif):
+                $kelompok_aktif = $kel;
+                $urutan_grup++;
+    ?>
+        <tr class="grup-row">
+            <td colspan="5"><?= romawi($urutan_grup) ?>. <?= strtoupper(htmlspecialchars($kel)) ?></td>
+        </tr>
+    <?php endif; ?>
+    <?php
+            // Predikat: mapel Produktif pakai Kompeten/Belum Kompeten (acuan KKM),
+            // mapel lain pakai Baik/Cukup/Kurang (skala umum)
+            if (strtolower($kel) === 'produktif') {
+                $predikat = $na >= $kkm ? 'Kompeten' : 'Belum Kompeten';
+            } else {
+                if ($na >= 75)      $predikat = 'Baik';
+                elseif ($na >= 60)  $predikat = 'Cukup';
+                else                $predikat = 'Kurang';
+            }
+            $dibawah_kkm = $na < $kkm;
+
+            $total_na += $na;
+            $jml_mapel++;
+    ?>
+        <tr>
+            <td class="text-center"><?= $no++ ?></td>
+            <td><?= htmlspecialchars($n['nama_mapel']) ?></td>
+            <td class="text-center"><?= $kkm ?></td>
+            <td class="text-center <?= $dibawah_kkm ? 'merah' : '' ?>"><?= number_format((float)$na, 0) ?></td>
+            <td class="text-center <?= $dibawah_kkm ? 'merah' : '' ?>"><?= $predikat ?></td>
+        </tr>
+    <?php
+        endwhile;
+    else:
+    ?>
+        <tr>
+            <td colspan="5" class="text-center">Belum ada data nilai akademik.</td>
+        </tr>
+    <?php endif; ?>
+    </tbody>
+</table>
+<p style="font-size:11px; margin-bottom:10px;">
+    Rata-rata Nilai: <strong><?= $jml_mapel > 0 ? round($total_na / $jml_mapel, 2) : 0 ?></strong>
+</p>
+
+<div class="seksi-judul">II. Pengembangan Diri, Kepribadian dan Ketidakhadiran</div>
+<table class="rapor-table">
+    <thead>
+        <tr>
+            <th colspan="2">Komponen</th>
+            <th style="width:110px">Predikat</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan="1" style="width:170px">Kegiatan Pengembangan Diri</td>
+            <td>1. <?= !empty($eskul) ? htmlspecialchars($eskul) : '-' ?></td>
+            <td class="text-center"><?= !empty($eskul) ? 'Baik' : '-' ?></td>
+        </tr>
+        <tr>
+            <td rowspan="3">Kepribadian</td>
+            <td>1. Kerajinan</td>
+            <td class="text-center"><?= htmlspecialchars($kerajinan) ?></td>
+        </tr>
+        <tr>
+            <td>2. Kelakuan</td>
+            <td class="text-center"><?= htmlspecialchars($kelakuan) ?></td>
+        </tr>
+        <tr>
+            <td>3. Kerapihan</td>
+            <td class="text-center"><?= htmlspecialchars($kerapihan) ?></td>
+        </tr>
+        <tr>
+            <td rowspan="3">Ketidakhadiran</td>
+            <td>1. Sakit</td>
+            <td class="text-center"><?= $sakit ?> hari</td>
+        </tr>
+        <tr>
+            <td>2. Izin</td>
+            <td class="text-center"><?= $izin ?> hari</td>
+        </tr>
+        <tr>
+            <td>3. Tanpa Keterangan</td>
+            <td class="text-center"><?= $alpa ?> hari</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="seksi-judul">III. Catatan Untuk Orang Tua / Wali</div>
+<div class="catatan-box">
+    <?= !empty($rapor['catatan']) ? nl2br(htmlspecialchars($rapor['catatan'])) : 'Tingkatkan terus prestasimu dan pertahankan semangat belajarmu.' ?>
+</div>
+
+<?php
+$status_rapor = isset($rapor['status']) ? strtolower(trim($rapor['status'])) : '';
+if ($status_rapor === 'naik' || $status_rapor === 'tinggal'):
+?>
+<div class="seksi-judul">IV. Status Kenaikan</div>
+<div class="catatan-box" style="min-height:auto;">
+    <?php if ($status_rapor === 'naik'): ?>
+        <strong style="color:green">NAIK KELAS</strong> — Siswa dinyatakan naik ke kelas berikutnya.
+    <?php else: ?>
+        <strong style="color:#E11D48">TINGGAL KELAS</strong> — Siswa dinyatakan mengulang di kelas yang sama.
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<div class="footer-ttd">
+    <div class="tgl">
+        <table class="tgl-table">
+            <tr>
+                <td class="tgl-label">Diberikan di</td>
+                <td class="tgl-titik">:</td>
+                <td>Palopo</td>
+            </tr>
+            <tr>
+                <td class="tgl-label">Tanggal</td>
+                <td class="tgl-titik">:</td>
+                <td><?= tanggal_indo() ?></td>
+            </tr>
+        </table>
+    </div>
+    <table>
+        <tr>
+            <td style="width:33%">Mengetahui,<br>Kepala Sekolah,</td>
+            <td style="width:34%">Orang Tua / Wali,</td>
+            <td style="width:33%">Wali Kelas,</td>
+        </tr>
+        <tr>
+            <td>
+                <div class="garis"></div>
+                <div class="nama"><?= htmlspecialchars($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
+                <div>NIP. <?= htmlspecialchars($setting['nip_kepsek'] ?? '-') ?></div>
+            </td>
+            <td>
+                <div class="garis"></div>
+                <div class="nama">&nbsp;</div>
+            </td>
+            <td>
+                <div class="garis"></div>
+                <div class="nama"><?= htmlspecialchars($rapor['wali_kelas'] ?? '____________________') ?></div>
+                <?php if (!empty($rapor['wali_nip'])): ?><div>NIP. <?= htmlspecialchars($rapor['wali_nip']) ?></div><?php endif; ?>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

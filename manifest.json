@@ -1,0 +1,30 @@
+{
+  "name": "SIA SMAN 4 Palopo",
+  "short_name": "SIA SMAN 4 Palopo",
+  "start_url": "/siakad/index.php",
+  "scope": "/siakad/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#163A63",
+  "icons": [
+    {
+      "src": "/siakad/assets/img/logo-sekolah.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/siakad/assets/img/logo-sekolah.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/siakad/assets/img/logo-sekolah.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
+
