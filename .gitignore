@@ -1,19 +1,16 @@
-# File konfigurasi rahasia (API key, kredensial SMTP, dll)
 config/secrets.php
 
-# Kredensial database lokal (password)
 config/koneksi.php
 config/database.php
 
-# Data & backup (dump DB berisi data pribadi siswa/guru/pendaftar)
 database/*.sql
 database/backup_*.sql
 database/arsip_2026/
 migrations/
-# Folder upload (bisa berisi data user)
+
 uploads/
 TODO.md
-# Log file
+
 logs/
 phinx.php
 laporan.md
