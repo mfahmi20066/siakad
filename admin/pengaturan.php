@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_tahun_ajaran.php';
@@ -75,13 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nama_kepsek'])) {
     $nama   = mysqli_real_escape_string($koneksi, $_POST['nama_kepsek'] ?? '');
     $nip    = mysqli_real_escape_string($koneksi, $_POST['nip_kepsek'] ?? '');
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat_sekolah'] ?? '');
+    $telepon = mysqli_real_escape_string($koneksi, $_POST['telepon'] ?? '');
+    $email   = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
+    $visi    = mysqli_real_escape_string($koneksi, $_POST['visi'] ?? '');
+    $misi    = mysqli_real_escape_string($koneksi, $_POST['misi'] ?? '');
     // Tahun pelajaran = MIRROR dari master tahun ajaran aktif (bukan sumber kebenaran).
     // User TIDAK boleh mengubahnya menjadi tahun berbeda.
     $tapel  = $taTahun;
     $sem    = mysqli_real_escape_string($koneksi, $_POST['semester'] ?? '1 (Ganjil)');
 
     // Query update menyatukan data identitas sekolah beserta status akademik aktif
-    $update = mysqli_query($koneksi, "UPDATE pengaturan SET nama_kepsek='$nama', nip_kepsek='$nip', alamat_sekolah='$alamat', tahun_pelajaran='$tapel', semester='$sem' WHERE id=1");
+    $update = mysqli_query($koneksi, "UPDATE pengaturan SET nama_kepsek='$nama', nip_kepsek='$nip', alamat_sekolah='$alamat', telepon='$telepon', email='$email', visi='$visi', misi='$misi', tahun_pelajaran='$tapel', semester='$sem' WHERE id=1");
 
     if ($update) {
         $success = "Pengaturan sekolah & data akademik aktif berhasil diperbarui!";
@@ -188,6 +192,7 @@ if (isset($_POST['edit_agenda'])) {
 
 // HAPUS AGENDA
 if (isset($_GET['hapus_agenda'])) {
+    verifyCsrf();
     $id_hapus = intval($_GET['hapus_agenda']);
     $delete = mysqli_query($koneksi, "DELETE FROM agenda WHERE id=$id_hapus");
     if ($delete) {
@@ -210,12 +215,12 @@ if (isset($_GET['edit_agenda_id'])) {
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_admin.php'; ?>
+<?php include '../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-cog text-gold me-2"></i>Pengaturan Sistem & Akademik</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-cog text-icon me-2"></i>Pengaturan Sistem & Akademik</h4>
     </div>
 
     <?php if (isset($success)): ?>
@@ -241,12 +246,12 @@ if (isset($_GET['edit_agenda_id'])) {
                 <div class="mb-3">
                     <label class="form-label">Nama Kepala Sekolah</label>
                     <input type="text" name="nama_kepsek" class="form-control" 
-                           value="<?= htmlspecialchars($skala['nama_kepsek'] ?? '') ?>" required>
+                           value="<?= e($skala['nama_kepsek'] ?? '') ?>" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">NIP Kepala Sekolah</label>
                     <input type="text" name="nip_kepsek" class="form-control" 
-                           value="<?= htmlspecialchars($skala['nip_kepsek'] ?? '') ?>" required>
+                           value="<?= e($skala['nip_kepsek'] ?? '') ?>" required>
                 </div>
                 
                 <hr class="my-4">
@@ -254,7 +259,7 @@ if (isset($_GET['edit_agenda_id'])) {
                 <div class="mb-3">
                     <label class="form-label">Tahun Pelajaran</label>
                     <input type="text" name="tahun_pelajaran" class="form-control" 
-                           value="<?= htmlspecialchars($taTahun) ?>" readonly>
+                           value="<?= e($taTahun) ?>" readonly>
                            <small class="text-muted">Mengikuti tahun ajaran aktif (master). Tidak dapat diubah manual.</small>
                 </div>
                 <div class="mb-3">
@@ -266,10 +271,41 @@ if (isset($_GET['edit_agenda_id'])) {
                 </div>
 
                 <hr class="my-4">
-                <h6 class="text-secondary fw-bold mb-3"><i class="fas fa-map-marked-alt"></i> Lokasi</h6>
+                <h6 class="text-secondary fw-bold mb-3"><i class="fas fa-map-marked-alt"></i> Lokasi & Kontak</h6>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">Alamat Sekolah</label>
+                            <textarea name="alamat_sekolah" class="form-control" rows="3" required><?= e($skala['alamat_sekolah'] ?? '') ?></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">No. Telepon</label>
+                            <input type="text" name="telepon" class="form-control"
+                                   value="<?= e($skala['telepon'] ?? '') ?>"
+                                   placeholder="Contoh: (0471) 324567">
+                        </div>
+                    </div>
+                </div>
                 <div class="mb-3">
-                    <label class="form-label">Alamat Sekolah</label>
-                    <textarea name="alamat_sekolah" class="form-control" rows="3" required><?= htmlspecialchars($skala['alamat_sekolah'] ?? '') ?></textarea>
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           value="<?= e($skala['email'] ?? '') ?>"
+                           placeholder="Contoh: sman4palopo@gmail.com">
+                    <small class="text-muted">No. Telp & Email ini akan tampil di kop surat cetak/PDF di bawah alamat.</small>
+                </div>
+
+                <hr class="my-4">
+                <h6 class="text-secondary fw-bold mb-3"><i class="fas fa-bullseye"></i> Visi & Misi</h6>
+                <div class="mb-3">
+                    <label class="form-label">Visi</label>
+                    <textarea name="visi" class="form-control" rows="3"><?= e($skala['visi'] ?? '') ?></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Misi</label>
+                    <textarea name="misi" class="form-control" rows="4"><?= e($skala['misi'] ?? '') ?></textarea>
+                    <small class="text-muted">Tulis satu misi per baris — setiap baris tampil sebagai poin di beranda.</small>
                 </div>
                 
                 <hr>
@@ -295,23 +331,23 @@ if (isset($_GET['edit_agenda_id'])) {
             <?php endif; ?>
 
             <!-- Form Tambah / Edit Agenda -->
-            <form method="POST" class="row g-2 align-items-end mb-4 pb-3 border-bottom">
+            <form method="POST" id="agenda-form" class="row g-2 align-items-end mb-4 pb-3 border-bottom">
                 <input type="hidden" name="id_agenda" value="<?= $edit_data['id'] ?? '' ?>">
 
                 <div class="col-md-4">
                     <label class="form-label">Judul Agenda <span class="text-danger">*</span></label>
                     <input type="text" name="judul" class="form-control" placeholder="Contoh: Rapat Koordinasi Guru" required
-                           value="<?= htmlspecialchars($edit_data['judul'] ?? '') ?>">
+                           value="<?= e($edit_data['judul'] ?? '') ?>">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Jam Mulai</label>
                     <input type="time" name="jam_mulai" class="form-control" 
-                           value="<?= htmlspecialchars($edit_data['jam_mulai'] ?? '07:30') ?>">
+                           value="<?= e($edit_data['jam_mulai'] ?? '07:30') ?>">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Jam Selesai</label>
                     <input type="time" name="jam_selesai" class="form-control" 
-                           value="<?= htmlspecialchars($edit_data['jam_selesai'] ?? '13:00') ?>">
+                           value="<?= e($edit_data['jam_selesai'] ?? '13:00') ?>">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Status</label>
@@ -346,7 +382,7 @@ if (isset($_GET['edit_agenda_id'])) {
                 <div class="col-md-12">
                     <label class="form-label">Deskripsi (opsional)</label>
                     <input type="text" name="deskripsi" class="form-control" placeholder="Contoh: Ruang Guru • Semua guru diharapkan hadir"
-                           value="<?= htmlspecialchars($edit_data['deskripsi'] ?? '') ?>">
+                           value="<?= e($edit_data['deskripsi'] ?? '') ?>">
                 </div>
                 <div class="col-md-12 mt-2">
                     <?php if ($edit_data): ?>
@@ -385,28 +421,28 @@ if (isset($_GET['edit_agenda_id'])) {
                         <?php $no = 1; while ($ag = mysqli_fetch_assoc($agenda_list)): ?>
                         <tr>
                             <td><?= $no++ ?></td>
-                            <td><strong><?= htmlspecialchars($ag['judul']) ?></strong></td>
-                            <td><?= htmlspecialchars($ag['jam_mulai']) ?> - <?= htmlspecialchars($ag['jam_selesai']) ?></td>
-                            <td><?= htmlspecialchars($ag['deskripsi'] ?? '-') ?></td>
+                            <td><strong><?= e($ag['judul']) ?></strong></td>
+                            <td><?= e($ag['jam_mulai']) ?> - <?= e($ag['jam_selesai']) ?></td>
+                            <td><?= e($ag['deskripsi'] ?? '-') ?></td>
                             <td>
                                 <span class="badge <?= $ag['status_label'] == 'Aktif' ? 'bg-success' : ($ag['status_label'] == 'Akan Datang' ? 'bg-warning text-dark' : ($ag['status_label'] == 'Selesai' ? 'bg-secondary' : 'bg-info text-dark')) ?>">
-                                    <?= htmlspecialchars($ag['status_label']) ?>
+                                    <?= e($ag['status_label']) ?>
                                 </span>
                             </td>
-                            <td><?= htmlspecialchars($ag['hari'] ?? '-') ?></td>
+                            <td><?= e($ag['hari'] ?? '-') ?></td>
                             <td>
                                 <?php
                                 $agk = $ag['kategori'] ?? 'semua';
                                 $agkBadge = $agk == 'guru' ? 'bg-primary' : ($agk == 'siswa' ? 'bg-info' : 'bg-secondary');
                                 ?>
-                                <span class="badge <?= $agkBadge ?>"><?= htmlspecialchars(ucfirst($agk)) ?></span>
+                                <span class="badge <?= $agkBadge ?>"><?= e(ucfirst($agk)) ?></span>
                             </td>
                             <td>
-                                <a href="pengaturan.php?edit_agenda_id=<?= $ag['id'] ?>" class="btn btn-sm btn-warning">
+                                <a href="pengaturan.php?edit_agenda_id=<?= $ag['id'] ?>#agenda-form" class="btn btn-sm btn-warning">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <a href="pengaturan.php?hapus_agenda=<?= $ag['id'] ?>" class="btn btn-sm btn-danger"
-                                   onclick="return siHapus('pengaturan.php?hapus_agenda=<?= $ag['id'] ?>', '<?= addslashes(htmlspecialchars($ag['judul'])) ?>')">
+                                   onclick="return siHapus('pengaturan.php?hapus_agenda=<?= $ag['id'] ?>', '<?= addslashes(e($ag['judul'])) ?>')">
                                     <i class="fas fa-trash"></i>
                                 </a>
                             </td>

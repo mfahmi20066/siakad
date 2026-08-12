@@ -1,4 +1,6 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../config/csrf.php';
 include '../config/koneksi.php';
 include '../config/mailer.php';
 
@@ -24,6 +26,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
 
 // Proses form submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    verifyCsrf();
     // Validasi input
     $nama_lengkap = mysqli_real_escape_string($koneksi, $_POST['nama_lengkap'] ?? '');
     $nisn = mysqli_real_escape_string($koneksi, $_POST['nisn'] ?? '');
@@ -105,7 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 Tim SPMB SMA Negeri 4 Palopo
                 ";
                 
-                kirimEmail($email, $subject, $body);
+                try {
+                    kirimEmail($email, $subject, $body);
+                } catch (\RuntimeException $e) {
+                    error_log("[SPMB Daftar] Gagal kirim email konfirmasi ke $email: " . $e->getMessage());
+                    // Tetap lanjutkan proses, jangan gagalkan pendaftaran
+                }
                 $success = "Pendaftaran berhasil! Nomor pendaftaran Anda: <strong>$no_pendaftaran</strong>";
                 $show_success = true;
             } else {
@@ -125,14 +133,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/siakad/assets/css/landing.css?v=1.0">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #F5F7FB; }
+        body { font-family: 'Roboto', sans-serif; background: #F5F7FB; }
         .form-section { max-width: 700px; margin: 0 auto; background: white; padding: 40px; border-radius: 18px; box-shadow: 0 8px 24px rgba(13, 37, 64, 0.08); }
         .form-title { color: #163A63; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .form-subtitle { color: #4A5568; margin-bottom: 32px; }
@@ -201,6 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php endif; ?>
         
         <form method="POST">
+            <?php echo csrf_field(); ?>
             <div class="form-group mb-3">
                 <label for="nama_lengkap">Nama Lengkap <span style="color: #E11D48;">*</span></label>
                 <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap" required>
@@ -274,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             while ($gel = mysqli_fetch_assoc($query_gelombang)):
                         ?>
                         <option value="<?php echo $gel['id']; ?>">
-                            <?php echo htmlspecialchars($gel['nama_gelombang']); ?>
+                            <?php echo e($gel['nama_gelombang']); ?>
                         </option>
                         <?php 
                             endwhile;
@@ -291,7 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             while ($jr = mysqli_fetch_assoc($query_jalur)):
                         ?>
                         <option value="<?php echo $jr['id']; ?>">
-                            <?php echo htmlspecialchars($jr['nama_jalur']); ?>
+                            <?php echo e($jr['nama_jalur']); ?>
                         </option>
                         <?php 
                             endwhile;

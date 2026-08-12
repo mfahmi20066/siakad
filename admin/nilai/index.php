@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -15,30 +15,37 @@ if ($filter_sem)   $where .= " AND n.semester = '$filter_sem'";
 // Memperbaiki query utama dengan melakukan JOIN kelas melalui tabel siswa (s.kelas_id)
 $data = mysqli_query($koneksi,
         "SELECT n.*, s.nama AS nama_siswa, s.nis,
-                m.nama_mapel, k.nama_kelas, k.tingkat
+                m.nama_mapel, k.nama_kelas, k.tingkat,
+                guru_map.nama_guru
          FROM nilai n
          JOIN siswa s ON n.siswa_id = s.id
          JOIN mata_pelajaran m ON n.mapel_id = m.id
          LEFT JOIN kelas k ON s.kelas_id = k.id
+         LEFT JOIN (
+             SELECT kmg.mapel_id, kmg.kelas_id, GROUP_CONCAT(g.nama SEPARATOR ', ') AS nama_guru
+             FROM kelas_mapel_guru kmg
+             JOIN guru g ON g.id = kmg.guru_id
+             GROUP BY kmg.mapel_id, kmg.kelas_id
+         ) guru_map ON guru_map.mapel_id = n.mapel_id AND guru_map.kelas_id = s.kelas_id
          $where
          ORDER BY k.tingkat, k.nama_kelas, s.nama, m.nama_mapel");
 
 $kelas_list = mysqli_query($koneksi,
-              "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+              "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-star text-gold me-2"></i>Nilai Siswa</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-star text-icon me-2"></i>Nilai Siswa</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -52,7 +59,7 @@ $kelas_list = mysqli_query($koneksi,
                         <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                         <option value="<?= $k['id'] ?>"
                             <?= $filter_kelas == $k['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($k['nama_kelas']) ?>
+                            <?= e($k['nama_kelas']) ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -103,6 +110,7 @@ $kelas_list = mysqli_query($koneksi,
                             <th>Nama Siswa</th>
                             <th>Kelas</th>
                             <th>Mata Pelajaran</th>
+                            <th>Guru</th>
                             <th class="text-center">Harian</th>
                             <th class="text-center">UTS</th>
                             <th class="text-center">UAS</th>
@@ -137,20 +145,21 @@ $kelas_list = mysqli_query($koneksi,
                                 $kelas_aktif = $nama_k;
                     ?>
                         <tr class="table-primary">
-                            <td colspan="12">
+                            <td colspan="13">
                                 <i class="fas fa-chalkboard"></i>
-                                <strong>Kelas <?= htmlspecialchars($nama_k) ?></strong>
+                                <strong>Kelas <?= e($nama_k) ?></strong>
                             </td>
                         </tr>
                     <?php endif; ?>
                         <tr>
                             <td><?= $no++ ?></td>
-                            <td class="text-nowrap"><?= htmlspecialchars($r['nis']) ?></td>
-                            <td class="text-nowrap"><?= htmlspecialchars($r['nama_siswa']) ?></td>
+                            <td class="text-nowrap"><?= e($r['nis']) ?></td>
+                            <td class="text-nowrap"><?= e($r['nama_siswa']) ?></td>
                             <td class="text-nowrap">
-                                <span class="badge bg-info text-dark"><?= htmlspecialchars($nama_k) ?></span>
+                                <span class="badge bg-info text-dark"><?= e($nama_k) ?></span>
                             </td>
-                            <td class="text-nowrap"><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                            <td class="text-nowrap"><?= e($r['nama_mapel']) ?></td>
+                            <td class="text-nowrap"><?= e($r['nama_guru'] ?? '-') ?></td>
                             <td class="text-center"><?= number_format((float)$harian, 2) ?></td>
                             <td class="text-center"><?= number_format((float)$uts, 2) ?></td>
                             <td class="text-center"><?= number_format((float)$uas, 2) ?></td>
@@ -172,7 +181,7 @@ $kelas_list = mysqli_query($koneksi,
                                 </span>
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-secondary"><?= htmlspecialchars($sem) ?></span>
+                                <span class="badge bg-secondary"><?= e($sem) ?></span>
                             </td>
                             <td class="text-center text-nowrap">
                                 <a href="edit.php?id=<?= $r['id'] ?>"
@@ -190,7 +199,7 @@ $kelas_list = mysqli_query($koneksi,
                     else:
                     ?>
                         <tr>
-                            <td colspan="12" class="text-center text-muted py-3">Tidak ada data nilai yang ditemukan.</td>
+                            <td colspan="13" class="text-center text-muted py-3">Tidak ada data nilai yang ditemukan.</td>
                         </tr>
                     <?php endif; ?>
                     </tbody>

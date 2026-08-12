@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -111,12 +111,12 @@ $total_mapel  = count($array_mapel);
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-chalkboard-teacher text-gold me-2"></i>Detail Guru</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-chalkboard-teacher text-icon me-2"></i>Detail Guru</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -141,7 +141,7 @@ $total_mapel  = count($array_mapel);
                          data-bs-toggle="modal" data-bs-target="#modalFoto"
                          data-src="<?= $foto_g_src ?>"
                          title="Klik untuk memperbesar">
-                    <h5><?= htmlspecialchars($data['nama'] ?? 'Tidak Diketahui') ?></h5>
+                    <h5><?= e($data['nama'] ?? 'Tidak Diketahui') ?></h5>
                     <p class="text-muted mb-1">NIP: <strong><?= $data['nip'] ?? '-' ?></strong></p>
                     <span class="badge bg-success">Guru</span>
                     <hr>
@@ -162,7 +162,7 @@ $total_mapel  = count($array_mapel);
                         </tr>
                         <tr>
                             <td><strong>Tempat Lahir</strong></td>
-                            <td>: <?= htmlspecialchars($data['tempat_lahir'] ?? '-') ?></td>
+                            <td>: <?= e($data['tempat_lahir'] ?? '-') ?></td>
                         </tr>
                         <tr>
                             <td><strong>Tanggal Lahir</strong></td>
@@ -174,12 +174,12 @@ $total_mapel  = count($array_mapel);
                         </tr>
                         <tr>
                             <td><strong>Username</strong></td>
-                            <td>: <?= htmlspecialchars($username) ?></td>
+                            <td>: <?= e($username) ?></td>
                         </tr>
                     </table>
                     <p class="text-muted small">
                         <i class="fas fa-map-marker-alt"></i>
-                        <?= htmlspecialchars($data['alamat'] ?? '-') ?>
+                        <?= e($data['alamat'] ?? '-') ?>
                     </p>
                     <a href="edit.php?id=<?= $id ?>" class="btn btn-warning btn-sm w-100">
                         <i class="fas fa-edit"></i> Edit Data
@@ -218,7 +218,7 @@ $total_mapel  = count($array_mapel);
                     <?php if ($total_mapel > 0): ?>
                         <?php foreach ($array_mapel as $m): ?>
                         <li class="list-group-item d-flex justify-content-between">
-                            <?= htmlspecialchars($m['nama_mapel']) ?>
+                            <?= e($m['nama_mapel']) ?>
                             <span class="badge bg-secondary"><?= $m['kode_mapel'] ?></span>
                         </li>
                         <?php endforeach; ?>
@@ -237,6 +237,7 @@ $total_mapel  = count($array_mapel);
                 </div>
                 <div class="card-body">
                     <?php if ($total_jadwal > 0): ?>
+                    <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
@@ -255,7 +256,7 @@ $total_mapel  = count($array_mapel);
                             <td>
                                 <span class="badge bg-secondary"><?= $j['hari'] ?></span>
                             </td>
-                            <td><?= htmlspecialchars($j['nama_mapel']) ?></td>
+                            <td><?= e($j['nama_mapel']) ?></td>
                             <td>
                                 <span class="badge bg-info"><?= $j['nama_kelas'] ?></span>
                             </td>
@@ -265,6 +266,7 @@ $total_mapel  = count($array_mapel);
                         <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </div>
                     <?php else: ?>
                     <p class="text-muted">Belum ada jadwal mengajar.</p>
                     <?php endif; ?>

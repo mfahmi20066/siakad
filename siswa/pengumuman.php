@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 cekSiswa();
@@ -12,12 +12,12 @@ $data = mysqli_query($koneksi,
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_siswa.php'; ?>
+<?php include '../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_siswa.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-bullhorn text-gold me-2"></i>Pengumuman Sekolah</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-bullhorn text-icon me-2"></i>Pengumuman Sekolah</h4>
     </div>
 
     <?php if ($data && mysqli_num_rows($data) > 0): ?>
@@ -27,7 +27,7 @@ $data = mysqli_query($koneksi,
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h6 class="card-title mb-0">
                         <i class="fas fa-bullhorn text-primary"></i>
-                        <?= htmlspecialchars($r['judul']) ?>
+                        <?= e($r['judul']) ?>
                     </h6>
                     <span class="badge bg-light text-dark ms-2 text-nowrap">
                         <i class="fas fa-calendar"></i>
@@ -36,10 +36,10 @@ $data = mysqli_query($koneksi,
                 </div>
                 <small class="text-muted d-block mb-2">
                     <i class="fas fa-user-shield"></i>
-                    Diumumkan oleh: <?= htmlspecialchars($r['admin']) ?>
+                    Diumumkan oleh: <?= e($r['admin']) ?>
                 </small>
                 <p class="card-text mb-0">
-                    <?= nl2br(htmlspecialchars($r['isi'])) ?>
+                    <?= nl2br(e($r['isi'])) ?>
                 </p>
             </div>
         </div>

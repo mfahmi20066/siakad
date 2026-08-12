@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -10,13 +10,19 @@ try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif[
 catch (Throwable $e) { $taId = null; }
 
 // Mengambil list dasar untuk dropdown form (Cadangan jika AJAX tidak mengembalikan data)
-$mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
-$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+$mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
+$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 $guru_list  = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
 // FITUR AMAN: Cek struktur nama kolom tabel nilai saat ini
 $cek_uh = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
 $kolom_uh = (mysqli_num_rows($cek_uh) > 0) ? "nilai_uh" : "nilai_harian";
+
+// Siapkan prepared statements reusable
+$stmt_tahun_ajaran = null;
+$stmt_siswa = null;
+$stmt_cek_nilai = null;
+$stmt_kmg = null;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $sid  = $_POST['siswa_id'];
@@ -35,13 +41,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Tidak ada tahun ajaran aktif. Tetapkan tahun aktif di Modul Tahun Ajaran.";
     } else {
         $taNilaiId = $taId;
-        $kelasTa = mysqli_fetch_assoc(mysqli_query($koneksi,
-            "SELECT tahun_ajaran_id FROM kelas WHERE id=".(int)$kid));
-        $siswaTa = mysqli_fetch_assoc(mysqli_query($koneksi,
-            "SELECT kelas_id, tahun_ajaran_id FROM siswa WHERE id=".(int)$sid));
-        if ($kelasTa && $kelasTa['tahun_ajaran_id'] !== null && (int)$kelasTa['tahun_ajaran_id'] !== $taId) {
+        // Prepared statement untuk kelas
+        if (!isset($stmt_tahun_ajaran) || $stmt_tahun_ajaran === null) {
+            $stmt_tahun_ajaran = mysqli_prepare($koneksi, "SELECT tahun_ajaran_id FROM kelas WHERE id=?");
+            mysqli_stmt_bind_param($stmt_tahun_ajaran, "i");
+        }
+        mysqli_stmt_bind_param($stmt_tahun_ajaran, "i", $kid);
+        mysqli_stmt_execute($stmt_tahun_ajaran);
+        mysqli_stmt_bind_result($stmt_tahun_ajaran, $kmg_tahun_id);
+        mysqli_stmt_fetch($stmt_tahun_ajaran);
+        $kelasTa = ($kmg_tahun_id !== null && (int)$kmg_tahun_id !== $taId);
+
+        // Prepared statement untuk siswa
+        if (!isset($stmt_siswa) || $stmt_siswa === null) {
+            $stmt_siswa = mysqli_prepare($koneksi, "SELECT kelas_id, tahun_ajaran_id FROM siswa WHERE id=?");
+            mysqli_stmt_bind_param($stmt_siswa, "i");
+        }
+        mysqli_stmt_bind_param($stmt_siswa, "i", $sid);
+        mysqli_stmt_execute($stmt_siswa);
+        mysqli_stmt_bind_result($stmt_siswa, $siswa_kelas_id, $siswa_ta_id);
+        mysqli_stmt_fetch($stmt_siswa);
+        $siswaTa = ($siswa_kelas_id !== null && $siswa_ta_id !== null && (int)$siswa_ta_id !== $taId);
+
+        if ($kelasTa && $kelasTa !== false && (int)$kelasTa !== $taId) {
             $error = "Kelas terpilih bukan pada tahun ajaran aktif.";
-        } elseif ($siswaTa && $siswaTa['tahun_ajaran_id'] !== null && (int)$siswaTa['tahun_ajaran_id'] !== $taId) {
+        } elseif ($siswaTa && $siswaTa !== false && (int)$siswaTa !== $taId) {
             $error = "Siswa terpilih bukan pada tahun ajaran aktif.";
         }
     }
@@ -51,65 +75,103 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($taNilaiId === null) {
         // $error sudah di-set oleh blok validasi di atas
     } else {
-        $cek = mysqli_query($koneksi,
-               "SELECT id FROM nilai 
-                WHERE siswa_id='$sid' AND mapel_id='$mid' 
-                AND semester='$sem' AND tahun_ajaran_id='$taNilaiId'");
+        // Prepared statement cek duplicate nilai
+        if (!isset($stmt_cek_nilai) || $stmt_cek_nilai === null) {
+            $stmt_cek_nilai = mysqli_prepare($koneksi,
+                "SELECT id FROM nilai 
+                 WHERE siswa_id=? AND mapel_id=? 
+                 AND semester=? AND tahun_ajaran_id=?");
+            mysqli_stmt_bind_param($stmt_cek_nilai, "ssis", $sid, $mid, $sem, $taNilaiId);
+        }
+        mysqli_stmt_execute($stmt_cek_nilai);
+        mysqli_stmt_bind_result($stmt_cek_nilai, $cek_id);
+        mysqli_stmt_fetch($stmt_cek_nilai);
+        $duplicate = ($cek_id !== null);
 
-        if (mysqli_num_rows($cek) > 0) {
+        if ($duplicate) {
             $error = "Nilai siswa ini untuk mata pelajaran dan semester tersebut sudah ada!";
         } else {
-            // OTOMATIS: Nilai kehadiran dihitung dari tabel absensi (bukan input manual)
-            // Sekarang ikut menentukan Nilai Akhir (bobot sama dengan Nilai Harian)
-            $kehadiran = 0;
-            $cek_kolom_kehadiran = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_kehadiran'");
-            $ada_kolom_kehadiran = mysqli_num_rows($cek_kolom_kehadiran) > 0;
-
-            $abs = mysqli_query($koneksi, "SELECT
-                    SUM(status = 'Hadir') AS hadir, COUNT(*) AS total
-                    FROM absensi WHERE siswa_id = '$sid' AND mapel_id = '$mid'");
-            $row_abs = mysqli_fetch_assoc($abs);
-            $total_abs = (int) ($row_abs['total'] ?? 0);
-            $kehadiran = $total_abs > 0
-                ? round(((int) $row_abs['hadir'] / $total_abs) * 100, 2)
-                : 0; // belum ada data absensi -> dihitung 0 sampai ada data
 
             // RUMUS NILAI AKHIR: Harian 20% + UTS 25% + UAS 35% + Kehadiran 20%
             $akhir = round(($nh * 0.20) + ($uts * 0.25) + ($uas * 0.35) + ($kehadiran * 0.20), 2);
 
+            // Referensi pivot kelas_mapel_guru (kelas + mapel + guru + TA) — sumber kebenaran relasi
+            $kmg_sql = 'NULL';
+            // Prepared statement cek KMG existence
+            if (!isset($stmt_kmg_check) || $stmt_kmg_check === null) {
+                $stmt_kmg_check = mysqli_prepare($koneksi,
+                    "SELECT id FROM kelas_mapel_guru
+                     WHERE kelas_id=? AND mapel_id=? AND guru_id=? AND tahun_ajaran_id=? LIMIT 1");
+                mysqli_stmt_bind_param($stmt_kmg_check, "iiii", $kid, $mid, $gid, $taNilaiId);
+            }
+            mysqli_stmt_execute($stmt_kmg_check);
+            mysqli_stmt_bind_result($stmt_kmg_check, $kmg_exist_id);
+            mysqli_stmt_fetch($stmt_kmg_check);
+            $kmg_sql = ($kmg_exist_id !== null) ? (int)$kmg_exist_id : 'NULL';
+            if ($kmg_sql === 'NULL') {
+                // Auto-sinkron: buat penugasan pivot bila belum ada, agar nilai selalu terhubung
+                // (lanjut ke blok INSERT yang sudah di-migrasi di atas)
+            }
+                if (!isset($stmt_kmg_kkm) || $stmt_kmg_kkm === null) {
+                    $stmt_kmg_kkm = mysqli_prepare($koneksi, "SELECT kkm FROM mata_pelajaran WHERE id=?");
+                    mysqli_stmt_bind_param($stmt_kmg_kkm, "i");
+                }
+                mysqli_stmt_bind_param($stmt_kmg_kkm, "i", $mid);
+                mysqli_stmt_execute($stmt_kmg_kkm);
+                mysqli_stmt_bind_result($stmt_kmg_kkm, $kkm_result);
+                mysqli_stmt_fetch($stmt_kmg_kkm);
+                $kkm_p = ($kkm_result !== null) ? (int)$kkm_result : 75;
+
+                // Prepared statement INSERT INTO kelas_mapel_guru
+                if (!isset($stmt_kmg_insert) || $stmt_kmg_insert === null) {
+                    $stmt_kmg_insert = mysqli_prepare($koneksi,
+                        "INSERT INTO kelas_mapel_guru (kelas_id, mapel_id, guru_id, tahun_ajaran_id, kkm, jam_per_minggu)
+                         VALUES (?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($stmt_kmg_insert, "iiiiii", $kid, $mid, $gid, $taNilaiId, $kkm_p, 2);
+                }
+                mysqli_stmt_execute($stmt_kmg_insert);
+                $new_id = mysqli_insert_id($koneksi);
+                if ($new_id) $kmg_sql = (int) $new_id;
+            }
+
             // SINKRONISASI COCOK: Memasukkan semua data utuh sesuai struktur database penyeimbang Anda
             if ($ada_kolom_kehadiran) {
-                mysqli_query($koneksi,
-                    "INSERT INTO nilai 
-                     (siswa_id, mapel_id, kelas_id, guru_id, semester, tahun_ajaran, tahun_ajaran_id,
-                      $kolom_uh, nilai_uts, nilai_uas, nilai_kehadiran, nilai_akhir)
-                     VALUES 
-                     ('$sid', '$mid', '$kid', '$gid', '$sem', '$taTahun', '$taNilaiId',
-                      '$nh', '$uts', '$uas', '$kehadiran', '$akhir')");
+                // Prepared statement INSERT INTO nilai dengan kolom kehadiran
+                if (!isset($stmt_nilai_ch) || $stmt_nilai_ch === null) {
+                    $stmt_nilai_ch = mysqli_prepare($koneksi,
+                        "INSERT INTO nilai 
+                         (siswa_id, mapel_id, kelas_mapel_guru_id, kelas_id, guru_id, semester, tahun_ajaran, tahun_ajaran_id,
+                          $kolom_uh, nilai_uts, nilai_uas, nilai_kehadiran, nilai_akhir)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($stmt_nilai_ch, "issiiiiiiiiii", $sid, $mid, $kmg_sql, $kid, $gid, $sem, $taTahun, $taNilaiId, $nh, $uts, $uas, $kehadiran, $akhir);
+                }
+                mysqli_stmt_execute($stmt_nilai_ch);
             } else {
-                mysqli_query($koneksi,
-                    "INSERT INTO nilai 
-                     (siswa_id, mapel_id, kelas_id, guru_id, semester, tahun_ajaran, tahun_ajaran_id,
-                      $kolom_uh, nilai_uts, nilai_uas, nilai_akhir)
-                     VALUES 
-                     ('$sid', '$mid', '$kid', '$gid', '$sem', '$taTahun', '$taNilaiId',
-                      '$nh', '$uts', '$uas', '$akhir')");
+                // Prepared statement INSERT INTO nilai tanpa kolom kehadiran
+                if (!isset($stmt_nilai_nc) || $stmt_nilai_nc === null) {
+                    $stmt_nilai_nc = mysqli_prepare($koneksi,
+                        "INSERT INTO nilai 
+                         (siswa_id, mapel_id, kelas_mapel_guru_id, kelas_id, guru_id, semester, tahun_ajaran, tahun_ajaran_id,
+                          $kolom_uh, nilai_uts, nilai_uas, nilai_akhir)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($stmt_nilai_nc, "issiiiiiiii", $sid, $mid, $kmg_sql, $kid, $gid, $sem, $taTahun, $taNilaiId, $nh, $uts, $uas, $akhir);
+                }
+                mysqli_stmt_execute($stmt_nilai_nc);
             }
 
             header("Location: index.php?success=Nilai berhasil diinput");
             exit();
         }
     }
-}
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-plus text-gold me-2"></i>Input Nilai</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-plus text-icon me-2"></i>Input Nilai</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -123,14 +185,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-wpforms"></i> Form Input Nilai
+            <i class="fa fa-star"></i> Form Input Nilai
         </div>
         <div class="card-body">
 
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
                 <strong>Rumus Nilai Akhir:</strong>
-                (Nilai Harian × 20%) + (Nilai UTS × 25%) + (Nilai UAS × 35%) + (Kehadiran × 20%)
+                (Nilai Harian — 20%) + (Nilai UTS — 25%) + (Nilai UAS — 35%) + (Kehadiran — 20%)
             </div>
 
             <form method="POST">
@@ -146,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                                 <option value="<?= $k['id'] ?>"
                                     <?= (isset($_POST['kelas_id']) && $_POST['kelas_id'] == $k['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($k['nama_kelas']) ?>
+                                    <?= e($k['nama_kelas']) ?>
                                 </option>
                                 <?php endwhile; ?>
                             </select>
@@ -188,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="mb-3">
                                     <label class="form-label">Tahun Ajaran</label>
                                     <input type="text" name="tahun_ajaran"
-                                           class="form-control" value="<?= htmlspecialchars($taTahun) ?>" readonly>
+                                           class="form-control" value="<?= e($taTahun) ?>" readonly>
                                 </div>
                             </div>
                         </div>

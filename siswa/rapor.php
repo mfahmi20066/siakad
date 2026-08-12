@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_tahun_ajaran.php';
@@ -63,7 +63,7 @@ if ($id_kelas) {
     }
 }
 
-// ── DAFTAR RAPOR ─────────────────────────────────────────────
+// â”€â”€ DAFTAR RAPOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $daftar_rapor = mysqli_query($koneksi,
     "SELECT r.*, k.nama_kelas
      FROM rapor r
@@ -71,7 +71,7 @@ $daftar_rapor = mysqli_query($koneksi,
      WHERE r.siswa_id = '$sid'
      ORDER BY r.tahun_ajaran_id DESC, r.semester ASC");
 
-// ── DETAIL RAPOR ─────────────────────────────────────────────
+// â”€â”€ DETAIL RAPOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $nilai_rapor  = null;
 $info_rapor   = null;
 $rekap_absen  = null;
@@ -111,13 +111,19 @@ if ($mode === 'detail') {
 include '../includes/header.php';
 ?>
 <?php include '../includes/sidebar_siswa.php'; ?>
-
-<div class="main-content">
 <?php include '../includes/topbar_siswa.php'; ?>
 
+
+<div class="main-content">
 <div class="page-header">
-  <h4><i class="fas fa-file-alt text-gold me-2"></i>Nilai Rapor</h4>
+  <h4><i class="fas fa-file-alt text-icon me-2"></i>Nilai Rapor</h4>
 </div>
+
+<?php if (isset($_GET['error'])): ?>
+<div class="alert alert-danger alert-auto">
+    <i class="fas fa-exclamation-circle"></i> <?= e($_GET['error']) ?>
+</div>
+<?php endif; ?>
 
 <div class="container-fluid">
 
@@ -138,10 +144,10 @@ include '../includes/header.php';
               </h6>
               <small class="text-muted">
                 <i class="fas fa-calendar me-1"></i>
-                Tahun Pelajaran <?= htmlspecialchars($r['tahun_ajaran']) ?>
+                Tahun Pelajaran <?= e($r['tahun_ajaran']) ?>
                 &nbsp;|&nbsp;
                 <i class="fas fa-school me-1"></i>
-                <?= htmlspecialchars($r['nama_kelas'] ?? $nama_kelas) ?>
+                <?= e($r['nama_kelas'] ?? $nama_kelas) ?>
               </small>
               <br>
               <span class="badge bg-<?= $r['status']=='final' ? 'success' : 'warning' ?> mt-1">
@@ -169,10 +175,16 @@ include '../includes/header.php';
     <a href="rapor.php" class="btn btn-secondary btn-sm">
       <i class="fas fa-arrow-left me-1"></i>Kembali
     </a>
+    <?php if (strtolower(trim($info_rapor['status'] ?? 'draft')) === 'final'): ?>
     <a href="cetak_rapor.php?semester=<?= urlencode($fix_semester) ?>&ta=<?= urlencode($fix_ta) ?>"
        target="_blank" class="btn btn-danger btn-sm">
       <i class="fas fa-print me-1"></i>Cetak / Download PDF
     </a>
+    <?php else: ?>
+    <span class="text-muted small">
+      <i class="fas fa-lock me-1"></i>Cetak tersedia setelah rapor difinalisasi
+    </span>
+    <?php endif; ?>
   </div>
 
   <div class="card shadow-sm" id="rapor-cetak">
@@ -182,7 +194,7 @@ include '../includes/header.php';
         <h5 class="fw-bold mb-0">RAPOR SISWA</h5>
         <h6 class="fw-bold">SMA NEGERI 4 PALOPO</h6>
         <p class="text-muted mb-0" style="font-size:13px;">
-          Semester <?= htmlspecialchars($fix_semester) ?> | Tahun Pelajaran <?= htmlspecialchars($fix_ta) ?>
+          Semester <?= e($fix_semester) ?> | Tahun Pelajaran <?= e($fix_ta) ?>
         </p>
       </div>
 
@@ -191,16 +203,16 @@ include '../includes/header.php';
       <div class="row mb-4">
         <div class="col-md-6">
           <table class="table table-sm table-borderless" style="font-size:13px;">
-            <tr><td style="width:130px;">Nama Siswa</td><td>: <strong><?= htmlspecialchars($siswa['nama_lengkap'] ?? $siswa['nama'] ?? '-') ?></strong></td></tr>
-            <tr><td>NIS</td><td>: <?= htmlspecialchars($siswa['nis'] ?? $siswa['username'] ?? '-') ?></td></tr>
-            <tr><td>Kelas</td><td>: <?= htmlspecialchars($nama_kelas) ?></td></tr>
+            <tr><td style="width:130px;">Nama Siswa</td><td>: <strong><?= e($siswa['nama_lengkap'] ?? $siswa['nama'] ?? '-') ?></strong></td></tr>
+            <tr><td>NIS</td><td>: <?= e($siswa['nis'] ?? $siswa['username'] ?? '-') ?></td></tr>
+            <tr><td>Kelas</td><td>: <?= e($nama_kelas) ?></td></tr>
           </table>
         </div>
         <div class="col-md-6">
           <table class="table table-sm table-borderless" style="font-size:13px;">
-            <tr><td style="width:130px;">Wali Kelas</td><td>: <?= htmlspecialchars($nama_wali ?? '-') ?></td></tr>
-            <tr><td>Tahun Ajaran</td><td>: <?= htmlspecialchars($fix_ta) ?></td></tr>
-            <tr><td>Semester</td><td>: <?= htmlspecialchars($fix_semester) ?></td></tr>
+            <tr><td style="width:130px;">Wali Kelas</td><td>: <?= e($nama_wali ?? '-') ?></td></tr>
+            <tr><td>Tahun Ajaran</td><td>: <?= e($fix_ta) ?></td></tr>
+            <tr><td>Semester</td><td>: <?= e($fix_semester) ?></td></tr>
           </table>
         </div>
       </div>
@@ -234,7 +246,7 @@ include '../includes/header.php';
             ?>
             <tr>
               <td class="text-center"><?= $no++ ?></td>
-              <td><?= htmlspecialchars($n['nama_mapel']) ?></td>
+              <td><?= e($n['nama_mapel']) ?></td>
               <td class="text-center"><?= $nh ?></td>
               <td class="text-center"><?= $nu ?></td>
               <td class="text-center"><?= $nua ?></td>
@@ -298,7 +310,7 @@ include '../includes/header.php';
       <div class="mb-4">
         <h6 class="fw-bold mb-2"><i class="fas fa-comment me-1"></i>Catatan Wali Kelas</h6>
         <div class="p-3 bg-light rounded" style="font-size:13px;">
-          <?= nl2br(htmlspecialchars($info_rapor['catatan'])) ?>
+          <?= nl2br(e($info_rapor['catatan'])) ?>
         </div>
       </div>
       <?php endif; ?>
@@ -307,7 +319,10 @@ include '../includes/header.php';
         <div class="col-md-4 text-center">
           <p style="font-size:12px;">Orang Tua / Wali</p>
           <div style="height:60px;"></div>
-          <p style="font-size:12px;">(__________________________)</p>
+          <p style="font-size:12px;">
+            <strong><?= e($siswa['nama_ortu'] ?? '-') ?></strong>
+            <?php if (!empty($siswa['no_hp_ortu'])): ?><br><small><?= e($siswa['no_hp_ortu']) ?></small><?php endif; ?>
+          </p>
         </div>
         <div class="col-md-4"></div>
         <div class="col-md-4 text-center">
@@ -316,7 +331,7 @@ include '../includes/header.php';
           </p>
           <div style="height:60px;"></div>
           <p style="font-size:12px;">
-            <strong><?= htmlspecialchars($nama_wali ?? '-') ?></strong>
+            <strong><?= e($nama_wali ?? '-') ?></strong>
           </p>
         </div>
       </div>

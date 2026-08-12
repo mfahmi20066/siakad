@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -43,12 +43,12 @@ $top_pelanggaran = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-chart-pie text-gold me-2"></i>Statistik</h4>
+        <div class="page-header d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-chart-pie text-icon me-2"></i>Statistik</h4>
         <a href="export.php?jenis=statistik" class="btn btn-success btn-sm">
             <i class="fas fa-file-excel"></i> Export Excel
         </a>
@@ -74,7 +74,7 @@ $top_pelanggaran = mysqli_query($koneksi,
                                 ?>
                                 <tr>
                                     <td>
-                                        <span class="badge bg-<?= $warna[$r['status']] ?? 'secondary' ?>"><?= htmlspecialchars($r['status']) ?></span>
+                                        <span class="badge bg-<?= $warna[$r['status']] ?? 'secondary' ?>"><?= e($r['status']) ?></span>
                                     </td>
                                     <td class="text-end">
                                         <strong><?= (int) $r['jml'] ?></strong>
@@ -138,8 +138,8 @@ $top_pelanggaran = mysqli_query($koneksi,
                                     <?php $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa']; ?>
                                 <tr>
                                     <td>
-                                        <strong><?= htmlspecialchars($nama_s ?: '-') ?></strong>
-                                        <br><small class="text-muted">NIS: <?= htmlspecialchars($r['nis'] ?: '-') ?></small>
+                                        <strong><?= e($nama_s ?: '-') ?></strong>
+                                        <br><small class="text-muted">NIS: <?= e($r['nis'] ?: '-') ?></small>
                                     </td>
                                     <td class="text-end"><span class="badge bg-warning"><?= (int) $r['jml'] ?> prestasi</span></td>
                                 </tr>
@@ -167,8 +167,8 @@ $top_pelanggaran = mysqli_query($koneksi,
                                     <?php $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa']; ?>
                                 <tr>
                                     <td>
-                                        <strong><?= htmlspecialchars($nama_s ?: '-') ?></strong>
-                                        <br><small class="text-muted">NIS: <?= htmlspecialchars($r['nis'] ?: '-') ?></small>
+                                        <strong><?= e($nama_s ?: '-') ?></strong>
+                                        <br><small class="text-muted">NIS: <?= e($r['nis'] ?: '-') ?></small>
                                     </td>
                                     <td class="text-end"><span class="badge bg-danger"><?= (int) $r['total_poin'] ?> poin</span></td>
                                 </tr>

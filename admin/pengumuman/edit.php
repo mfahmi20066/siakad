@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -41,12 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Pengumuman</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Pengumuman</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -62,20 +62,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Judul Pengumuman</label>
                             <input type="text" name="judul" class="form-control"
-                                   value="<?= htmlspecialchars($data['judul'] ?? '') ?>"
+                                   value="<?= e($data['judul'] ?? '') ?>"
                                    required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Isi Pengumuman</label>
                             <textarea name="isi" class="form-control" rows="8"
-                                      required><?= htmlspecialchars($data['isi'] ?? '') ?></textarea>
+                                      required><?= e($data['isi'] ?? '') ?></textarea>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Tanggal</label>
                             <input type="date" name="tanggal" class="form-control"
-                                   value="<?= htmlspecialchars($data['tanggal'] ?? '') ?>" required>
+                                   value="<?= e($data['tanggal'] ?? '') ?>" required>
                         </div>
 
                     </div>
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <small class="text-muted">Dibuat oleh</small>
                             <div class="fw-bold">
                                 <i class="fas fa-user-shield text-danger"></i>
-                                <?= htmlspecialchars($admin_name) ?>
+                                <?= e($admin_name) ?>
                             </div>
                         </div>
                     </div>

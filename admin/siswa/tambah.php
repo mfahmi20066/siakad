@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';
@@ -10,7 +10,7 @@ $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
 
-$kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+$kelas = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nis       = mysqli_real_escape_string($koneksi, $_POST['nis']);
@@ -26,13 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tgl       = $_POST['tanggal_lahir'];
     $alamat    = mysqli_real_escape_string($koneksi, $_POST['alamat']);
     $hp        = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
+    $nama_ortu = mysqli_real_escape_string($koneksi, trim($_POST['nama_ortu'] ?? ''));
+    $hp_ortu   = mysqli_real_escape_string($koneksi, trim($_POST['no_hp_ortu'] ?? ''));
     $kelas_id  = $_POST['kelas_id'];
     $ta        = mysqli_real_escape_string($koneksi, $_POST['tahun_ajaran']);
     $username  = mysqli_real_escape_string($koneksi, $_POST['username']);
     $password  = hashPassword($_POST['password']);
     $foto_nama = '';
 
-    // ── Tentukan tahun_ajaran_id dari KELAS terpilih (validasi relasional) ──
+    // â”€â”€ Tentukan tahun_ajaran_id dari KELAS terpilih (validasi relasional) â”€â”€
     // Jangan percaya nilai $_POST['tahun_ajaran']. Kelas adalah sumber kebenaran relasi.
     $kls_id        = !empty($_POST['kelas_id']) ? (int)$_POST['kelas_id'] : 0;
     $taSiswaId     = null;
@@ -58,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // ── Upload Foto ───────────────────────────────────────
+    // â”€â”€ Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (!empty($_FILES['foto']['name'])) {
         $file      = $_FILES['foto'];
         $ekstensi  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -95,10 +97,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Simpan ke tabel siswa (user_id dihapus agar tidak error Unknown Column)
         mysqli_query($koneksi, "INSERT INTO siswa 
                                 (nis, nama, nama_lengkap, jenis_kelamin, tempat_lahir, 
-                                tanggal_lahir, alamat, no_hp, kelas_id, tahun_ajaran, tahun_ajaran_id, foto) 
+                                tanggal_lahir, alamat, no_hp, nama_ortu, no_hp_ortu, kelas_id, tahun_ajaran, tahun_ajaran_id, tahun_masuk, foto) 
                                 VALUES 
                                 ('$nis', '$nama', '$nama', '$jk', '$ttl', 
-                                " . (!empty($tgl) ? "'$tgl'" : "NULL") . ", '$alamat', '$hp', '$kls_id', '$taSiswaTxt', '$taSiswaId', '$foto_nama')");
+                                " . (!empty($tgl) ? "'$tgl'" : "NULL") . ", '$alamat', '$hp', " . (!empty($nama_ortu) ? "'$nama_ortu'" : "NULL") . ", " . (!empty($hp_ortu) ? "'$hp_ortu'" : "NULL") . ", '$kls_id', '$taSiswaTxt', '$taSiswaId', " . ($taSiswaTxt ? "'" . (int) explode('/', $taSiswaTxt)[0] . "'" : "NULL") . ", '$foto_nama')");
+
+        // Hubungkan akun users yang baru dibuat ke siswa (id_ref sebagai penghubung, pola sama dengan guru)
+        $siswa_id_baru = mysqli_insert_id($koneksi);
+        if ($siswa_id_baru) {
+            mysqli_query($koneksi, "UPDATE users SET id_ref='$siswa_id_baru' 
+                                    WHERE username='$username' AND role='siswa'");
+        }
 
         // Notifikasi ke admin bahwa ada data siswa baru
         if (!function_exists('notifikasi_ke_role')) {
@@ -115,12 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-user-plus text-gold me-2"></i>Tambah Siswa</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user-plus text-icon me-2"></i>Tambah Siswa</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -180,6 +189,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <input type="text" name="no_hp" class="form-control"
                                    placeholder="08xxxxxxxxxx">
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Orang Tua / Wali</label>
+                            <input type="text" name="nama_ortu" class="form-control"
+                                   placeholder="Nama orang tua/wali siswa">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No. HP Orang Tua / Wali</label>
+                            <input type="text" name="no_hp_ortu" class="form-control"
+                                   placeholder="08xxxxxxxxxx">
+                        </div>
                     </div>
 
                     <div class="col-md-6">
@@ -199,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Tahun Ajaran</label>
                             <input type="text" name="tahun_ajaran" class="form-control"
-                                   value="<?= htmlspecialchars($taTahun) ?>" placeholder="<?= htmlspecialchars($taTahun) ?>" readonly>
+                                   value="<?= e($taTahun) ?>" placeholder="<?= e($taTahun) ?>" readonly>
                             <small class="text-muted">Otomatis mengikuti tahun ajaran aktif dan/atau kelas terpilih.</small>
                         </div>
 

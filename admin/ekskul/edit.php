@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -56,12 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-futbol text-gold me-2"></i>Edit Ekstrakurikuler</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-futbol text-icon me-2"></i>Edit Ekstrakurikuler</h4>
     </div>
 
     <?php if (isset($error)): ?>
@@ -79,12 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Nama Ekstrakurikuler</label>
                             <input type="text" name="nama_ekskul" class="form-control"
-                                   value="<?= htmlspecialchars($data['nama_ekskul']) ?>" required>
+                                   value="<?= e($data['nama_ekskul']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Pembina</label>
                             <input type="text" name="pembina" class="form-control"
-                                   value="<?= htmlspecialchars($data['pembina']) ?>"
+                                   value="<?= e($data['pembina']) ?>"
                                    placeholder="Nama pembina ekskul (bisa dari guru atau bukan)">
                         </div>
                     </div>
@@ -101,16 +100,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Pukul Mulai</label>
                             <input type="time" name="jam_mulai" class="form-control"
-                                   value="<?= htmlspecialchars($data['jam_mulai_prefill'] ?? '') ?>">
+                                   value="<?= e($data['jam_mulai_prefill'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Pukul Selesai</label>
                             <input type="time" name="jam_selesai" class="form-control"
-                                   value="<?= htmlspecialchars($data['jam_selesai_prefill'] ?? '') ?>">
+                                   value="<?= e($data['jam_selesai_prefill'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi" class="form-control" rows="4"><?= htmlspecialchars($data['deskripsi']) ?></textarea>
+                            <textarea name="deskripsi" class="form-control" rows="4"><?= e($data['deskripsi']) ?></textarea>
                         </div>
                     </div>
                 </div>

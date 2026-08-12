@@ -8,6 +8,7 @@ include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
 cekAdmin();
+verifyCsrf();
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $pdo = tahun_ajaran_pdo();

@@ -3,6 +3,8 @@ include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_tahun_ajaran.php';
 cekSiswa();
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Pragma: no-cache");
 
 // Halaman ini pakai FORMAT YANG SAMA PERSIS dengan admin/rapor/cetak.php,
 // tapi datanya dikunci ke siswa yang sedang login (tidak bisa lihat rapor siswa lain).
@@ -47,6 +49,7 @@ $fix_ta = mysqli_fetch_assoc(mysqli_query($koneksi,
 $rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
          "SELECT r.*, ta.nama_tahun_ajaran AS nama_tahun, s.nama, s.nis, s.jenis_kelamin,
                  s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
+                 s.nama_ortu, s.no_hp_ortu,
                  k.nama_kelas, k.tingkat,
                  g.nama_lengkap AS wali_kelas, g.nip AS wali_nip
           FROM rapor r
@@ -62,6 +65,12 @@ $rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
 
 if (!$rapor) {
     die('<p style="font-family:Arial;padding:30px;">Rapor untuk semester/tahun ajaran ini belum tersedia. <a href="rapor.php">Kembali</a></p>');
+}
+
+// Finalisasi: siswa hanya boleh mencetak rapor yang sudah difinalisasi (status = final).
+if (strtolower(trim($rapor['status'] ?? 'draft')) !== 'final') {
+    header("Location: rapor.php?error=" . urlencode("Rapor belum difinalisasi. Cetak dapat dilakukan setelah rapor final."));
+    exit();
 }
 
 // Cek apakah kolom kelompok/kkm sudah tersedia
@@ -110,14 +119,15 @@ function romawi($n) {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Laporan Hasil Belajar — <?= htmlspecialchars($rapor['nama'] ?? 'Siswa') ?></title>
+<title>Laporan Hasil Belajar — <?= e($rapor['nama'] ?? 'Siswa') ?></title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: Arial, sans-serif;
-    font-size: 11.5px;
+    font-size: 12px;
     padding: 22px 30px;
     color: #000;
+    line-height: 1.45;
 }
 .btn-print {
     display: inline-block;
@@ -150,7 +160,7 @@ body {
     margin-bottom: 15px;
     width: 36px;
     height: 36px;
-    background: #10B981;
+    background: #163A63;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -159,7 +169,7 @@ body {
     vertical-align: middle;
 }
 .btn-pdf svg { width: 18px; height: 18px; }
-.btn-pdf:hover { background: #10B981; }
+.btn-pdf:hover { background: #0D2540; }
 
 .kop {
     display: flex;
@@ -168,56 +178,62 @@ body {
     padding-bottom: 10px;
     margin-bottom: 10px;
 }
-.kop img { width: 62px; height: 62px; object-fit: contain; }
-.kop .logo-kiri  { margin-right: 12px; }
+.kop img { width: 86px; height: 86px; object-fit: contain; }
+.kop .logo-kiri  { margin-right: 16px; }
 .kop .logo-kanan { margin-left: 12px; }
-.kop-text { text-align: center; flex: 1; line-height: 1.3; }
-.kop-text .instansi { font-size: 11px; }
-.kop-text .sekolah  { font-size: 15px; font-weight: bold; text-transform: uppercase; }
-.kop-text .alamat   { font-size: 10px; }
+.kop-text { text-align: center; flex: 1; line-height: 1.3; padding-right: 102px; }
+.kop-text .instansi { font-size: 13px; }
+.kop-text .sekolah  { font-size: 21px; font-weight: bold; text-transform: uppercase; }
+.kop-text .alamat   { font-size: 12px; }
 
 .judul {
     text-align: center;
-    font-size: 15px;
+    font-size: 20px;
     font-weight: bold;
     text-decoration: underline;
-    margin: 12px 0 12px;
+    margin: 14px 0 16px;
+    letter-spacing: 0.5px;
 }
 
-.identitas { width: 100%; margin-bottom: 12px; border-collapse: collapse; }
-.identitas td { padding: 1px 3px; font-size: 11.5px; vertical-align: top; }
+.identitas { width: 100%; margin-bottom: 14px; border-collapse: collapse; }
+.identitas td { padding: 2px 5px; font-size: 12px; vertical-align: top; }
 .identitas .label { width: 150px; }
 .identitas .titik { width: 10px; }
 
-table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-.rapor-table th, .rapor-table td { border: 1px solid #000; padding: 3px 6px; font-size: 11px; }
+table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.rapor-table th, .rapor-table td { border: 1px solid #000; padding: 5px 8px; font-size: 11px; }
 .rapor-table th { text-align: center; font-weight: bold; background: #F5F7FB; }
 .text-center { text-align: center; }
 .grup-row td { font-weight: bold; background: #F5F7FB; }
 .merah { color: #E11D48; font-weight: bold; }
 
-.seksi-judul { font-weight: bold; margin: 14px 0 5px; font-size: 12px; }
+.seksi-judul { font-weight: bold; margin: 18px 0 6px; font-size: 13px; }
 
 .catatan-box {
     border: 1px solid #000;
     min-height: 55px;
-    padding: 8px;
+    padding: 10px;
     margin-bottom: 14px;
-    font-size: 11.5px;
+    font-size: 12px;
 }
 
-.footer-ttd { margin-top: 22px; width: 100%; }
-.footer-ttd .tgl { text-align: right; margin-bottom: 4px; font-size: 11.5px; }
-.footer-ttd table { width: 100%; border-collapse: collapse; margin-top: 22px; }
-.footer-ttd td { text-align: center; font-size: 11.5px; vertical-align: top; padding: 0 10px; }
+.footer-ttd { margin-top: 24px; width: 100%; }
+.footer-ttd .tgl { text-align: right; margin-bottom: 4px; font-size: 12px; }
+.footer-ttd table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+.footer-ttd td { text-align: center; font-size: 12px; vertical-align: top; padding: 0 10px; }
 .footer-ttd .garis { margin-top: 55px; border-bottom: 1px solid #000; }
-.footer-ttd .nama { margin-top: 3px; font-weight: bold; text-decoration: underline; }
+.footer-ttd .nama { margin-top: 3px; font-weight: bold; text-decoration: underline; font-size: 12.5px; }
 .footer-ttd .tgl-table { width: auto; margin-left: auto; margin-top: 0; border-collapse: collapse; }
 .footer-ttd .tgl-table td { padding: 0 2px; text-align: left; vertical-align: top; border: none; }
 .footer-ttd .tgl-table .tgl-label { width: 110px; text-align: left; white-space: nowrap; }
 .footer-ttd .tgl-table .tgl-titik { width: 12px; text-align: center; white-space: nowrap; }
 
 @media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
     .btn-print, .btn-back, .btn-pdf, .no-print { display: none !important; }
     body { padding: 8px 16px; }
 }
@@ -230,7 +246,7 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px;
 <div class="no-print" style="margin-bottom:15px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
     <a href="rapor.php" class="btn-back" style="margin-bottom:0;">&larr; Kembali</a>
     <button class="btn-print" style="margin-bottom:0;" onclick="window.print()">Cetak</button>
-    <a class="btn-pdf" style="margin-bottom:0; text-decoration:none;" href="cetak_rapor_pdf.php?semester=<?= urlencode($fix_semester) ?>&ta=<?= urlencode($fix_ta) ?>" title="Simpan sebagai PDF">
+    <a class="btn-pdf" style="margin-bottom:0; text-decoration:none;" href="cetak_rapor_pdf.php?semester=<?= urlencode($fix_semester) ?>&ta=<?= urlencode($fix_ta) ?>&v=2" title="Simpan sebagai PDF">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
     </a>
 </div>
@@ -242,39 +258,37 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px;
     <div class="kop-text">
         <div class="instansi">PEMERINTAH KOTA PALOPO<br>DINAS PENDIDIKAN</div>
         <div class="sekolah">SMA NEGERI 4 PALOPO</div>
-        <div class="alamat"><?= htmlspecialchars($setting['alamat_sekolah'] ?? '-') ?></div>
-    </div>
-    <img class="logo-kanan" src="../assets/img/logo-sekolah.png"
-         onerror="this.style.display='none'" alt="Logo">
-</div>
+        <div class="alamat"><?= e($setting['alamat_sekolah'] ?? '-') ?></div>
+        <div class="alamat"><?= e($setting['alamat_sekolah'] ?? '-') ?></div><div class="alamat"><?= e(trim((!empty($setting['telepon']) ? 'Telp. ' . $setting['telepon'] : '') . (!empty($setting['email']) ? ' | Email: ' . $setting['email'] : ''))) ?></div>
+    </div></div>
 
 <div class="judul">LAPORAN HASIL BELAJAR</div>
 
 <table class="identitas">
     <tr>
         <td class="label">NAMA</td><td class="titik">:</td>
-        <td style="font-weight:bold"><?= htmlspecialchars($rapor['nama'] ?? '-') ?></td>
+        <td style="font-weight:bold"><?= e($rapor['nama'] ?? '-') ?></td>
         <td class="label" style="width:110px">Kelas</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['nama_kelas'] ?? '-') ?></td>
+        <td><?= e($rapor['nama_kelas'] ?? '-') ?></td>
     </tr>
     <tr>
         <td class="label">NIS</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['nis'] ?? '-') ?></td>
+        <td><?= e($rapor['nis'] ?? '-') ?></td>
         <td class="label">Semester</td><td class="titik">:</td>
         <td><?= $rapor['semester'] == 1 ? 'Ganjil' : 'Genap' ?></td>
     </tr>
     <tr>
         <td class="label">TEMPAT, TANGGAL LAHIR</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['tempat_lahir'] ?? '-') ?>,
+        <td><?= e($rapor['tempat_lahir'] ?? '-') ?>,
             <?= isset($rapor['tanggal_lahir']) ? tanggal_indo($rapor['tanggal_lahir']) : '-' ?></td>
         <td class="label">Tahun Pelajaran</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['nama_tahun'] ?? $rapor['tahun_ajaran'] ?? '-') ?></td>
+        <td><?= e($rapor['nama_tahun'] ?? $rapor['tahun_ajaran'] ?? '-') ?></td>
     </tr>
     <tr>
         <td class="label">JENIS KELAMIN</td><td class="titik">:</td>
         <td><?= (isset($rapor['jenis_kelamin']) && $rapor['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan' ?></td>
         <td class="label">Wali Kelas</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['wali_kelas'] ?? '-') ?></td>
+        <td><?= e($rapor['wali_kelas'] ?? '-') ?></td>
     </tr>
 </table>
 
@@ -309,7 +323,7 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px;
                 $urutan_grup++;
     ?>
         <tr class="grup-row">
-            <td colspan="5"><?= romawi($urutan_grup) ?>. <?= strtoupper(htmlspecialchars($kel)) ?></td>
+            <td colspan="5"><?= romawi($urutan_grup) ?>. <?= strtoupper(e($kel)) ?></td>
         </tr>
     <?php endif; ?>
     <?php
@@ -327,7 +341,7 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px;
     ?>
         <tr>
             <td class="text-center"><?= $no++ ?></td>
-            <td><?= htmlspecialchars($n['nama_mapel']) ?></td>
+            <td><?= e($n['nama_mapel']) ?></td>
             <td class="text-center"><?= $kkm ?></td>
             <td class="text-center <?= $dibawah_kkm ? 'merah' : '' ?>"><?= number_format((float)$na, 0) ?></td>
             <td class="text-center <?= $dibawah_kkm ? 'merah' : '' ?>"><?= $predikat ?></td>
@@ -357,21 +371,21 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px;
     <tbody>
         <tr>
             <td style="width:170px">Kegiatan Pengembangan Diri</td>
-            <td>1. <?= !empty($eskul) ? htmlspecialchars($eskul) : '-' ?></td>
+            <td>1. <?= !empty($eskul) ? e($eskul) : '-' ?></td>
             <td class="text-center"><?= !empty($eskul) ? 'Baik' : '-' ?></td>
         </tr>
         <tr>
             <td rowspan="3">Kepribadian</td>
             <td>1. Kerajinan</td>
-            <td class="text-center"><?= htmlspecialchars($kerajinan) ?></td>
+            <td class="text-center"><?= e($kerajinan) ?></td>
         </tr>
         <tr>
             <td>2. Kelakuan</td>
-            <td class="text-center"><?= htmlspecialchars($kelakuan) ?></td>
+            <td class="text-center"><?= e($kelakuan) ?></td>
         </tr>
         <tr>
             <td>3. Kerapihan</td>
-            <td class="text-center"><?= htmlspecialchars($kerapihan) ?></td>
+            <td class="text-center"><?= e($kerapihan) ?></td>
         </tr>
         <tr>
             <td rowspan="3">Ketidakhadiran</td>
@@ -391,7 +405,7 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 10px;
 
 <div class="seksi-judul">III. Catatan Untuk Orang Tua / Wali</div>
 <div class="catatan-box">
-    <?= !empty($rapor['catatan']) ? nl2br(htmlspecialchars($rapor['catatan'])) : 'Tingkatkan terus prestasimu dan pertahankan semangat belajarmu.' ?>
+    <?= !empty($rapor['catatan']) ? nl2br(e($rapor['catatan'])) : 'Tingkatkan terus prestasimu dan pertahankan semangat belajarmu.' ?>
 </div>
 
 <?php
@@ -432,17 +446,18 @@ if ($status_rapor === 'naik' || $status_rapor === 'tinggal'):
         <tr>
             <td>
                 <div class="garis"></div>
-                <div class="nama"><?= htmlspecialchars($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
-                <div>NIP. <?= htmlspecialchars($setting['nip_kepsek'] ?? '-') ?></div>
+                <div class="nama"><?= e($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
+                <div>NIP. <?= e($setting['nip_kepsek'] ?? '-') ?></div>
             </td>
             <td>
                 <div class="garis"></div>
-                <div class="nama">&nbsp;</div>
+                <div class="nama"><?= e($rapor['nama_ortu'] ?? '') ?></div>
+                <?php if (!empty($rapor['no_hp_ortu'])): ?><div><?= e($rapor['no_hp_ortu']) ?></div><?php endif; ?>
             </td>
             <td>
                 <div class="garis"></div>
-                <div class="nama"><?= htmlspecialchars($rapor['wali_kelas'] ?? '____________________') ?></div>
-                <?php if (!empty($rapor['wali_nip'])): ?><div>NIP. <?= htmlspecialchars($rapor['wali_nip']) ?></div><?php endif; ?>
+                <div class="nama"><?= e($rapor['wali_kelas'] ?? '____________________') ?></div>
+                <?php if (!empty($rapor['wali_nip'])): ?><div>NIP. <?= e($rapor['wali_nip']) ?></div><?php endif; ?>
             </td>
         </tr>
     </table>

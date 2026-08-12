@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_tahun_ajaran.php';
@@ -64,9 +64,6 @@ $sys           = mysqli_fetch_assoc($query_setting);
 // Ambil pengumuman terbaru
 $pengumuman = mysqli_query($koneksi, "SELECT * FROM pengumuman ORDER BY tanggal DESC LIMIT 4");
 
-// Ambil agenda dari database
-$agenda_hari_ini = mysqli_query($koneksi, "SELECT * FROM agenda ORDER BY urutan ASC, id ASC");
-
 // Ambil jadwal hari ini (otomatis sesuai hari)
 $hari_ini = date('l'); // English day name
 $hari_map = [
@@ -86,7 +83,17 @@ $jadwal_hari_ini = mysqli_query($koneksi, "
     LEFT JOIN kelas k ON j.kelas_id = k.id
     LEFT JOIN guru g ON j.guru_id = g.id
     WHERE j.hari = '$hari_ini_id'
-    ORDER BY j.jam_mulai ASC
+      AND j.status = 'aktif'
+      AND j.tahun_ajaran_id = 1
+    ORDER BY j.jam_mulai ASC, k.nama_kelas ASC
+");
+
+// Ambil agenda dari database — tampilkan agenda sesuai HARI INI
+// (agenda dengan hari NULL = agenda umum, tetap tampil setiap hari)
+$agenda_hari_ini = mysqli_query($koneksi, "
+    SELECT * FROM agenda
+    WHERE hari IS NULL OR hari = '$hari_ini_id'
+    ORDER BY urutan ASC, jam_mulai ASC, id ASC
 ");
 
 // Hitung jumlah siswa per tahun untuk grafik (simulasi jika data riil tidak ada)
@@ -105,27 +112,27 @@ $tahun_data = array_reverse($tahun_data);
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_admin.php'; ?>
+<?php include '../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_admin.php'; ?>
-
-    <!-- ===== WELCOME CARD ===== -->
+        <!-- ===== WELCOME CARD ===== -->
     <div class="welcome-card">
         <div class="welcome-content">
             <div class="welcome-badge">
                 <i class="bi bi-hand-wave-fill"></i>
                 Selamat Datang di Sistem Informasi Akademik
             </div>
-            <h2>Selamat Datang, <?= htmlspecialchars($_SESSION['nama'] ?? 'Administrator') ?>!</h2>
+            <h2>Selamat Datang, <?= e($_SESSION['nama'] ?? 'Administrator') ?>!</h2>
             <p class="welcome-subtitle">SMA Negeri 4 Palopo Jl. Bakau, Balandai, Kec. Bara, Kota Palopo, Sulawesi Selatan.</p>
             <div class="d-flex flex-wrap">
                 <div class="school-badge">
                     <i class="bi bi-calendar3"></i>
-                    <span>Tahun Pelajaran: <strong><?= htmlspecialchars($fallbackTahun ?? $sys['tahun_pelajaran'] ?? '—') ?></strong></span>
+                    <span>Tahun Pelajaran: <strong><?= e($fallbackTahun ?? $sys['tahun_pelajaran'] ?? '—') ?></strong></span>
                 </div>
                 <div class="school-badge">
                     <i class="bi bi-clock"></i>
-                    <span>Semester: <strong><?= htmlspecialchars($sys['semester'] ?? '1 (Ganjil)') ?></strong></span>
+                    <span>Semester: <strong><?= e($sys['semester'] ?? '1 (Ganjil)') ?></strong></span>
                 </div>
             </div>
         </div>
@@ -234,7 +241,7 @@ $tahun_data = array_reverse($tahun_data);
                 <div class="col-12">
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h6><i class="bi bi-clipboard-data me-2" style="color: var(--gold);"></i> Grafik Kehadiran Siswa</h6>
+                            <h6><i class="bi bi-clipboard-data me-2" style="color: var(--primary);"></i> Grafik Kehadiran Siswa</h6>
                             <span class="chart-period">Bulan Ini</span>
                         </div>
                         <div class="chart-body">
@@ -267,7 +274,7 @@ $tahun_data = array_reverse($tahun_data);
                                 <div class="panel-item">
                                     <div class="item-title">
                                         <i class="bi bi-dot"></i>
-                                        <?= htmlspecialchars($p['judul']) ?>
+                                        <?= e($p['judul']) ?>
                                     </div>
                                     <div class="item-meta">
                                         <i class="bi bi-calendar3"></i>
@@ -310,14 +317,14 @@ $tahun_data = array_reverse($tahun_data);
                             <div class="panel-item">
                                 <div class="item-title">
                                     <i class="bi bi-dot blue-dot"></i>
-                                    Belajar Mengajar <?= htmlspecialchars($j['nama_kelas'] ?? '') ?>
+                                    Belajar Mengajar <?= e($j['nama_kelas'] ?? '') ?>
                                 </div>
                                 <div class="item-meta">
                                     <i class="bi bi-clock"></i>
-                                    <span><?= htmlspecialchars($j['jam_mulai']) ?> - <?= htmlspecialchars($j['jam_selesai']) ?> WITA</span>
+                                    <span><?= e($j['jam_mulai']) ?> - <?= e($j['jam_selesai']) ?> WITA</span>
                                     <span class="item-tag success">Aktif</span>
                                 </div>
-                                <span class="item-desc"><?= htmlspecialchars($j['nama_mapel'] ?? '') ?> â€¢ <?= htmlspecialchars($j['nama_guru'] ?? '') ?></span>
+                                <span class="item-desc"><?= e($j['nama_mapel'] ?? '') ?> • <?= e($j['nama_guru'] ?? '') ?></span>
                             </div>
                             <?php
                                 endwhile;
@@ -350,15 +357,15 @@ $tahun_data = array_reverse($tahun_data);
                             <div class="panel-item">
                                 <div class="item-title">
                                     <i class="bi bi-dot blue-dot"></i>
-                                    <?= htmlspecialchars($ag['judul']) ?>
+                                    <?= e($ag['judul']) ?>
                                 </div>
                                 <div class="item-meta">
                                     <i class="bi bi-clock"></i>
-                                    <span><?= htmlspecialchars($ag['jam_mulai']) ?> - <?= htmlspecialchars($ag['jam_selesai']) ?> WITA</span>
-                                    <span class="item-tag <?= $label_class ?>"><?= htmlspecialchars($ag['status_label']) ?></span>
+                                    <span><?= e($ag['jam_mulai']) ?> - <?= e($ag['jam_selesai']) ?> WITA</span>
+                                    <span class="item-tag <?= $label_class ?>"><?= e($ag['status_label']) ?></span>
                                 </div>
                                 <?php if (!empty($ag['deskripsi'])): ?>
-                                <span class="item-desc"><?= htmlspecialchars($ag['deskripsi']) ?></span>
+                                <span class="item-desc"><?= e($ag['deskripsi']) ?></span>
                                 <?php endif; ?>
                             </div>
                             <?php
@@ -375,7 +382,7 @@ $tahun_data = array_reverse($tahun_data);
 
 <script>
 // ================================================================
-// CHART.JS â€” Student Growth Chart (Line)
+// CHART.JS — Student Growth Chart (Line)
 // ================================================================
 const studentCtx = document.getElementById('studentGrowthChart').getContext('2d');
 
@@ -433,7 +440,7 @@ new Chart(studentCtx, {
                 },
                 ticks: {
                     font: {
-                        family: 'Poppins',
+                        family: 'Roboto',
                         size: 11
                     },
                     color: '#94A3B8'
@@ -445,7 +452,7 @@ new Chart(studentCtx, {
                 },
                 ticks: {
                     font: {
-                        family: 'Poppins',
+                        family: 'Roboto',
                         size: 11
                     },
                     color: '#94A3B8',
@@ -461,7 +468,7 @@ new Chart(studentCtx, {
 });
 
 // ================================================================
-// CHART.JS â€” Attendance Chart (Bar)
+// CHART.JS — Attendance Chart (Bar)
 // ================================================================
 const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
 
@@ -531,7 +538,7 @@ new Chart(attendanceCtx, {
                 position: 'bottom',
                 labels: {
                     font: {
-                        family: 'Poppins',
+                        family: 'Roboto',
                         size: 11
                     },
                     color: '#4A5568',
@@ -564,7 +571,7 @@ new Chart(attendanceCtx, {
                 },
                 ticks: {
                     font: {
-                        family: 'Poppins',
+                        family: 'Roboto',
                         size: 11
                     },
                     color: '#94A3B8',
@@ -579,7 +586,7 @@ new Chart(attendanceCtx, {
                 },
                 ticks: {
                     font: {
-                        family: 'Poppins',
+                        family: 'Roboto',
                         size: 11
                     },
                     color: '#94A3B8'
@@ -594,4 +601,8 @@ new Chart(attendanceCtx, {
 });
 </script>
 
-<?php include '../includes/footer.php'; ?>
+<?php
+// Tampilkan widget chatbot SiA Bot di halaman ini (footer.php bersifat kondisional)
+$show_chatbot = true;
+include '../includes/footer.php';
+?>

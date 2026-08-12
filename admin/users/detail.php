@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -25,12 +25,12 @@ if ($user['role'] == 'guru' && $user['id_ref']) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-user text-gold me-2"></i>Detail User</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user text-icon me-2"></i>Detail User</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -48,11 +48,11 @@ if ($user['role'] == 'guru' && $user['id_ref']) {
                 </tr>
                 <tr>
                     <th>Username</th>
-                    <td><?= htmlspecialchars($user['username']) ?></td>
+                    <td><?= e($user['username']) ?></td>
                 </tr>
                 <tr>
                     <th>Nama</th>
-                    <td><?= htmlspecialchars($user['nama']) ?></td>
+                    <td><?= e($user['nama']) ?></td>
                 </tr>
                 <tr>
                     <th>Role</th>
@@ -95,8 +95,8 @@ if ($user['role'] == 'guru' && $user['id_ref']) {
             <table class="table table-bordered" style="max-width:600px;">
                 <?php foreach ($ref_data as $key => $val): ?>
                 <tr>
-                    <th style="width:180px;"><?= htmlspecialchars($key) ?></th>
-                    <td><?= htmlspecialchars($val ?: '-') ?></td>
+                    <th style="width:180px;"><?= e($key) ?></th>
+                    <td><?= e($val ?: '-') ?></td>
                 </tr>
                 <?php endforeach; ?>
             </table>

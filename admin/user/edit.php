@@ -1,12 +1,18 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
+include '../../config/helper_auth.php';
 cekAdmin();
 $title = "Edit User";
 
-$id   = $_GET['id'];
+$id   = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $data = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT * FROM users WHERE id='$id'"));
+
+if (!$data) {
+    header("Location: index.php?error=Data user tidak ditemukan");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama  = mysqli_real_escape_string($koneksi, $_POST['nama']);
@@ -26,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Update password hanya jika diisi
         if (!empty($_POST['password'])) {
-            $pass = md5($_POST['password']);
+            $pass = hashPassword($_POST['password']);
             mysqli_query($koneksi,
                 "UPDATE users SET password='$pass' WHERE id='$id'");
         }
@@ -38,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-user-edit text-gold me-2"></i>Edit User</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user-edit text-icon me-2"></i>Edit User</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -65,14 +71,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
                             <input type="text" name="nama" class="form-control"
-                                   value="<?= htmlspecialchars($data['nama']) ?>"
+                                   value="<?= e($data['nama']) ?>"
                                    required>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Username</label>
                             <input type="text" name="username" class="form-control"
-                                   value="<?= htmlspecialchars($data['username']) ?>"
+                                   value="<?= e($data['username']) ?>"
                                    required>
                         </div>
 
@@ -88,15 +94,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?= $id == $_SESSION['user_id'] ? 'disabled' : '' ?>>
                                 <option value="admin"
                                     <?= $data['role'] == 'admin' ? 'selected' : '' ?>>
-                                    👑 Admin
+                                    <i class="fas fa-crown"></i> Admin
                                 </option>
                                 <option value="guru"
                                     <?= $data['role'] == 'guru' ? 'selected' : '' ?>>
-                                    👨‍🏫 Guru
+                                    <i class="fas fa-chalkboard-user"></i> Guru
                                 </option>
                                 <option value="siswa"
                                     <?= $data['role'] == 'siswa' ? 'selected' : '' ?>>
-                                    🎓 Siswa
+                                    <i class="fas fa-graduation-cap"></i> Siswa
                                 </option>
                             </select>
                             <?php if ($id == $_SESSION['user_id']): ?>

@@ -2,8 +2,9 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
-$id = $_GET['id'];
+$id = (int) $_GET['id'];
 
 // Ambil info jadwal untuk pesan notifikasi
 $jadwal = mysqli_fetch_assoc(mysqli_query($koneksi,

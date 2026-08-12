@@ -2,8 +2,9 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
-$id = $_GET['id'];
+$id = (int) $_GET['id'];
 
 // Proteksi: tidak bisa hapus akun sendiri
 if ($id == $_SESSION['user_id']) {

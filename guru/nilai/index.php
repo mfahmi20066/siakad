@@ -1,41 +1,63 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
+include '../../config/helper_periode_nilai.php';
 cekGuru();
 $title = "Nilai Siswa";
 
 // SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang login
 $gid  = $_SESSION['id_ref'];
 
-// PERBAIKAN QUERY: Menghubungkan relasi lewat tabel jadwal karena tabel nilai tidak memiliki kolom guru_id
-$data = mysqli_query($koneksi,
+// Hubungkan relasi lewat pivot kelas_mapel_guru (sumber kebenaran kelas-mapel-guru)
+if (!isset($stmt_guru_nilai) || $stmt_guru_nilai === null) {
+    $stmt_guru_nilai = mysqli_prepare($koneksi,
         "SELECT n.*, s.nama, s.nis, m.nama_mapel, k.nama_kelas
          FROM nilai n
          JOIN siswa s ON n.siswa_id = s.id
          JOIN mata_pelajaran m ON n.mapel_id = m.id
          JOIN kelas k ON s.kelas_id = k.id
-         JOIN jadwal j ON n.mapel_id = j.mapel_id AND s.kelas_id = j.kelas_id
-         WHERE j.guru_id = '$gid'
+         JOIN kelas_mapel_guru kmg ON kmg.mapel_id = n.mapel_id AND kmg.kelas_id = k.id
+         WHERE kmg.guru_id = ?
          GROUP BY n.id
          ORDER BY s.nama, m.nama_mapel");
-
-if (!$data) {
-    die("Query Error: " . mysqli_error($koneksi));
+    mysqli_stmt_bind_param($stmt_guru_nilai, "i", $gid);
 }
+mysqli_stmt_execute($stmt_guru_nilai);
+$data = mysqli_stmt_get_result($stmt_guru_nilai);
+
+// Cache status periode per (kelas, semester) untuk menghindari query berulang
+$periode_cache = [];
+while ($row = mysqli_fetch_assoc($data)) {
+    $kunci = (int)$row['kelas_id'] . ':' . (int)$row['semester'] . ':' . (int)$row['tahun_ajaran_id'];
+    if (!isset($periode_cache[$kunci])) {
+        $periode_cache[$kunci] = getPeriodeStatus($koneksi, (int)$row['tahun_ajaran_id'], (int)$row['semester'], (int)$row['kelas_id']);
+    }
+}
+mysqli_data_seek($data, 0);
+
+$ada_terkunci = in_array('locked', $periode_cache, true);
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-star text-gold me-2"></i>Nilai Siswa</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-star text-icon me-2"></i>Nilai Siswa</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($ada_terkunci): ?>
+    <div class="alert alert-warning">
+        <i class="fas fa-lock me-1"></i>
+        Sebagian periode nilai sedang <strong>dikunci</strong> oleh administrator.
+        Nilai pada periode terkunci tidak dapat diubah sampai admin membuka kembali.
     </div>
     <?php endif; ?>
 
@@ -61,6 +83,7 @@ if (!$data) {
                             <th>UAS</th>
                             <th>Nilai Akhir</th>
                             <th>Smt</th>
+                            <th>Periode</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -73,15 +96,19 @@ if (!$data) {
                         elseif ($na >= 70) $predikat = 'C';
                         elseif ($na >= 60) $predikat = 'D';
                         else $predikat = 'E';
+
+                        $kunci_cache = (int)$r['kelas_id'] . ':' . (int)$r['semester'] . ':' . (int)$r['tahun_ajaran_id'];
+                        $periode_row = $periode_cache[$kunci_cache] ?? 'locked';
+                        $periode_buka = $periode_row === 'open';
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
                         <td><?= $r['nis'] ?></td>
-                        <td><?= htmlspecialchars($r['nama']) ?></td>
+                        <td><?= e($r['nama']) ?></td>
                         <td>
                             <span class="badge bg-info"><?= $r['nama_kelas'] ?></span>
                         </td>
-                        <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                        <td><?= e($r['nama_mapel']) ?></td>
                         <td><?= $r['nilai_uh'] ?></td>
                         <td><?= $r['nilai_uts'] ?></td>
                         <td><?= $r['nilai_uas'] ?></td>
@@ -97,11 +124,22 @@ if (!$data) {
                             <span class="badge bg-secondary"><?= $r['semester'] ?></span>
                         </td>
                         <td>
+                            <?php if ($periode_buka): ?>
+                            <span class="badge bg-success"><i class="fas fa-unlock me-1"></i>Open</span>
+                            <?php else: ?>
+                            <span class="badge bg-secondary"><i class="fas fa-lock me-1"></i>Locked</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
                             <div class="table-actions">
+                                <?php if ($periode_buka): ?>
                                 <a href="edit.php?id=<?= $r['id'] ?>"
                                    class="btn btn-warning btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <?php else: ?>
+                                <span class="text-muted small"><i class="fas fa-lock"></i></span>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -12,7 +12,7 @@ if (!$ekskul) {
     exit();
 }
 
-// ── Tambah anggota ────────────────────────────────────────────
+// â”€â”€ Tambah anggota â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (isset($_POST['tambah_anggota'])) {
     $siswa_id = (int) $_POST['siswa_id'];
     $tgl      = !empty($_POST['tanggal_bergabung']) ? mysqli_real_escape_string($koneksi, $_POST['tanggal_bergabung']) : 'NULL';
@@ -61,12 +61,12 @@ $anggota = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-users text-gold me-2"></i>Anggota — <?= htmlspecialchars($ekskul['nama_ekskul']) ?></h4>
+        <div class="page-header d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-users text-icon me-2"></i>Anggota — <?= e($ekskul['nama_ekskul']) ?></h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -74,7 +74,7 @@ $anggota = mysqli_query($koneksi,
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -199,12 +199,12 @@ $anggota = mysqli_query($koneksi,
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td>
-                                    <strong><?= htmlspecialchars($nama_s ?: '-') ?></strong>
-                                    <br><small class="text-muted">NIS: <?= htmlspecialchars($r['nis'] ?: '-') ?></small>
+                                    <strong><?= e($nama_s ?: '-') ?></strong>
+                                    <br><small class="text-muted">NIS: <?= e($r['nis'] ?: '-') ?></small>
                                 </td>
                                 <td><?= $r['tanggal_bergabung'] ? tanggal_indo_pendek($r['tanggal_bergabung']) : '-' ?></td>
                                 <td>
-                                    <button onclick="konfirmasiHapus('hapus_anggota.php?id=<?= $r['id'] ?>&ekskul_id=<?= $id ?>', '<?= htmlspecialchars($nama_s ?: 'siswa') ?>')"
+                                    <button onclick="konfirmasiHapus('hapus_anggota.php?id=<?= $r['id'] ?>&ekskul_id=<?= $id ?>', '<?= e($nama_s ?: 'siswa') ?>')"
                                             class="btn btn-danger btn-sm" title="Hapus Anggota">
                                         <i class="fas fa-trash"></i>
                                     </button>

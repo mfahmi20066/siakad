@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';
@@ -6,9 +6,14 @@ include '../../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Edit Siswa";
 
-$id   = $_GET['id'];
+$id   = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $data = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM siswa WHERE id='$id'"));
-$kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+$kelas = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
+
+if (!$data) {
+    header("Location: index.php?error=Data siswa tidak ditemukan");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nis    = mysqli_real_escape_string($koneksi, $_POST['nis']);
@@ -20,10 +25,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               : "NULL";
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
     $hp     = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
+    $nama_ortu = mysqli_real_escape_string($koneksi, trim($_POST['nama_ortu'] ?? ''));
+    $hp_ortu   = mysqli_real_escape_string($koneksi, trim($_POST['no_hp_ortu'] ?? ''));
     $kid    = $_POST['kelas_id'];
     $ta     = mysqli_real_escape_string($koneksi, $_POST['tahun_ajaran']);
 
-    // ── Tentukan tahun_ajaran_id dari KELAS terpilih (validasi relasional) ──
+    // â”€â”€ Email: validasi format + cek duplikat di tabel users â”€â”€
+    $email = mysqli_real_escape_string($koneksi, trim($_POST['email'] ?? ''));
+    if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $emailError = "Format email tidak valid!";
+    } elseif (!empty($email)) {
+        $cek_email = mysqli_fetch_row(mysqli_query($koneksi,
+            "SELECT COUNT(*) FROM users WHERE email='$email'
+             AND NOT (id_ref='$id' AND role='siswa')
+             AND NOT (id='$id' AND role='siswa')"))[0];
+        if ($cek_email > 0) {
+            $emailError = "Email sudah digunakan oleh pengguna lain!";
+        }
+    }
+
+    // â”€â”€ Tentukan tahun_ajaran_id dari KELAS terpilih (validasi relasional) â”€â”€
     // Jangan percaya nilai tahun dari POST; kelas adalah sumber kebenaran relasi.
     $aktifId = null;
     try { $aktifId = (int) getTahunAjaranAktif(tahun_ajaran_pdo())['id']; }
@@ -50,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($taSiswaTxt === null) $taSiswaTxt = $data['tahun_ajaran'] ?? '';
     }
 
-    // ── Upload / Hapus Foto ───────────────────────────────
+    // â”€â”€ Upload / Hapus Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     $foto_update = $data['foto'] ?? '';
     $folder_siswa = __DIR__ . '/../../assets/img/foto_siswa/';
 
@@ -83,26 +104,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $taSiswaIdSql = ($taSiswaId !== null && $taSiswaId !== '') ? "'".(int)$taSiswaId."'" : 'NULL';
     $taSiswaTxtSql = "'".mysqli_real_escape_string($koneksi, $taSiswaTxt)."'";
 
-    if ($kelasError !== null) {
-        $error = $kelasError;
+    if ($kelasError !== null || !empty($emailError)) {
+        $error = $kelasError ?? $emailError;
     } else {
+        $emailSql = $email !== '' ? "'$email'" : "NULL";
         mysqli_query($koneksi, "UPDATE siswa 
-                                SET nis='$nis', nama='$nama', jenis_kelamin='$jk',
+                                SET nis='$nis', nama='$nama', nama_lengkap='$nama', jenis_kelamin='$jk',
                                     tempat_lahir='$ttl', tanggal_lahir=$tgl,
-                                    alamat='$alamat', no_hp='$hp',
+                                    alamat='$alamat', no_hp='$hp', email=$emailSql,
+                                    nama_ortu=" . (!empty($nama_ortu) ? "'$nama_ortu'" : "NULL") . ",
+                                    no_hp_ortu=" . (!empty($hp_ortu) ? "'$hp_ortu'" : "NULL") . ",
                                     kelas_id='$kidEdit', tahun_ajaran=$taSiswaTxtSql, 
                                     tahun_ajaran_id=$taSiswaIdSql, foto='$foto_update'
                                 WHERE id='$id'");
 
-        // Update nama di tabel users juga
-        mysqli_query($koneksi, "UPDATE users SET nama='$nama' 
-                                WHERE id='{$data['user_id']}'");
+        // Sinkronkan nama & email ke tabel users (akun terhubung via id_ref / id sama)
+        mysqli_query($koneksi, "UPDATE users SET nama='$nama', email=$emailSql 
+                                WHERE id_ref='$id' AND role='siswa'");
+        mysqli_query($koneksi, "UPDATE users SET nama='$nama', email=$emailSql 
+                                WHERE id='$id' AND role='siswa'");
 
         // Update password hanya jika diisi
         if (!empty($_POST['password'])) {
             $pass = hashPassword($_POST['password']);
             mysqli_query($koneksi, "UPDATE users SET password='$pass' 
-                                    WHERE id='{$data['user_id']}'");
+                                    WHERE id_ref='$id' AND role='siswa'");
+            mysqli_query($koneksi, "UPDATE users SET password='$pass' 
+                                    WHERE id='$id' AND role='siswa'");
         }
 
         header("Location: index.php?success=Data siswa berhasil diupdate");
@@ -112,12 +140,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Siswa</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Siswa</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -129,6 +157,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php if (isset($upload_error)): ?>
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-circle"></i> <?= $upload_error ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($error) && $error): ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> <?= $error ?>
                 </div>
             <?php endif; ?>
 
@@ -146,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
                             <input type="text" name="nama" class="form-control"
-                                   value="<?= htmlspecialchars($data['nama']) ?>" required>
+                                   value="<?= e($data['nama']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jenis Kelamin</label>
@@ -162,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Tempat Lahir</label>
                             <input type="text" name="tempat_lahir" class="form-control"
-                                   value="<?= htmlspecialchars($data['tempat_lahir'] ?? '') ?>">
+                                   value="<?= e($data['tempat_lahir'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Tanggal Lahir</label>
@@ -171,12 +205,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Alamat</label>
-                            <textarea name="alamat" class="form-control" rows="3"><?= htmlspecialchars($data['alamat'] ?? '') ?></textarea>
+                            <textarea name="alamat" class="form-control" rows="3"><?= e($data['alamat'] ?? '') ?></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">No HP</label>
                             <input type="text" name="no_hp" class="form-control"
-                                   value="<?= htmlspecialchars($data['no_hp'] ?? '') ?>">
+                                   value="<?= e($data['no_hp'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control"
+                                   value="<?= e($data['email'] ?? '') ?>"
+                                   placeholder="nama@email.com">
+                            <small class="text-muted">Tersinkron otomatis dengan akun login siswa.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Orang Tua / Wali</label>
+                            <input type="text" name="nama_ortu" class="form-control"
+                                   value="<?= e($data['nama_ortu'] ?? '') ?>"
+                                   placeholder="Nama orang tua/wali siswa">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No. HP Orang Tua / Wali</label>
+                            <input type="text" name="no_hp_ortu" class="form-control"
+                                   value="<?= e($data['no_hp_ortu'] ?? '') ?>"
+                                   placeholder="08xxxxxxxxxx">
                         </div>
                     </div>
 
@@ -197,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Tahun Ajaran</label>
                             <input type="text" name="tahun_ajaran" class="form-control"
-                                   value="<?= htmlspecialchars($data['tahun_ajaran'] ?? '') ?>" readonly>
+                                   value="<?= e($data['tahun_ajaran'] ?? '') ?>" readonly>
                         </div>
 
                         <h6 class="text-muted mb-3 mt-4 fw-bold">Foto Profil</h6>

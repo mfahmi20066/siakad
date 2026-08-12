@@ -38,19 +38,19 @@ $bulan_nama = $filter_bln ? ($bulan[$filter_bln] ?? '') : '';
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Cetak Rekap Absensi - <?= htmlspecialchars($nama_kelas) ?></title>
+    <title>Cetak Rekap Absensi - <?= e($nama_kelas) ?></title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 11.5px; padding: 22px 30px; color: #000; }
 
         .kop { display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .kop img { width: 62px; height: 62px; object-fit: contain; }
-        .kop .logo-kiri  { margin-right: 12px; }
+        .kop img { width: 86px; height: 86px; object-fit: contain; }
+        .kop .logo-kiri  { margin-right: 16px; }
         .kop .logo-kanan { margin-left: 12px; }
-        .kop-text { text-align: center; flex: 1; line-height: 1.3; }
-        .kop-text .instansi { font-size: 11px; }
-        .kop-text .sekolah  { font-size: 15px; font-weight: bold; text-transform: uppercase; }
-        .kop-text .alamat   { font-size: 10px; }
+        .kop-text { text-align: center; flex: 1; line-height: 1.3; padding-right: 102px; }
+        .kop-text .instansi { font-size: 13px; }
+        .kop-text .sekolah  { font-size: 21px; font-weight: bold; text-transform: uppercase; }
+        .kop-text .alamat   { font-size: 12px; }
 
         .judul { text-align: center; font-size: 15px; font-weight: bold; text-decoration: underline; margin: 12px 0 4px; }
         .sub-judul { text-align: center; font-size: 12px; margin-bottom: 10px; }
@@ -70,7 +70,14 @@ $bulan_nama = $filter_bln ? ($bulan[$filter_bln] ?? '') : '';
         .footer-ttd .garis { margin-top: 60px; border-bottom: 1px solid #000; }
         .footer-ttd .nama { margin-top: 3px; font-weight: bold; text-decoration: underline; }
 
-        @media print { body { padding: 8px 16px; } }
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            body { padding: 8px 16px; }
+        }
         @page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
     </style>
 </head>
@@ -82,15 +89,13 @@ $bulan_nama = $filter_bln ? ($bulan[$filter_bln] ?? '') : '';
         <div class="kop-text">
             <div class="instansi">PEMERINTAH KOTA PALOPO<br>DINAS PENDIDIKAN</div>
             <div class="sekolah">SMA NEGERI 4 PALOPO</div>
-            <div class="alamat"><?= htmlspecialchars($setting['alamat_sekolah'] ?? '-') ?></div>
-        </div>
-        <img class="logo-kanan" src="../../assets/img/logo-sekolah.png"
-             onerror="this.style.display='none'" alt="Logo">
-    </div>
+            <div class="alamat"><?= e($setting['alamat_sekolah'] ?? '-') ?></div>
+            <div class="alamat"><?= e($setting['alamat_sekolah'] ?? '-') ?></div><div class="alamat"><?= e(trim((!empty($setting['telepon']) ? 'Telp. ' . $setting['telepon'] : '') . (!empty($setting['email']) ? ' | Email: ' . $setting['email'] : ''))) ?></div>
+        </div></div>
 
     <div class="judul">REKAPITULASI ABSENSI SISWA</div>
     <div class="sub-judul">
-        Kelas: <strong><?= htmlspecialchars($nama_kelas) ?></strong>
+        Kelas: <strong><?= e($nama_kelas) ?></strong>
         <?php if ($bulan_nama): ?> &mdash; Bulan: <strong><?= $bulan_nama ?></strong><?php endif; ?>
     </div>
 
@@ -115,8 +120,8 @@ $bulan_nama = $filter_bln ? ($bulan[$filter_bln] ?? '') : '';
         ?>
             <tr>
                 <td class="text-center"><?= $no++ ?></td>
-                <td class="text-center"><?= htmlspecialchars($r['nis']) ?></td>
-                <td><?= htmlspecialchars($r['nama']) ?></td>
+                <td class="text-center"><?= e($r['nis']) ?></td>
+                <td><?= e($r['nama']) ?></td>
                 <td class="text-center"><?= $r['hadir'] ?></td>
                 <td class="text-center"><?= $r['sakit'] ?></td>
                 <td class="text-center"><?= $r['izin'] ?></td>
@@ -145,8 +150,8 @@ $bulan_nama = $filter_bln ? ($bulan[$filter_bln] ?? '') : '';
             <tr>
                 <td>
                     <div class="garis"></div>
-                    <div class="nama"><?= htmlspecialchars($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
-                    <div>NIP. <?= htmlspecialchars($setting['nip_kepsek'] ?? '-') ?></div>
+                    <div class="nama"><?= e($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
+                    <div>NIP. <?= e($setting['nip_kepsek'] ?? '-') ?></div>
                 </td>
                 <td></td>
                 <td>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
@@ -13,12 +13,12 @@ if (!$data) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-bullhorn text-gold me-2"></i>Pengumuman Sekolah</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-bullhorn text-icon me-2"></i>Pengumuman Sekolah</h4>
     </div>
 
     <?php if (mysqli_num_rows($data) > 0): ?>
@@ -28,7 +28,7 @@ if (!$data) {
                 <div class="d-flex justify-content-between align-items-start">
                     <h6 class="card-title mb-1">
                         <i class="fas fa-bullhorn text-primary"></i>
-                        <?= htmlspecialchars($r['judul']) ?>
+                        <?= e($r['judul']) ?>
                     </h6>
                     <span class="badge bg-light text-dark">
                         <i class="fas fa-calendar"></i>
@@ -40,7 +40,7 @@ if (!$data) {
                     Oleh: Administrator Sekolah
                 </small>
                 <p class="card-text mb-0">
-                    <?= nl2br(htmlspecialchars($r['isi'])) ?>
+                    <?= nl2br(e($r['isi'])) ?>
                 </p>
             </div>
         </div>

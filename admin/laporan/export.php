@@ -13,53 +13,21 @@ if (isset($_SESSION['user_id'])) {
          VALUES ('$jenis_e', '', '{$_SESSION['user_id']}')");
 }
 
-$filename = "Laporan_" . ucfirst($jenis) . "_" . date('Y-m-d') . ".xls";
-header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=\"$filename\"");
-header("Cache-Control: no-cache, no-store, must-revalidate");
+require_once __DIR__ . '/../../config/helper_xlsx.php';
 
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting   = mysqli_fetch_assoc($q_setting);
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<style>
-    th { background-color: #163A63; color: #ffffff; font-weight: bold; text-align: center; }
-    td { vertical-align: top; }
-    h2 { text-align: center; }
-</style>
-</head>
-<body>
 
-<!-- Kop surat -->
-<table border="0" width="100%" style="margin-bottom:10px;">
-    <tr>
-        <td colspan="6" style="font-size:10px;text-align:center;border:none;">PEMERINTAH KOTA PALOPO</td>
-    </tr>
-    <tr>
-        <td colspan="6" style="font-size:10px;text-align:center;border:none;">DINAS PENDIDIKAN</td>
-    </tr>
-    <tr>
-        <td colspan="6" style="font-size:18px;font-weight:bold;text-align:center;border:none;color:#163A63;">SMA NEGERI 4 PALOPO</td>
-    </tr>
-    <tr>
-        <td colspan="6" style="font-size:10px;text-align:center;border:none;"><?= htmlspecialchars($setting['alamat_sekolah'] ?? '-') ?></td>
-    </tr>
-    <tr>
-        <td colspan="6" style="border:none;">&nbsp;</td>
-    </tr>
-    <tr>
-        <td colspan="6" style="font-size:12px;text-align:center;border:none;">Dicetak pada: <?= tanggal_indo() ?> &mdash; <?= date('H:i') ?> WITA</td>
-    </tr>
-    <tr>
-        <td colspan="6" style="border:none;">&nbsp;</td>
-    </tr>
-</table>
+$rows = [];
+$rows[] = ['PEMERINTAH KOTA PALOPO'];
+$rows[] = ['DINAS PENDIDIKAN'];
+$rows[] = ['SMA NEGERI 4 PALOPO'];
+$rows[] = [$setting['alamat_sekolah'] ?? '-'];
+$rows[] = ['Dicetak pada: ' . tanggal_indo() . ' - ' . date('H:i') . ' WITA'];
+$rows[] = [];
+$headerIdx = [];
 
-<?php if ($jenis === 'akademik'): ?>
-    <?php
+if ($jenis === 'akademik'):
     $stat = [
         'siswa' => (int) mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM siswa"))[0],
         'guru'  => (int) mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM guru"))[0],
@@ -73,33 +41,23 @@ $setting   = mysqli_fetch_assoc($q_setting);
          LEFT JOIN mata_pelajaran m ON n.mapel_id = m.id
          GROUP BY n.kelas_id, n.mapel_id
          ORDER BY k.nama_kelas, m.nama_mapel");
-    ?>
-    <h2>LAPORAN AKADEMIK SMA NEGERI 4 PALOPO</h2>
-    <table border="1">
-        <tr><th colspan="2">REKAPITULASI</th></tr>
-        <tr><td>Total Siswa</td><td><?= $stat['siswa'] ?></td></tr>
-        <tr><td>Total Guru</td><td><?= $stat['guru'] ?></td></tr>
-        <tr><td>Total Kelas</td><td><?= $stat['kelas'] ?></td></tr>
-        <tr><td>Total Mata Pelajaran</td><td><?= $stat['mapel'] ?></td></tr>
-    </table>
-    <br>
-    <table border="1">
-        <tr>
-            <th>No</th><th>Kelas</th><th>Mata Pelajaran</th><th>Rata-rata Nilai</th><th>Jumlah Data</th>
-        </tr>
-        <?php $no = 1; while ($r = mysqli_fetch_assoc($rekap)): ?>
-        <tr>
-            <td><?= $no++ ?></td>
-            <td><?= htmlspecialchars($r['nama_kelas'] ?: '-') ?></td>
-            <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
-            <td><?= $r['rata'] !== null ? number_format($r['rata'], 2) : '-' ?></td>
-            <td><?= (int) $r['jml_data'] ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
 
-<?php elseif ($jenis === 'statistik'): ?>
-    <?php
+    $rows[] = ['LAPORAN AKADEMIK SMA NEGERI 4 PALOPO'];
+    $rows[] = [];
+    $rows[] = ['REKAPITULASI'];
+    $rows[] = ['Total Siswa', $stat['siswa']];
+    $rows[] = ['Total Guru', $stat['guru']];
+    $rows[] = ['Total Kelas', $stat['kelas']];
+    $rows[] = ['Total Mata Pelajaran', $stat['mapel']];
+    $rows[] = [];
+    $rows[] = ['No', 'Kelas', 'Mata Pelajaran', 'Rata-rata Nilai', 'Jumlah Data'];
+    $headerIdx[] = count($rows);
+    $no = 1;
+    while ($r = mysqli_fetch_assoc($rekap)):
+        $rows[] = [$no++, $r['nama_kelas'] ?: '-', $r['nama_mapel'], $r['rata'] !== null ? number_format($r['rata'], 2, ',', '.') : '-', (int) $r['jml_data']];
+    endwhile;
+
+elseif ($jenis === 'statistik'):
     $dist = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT
              SUM(CASE WHEN nilai_akhir >= 90 THEN 1 ELSE 0 END) AS a,
@@ -117,87 +75,64 @@ $setting   = mysqli_fetch_assoc($q_setting);
          FROM pelanggaran pg
          LEFT JOIN siswa s ON pg.siswa_id = s.id
          GROUP BY pg.siswa_id ORDER BY total_poin DESC LIMIT 5");
-    ?>
-    <h2>LAPORAN STATISTIK SMA NEGERI 4 PALOPO</h2>
-    <table border="1">
-        <tr><th colspan="2">DISTRIBUSI NILAI AKHIR</th></tr>
-        <tr><td>Sangat Baik (90+)</td><td><?= (int) ($dist['a'] ?? 0) ?></td></tr>
-        <tr><td>Baik (80-89)</td><td><?= (int) ($dist['b'] ?? 0) ?></td></tr>
-        <tr><td>Cukup (70-79)</td><td><?= (int) ($dist['c'] ?? 0) ?></td></tr>
-        <tr><td>Perlu Bimbingan (&lt;70)</td><td><?= (int) ($dist['d'] ?? 0) ?></td></tr>
-    </table>
-    <br>
-    <table border="1">
-        <tr><th colspan="3">5 SISWA PRESTASI TERBANYAK</th></tr>
-        <tr><th>No</th><th>Siswa</th><th>Jumlah Prestasi</th></tr>
-        <?php $no = 1; while ($r = mysqli_fetch_assoc($top_prestasi)): ?>
-            <?php $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa']; ?>
-        <tr>
-            <td><?= $no++ ?></td>
-            <td><?= htmlspecialchars($nama_s ?: '-') ?> (NIS: <?= htmlspecialchars($r['nis'] ?: '-') ?>)</td>
-            <td><?= (int) $r['jml'] ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
-    <br>
-    <table border="1">
-        <tr><th colspan="3">5 SISWA PELANGGARAN TERBANYAK</th></tr>
-        <tr><th>No</th><th>Siswa</th><th>Total Poin</th></tr>
-        <?php $no = 1; while ($r = mysqli_fetch_assoc($top_pelanggaran)): ?>
-            <?php $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa']; ?>
-        <tr>
-            <td><?= $no++ ?></td>
-            <td><?= htmlspecialchars($nama_s ?: '-') ?> (NIS: <?= htmlspecialchars($r['nis'] ?: '-') ?>)</td>
-            <td><?= (int) $r['total_poin'] ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
 
-<?php elseif ($jenis === 'kesiswaan'): ?>
-    <?php
+    $rows[] = ['LAPORAN STATISTIK SMA NEGERI 4 PALOPO'];
+    $rows[] = [];
+    $rows[] = ['DISTRIBUSI NILAI AKHIR'];
+    $rows[] = ['Sangat Baik (90+)', (int) ($dist['a'] ?? 0)];
+    $rows[] = ['Baik (80-89)', (int) ($dist['b'] ?? 0)];
+    $rows[] = ['Cukup (70-79)', (int) ($dist['c'] ?? 0)];
+    $rows[] = ['Perlu Bimbingan (<70)', (int) ($dist['d'] ?? 0)];
+    $rows[] = [];
+    $rows[] = ['5 SISWA PRESTASI TERBANYAK'];
+    $rows[] = ['No', 'Siswa', 'Jumlah Prestasi'];
+    $headerIdx[] = count($rows);
+    $no = 1;
+    while ($r = mysqli_fetch_assoc($top_prestasi)):
+        $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa'];
+        $rows[] = [$no++, ($nama_s ?: '-') . ' (NIS: ' . ($r['nis'] ?: '-') . ')', (int) $r['jml']];
+    endwhile;
+    $rows[] = [];
+    $rows[] = ['5 SISWA PELANGGARAN TERBANYAK'];
+    $rows[] = ['No', 'Siswa', 'Total Poin'];
+    $headerIdx[] = count($rows);
+    $no = 1;
+    while ($r = mysqli_fetch_assoc($top_pelanggaran)):
+        $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa'];
+        $rows[] = [$no++, ($nama_s ?: '-') . ' (NIS: ' . ($r['nis'] ?: '-') . ')', (int) $r['total_poin']];
+    endwhile;
+
+elseif ($jenis === 'kesiswaan'):
     $prestasi = mysqli_query($koneksi,
         "SELECT p.*, s.nis, s.nama_lengkap, s.nama AS nama_siswa
          FROM prestasi_siswa p LEFT JOIN siswa s ON p.siswa_id = s.id
          ORDER BY p.tanggal DESC, p.id DESC");
-    ?>
-    <h2>DATA PRESTASI SISWA SMA NEGERI 4 PALOPO</h2>
-    <table border="1">
-        <tr>
-            <th>No</th><th>Siswa</th><th>Prestasi</th><th>Kategori</th><th>Tingkat</th><th>Tanggal</th>
-        </tr>
-        <?php $no = 1; while ($r = mysqli_fetch_assoc($prestasi)): ?>
-            <?php $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa']; ?>
-        <tr>
-            <td><?= $no++ ?></td>
-            <td><?= htmlspecialchars($nama_s ?: '-') ?></td>
-            <td><?= htmlspecialchars($r['nama_prestasi']) ?></td>
-            <td><?= htmlspecialchars($r['kategori']) ?></td>
-            <td><?= htmlspecialchars($r['tingkat']) ?></td>
-            <td><?= htmlspecialchars($r['tanggal'] ?: '-') ?></td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
 
-<?php else: ?>
-    <p>Jenis laporan tidak dikenal.</p>
-<?php endif; ?>
+    $rows[] = ['DATA PRESTASI SISWA SMA NEGERI 4 PALOPO'];
+    $rows[] = [];
+    $rows[] = ['No', 'Siswa', 'Prestasi', 'Kategori', 'Tingkat', 'Tanggal'];
+    $headerIdx[] = count($rows);
+    $no = 1;
+    while ($r = mysqli_fetch_assoc($prestasi)):
+        $nama_s = $r['nama_lengkap'] ?: $r['nama_siswa'];
+        $rows[] = [$no++, $nama_s ?: '-', $r['nama_prestasi'], $r['kategori'], $r['tingkat'], $r['tanggal'] ?: '-'];
+    endwhile;
 
-<!-- Tanda tangan -->
-<br>
-<table border="0" width="100%">
-    <tr>
-        <td width="70%"></td>
-        <td style="text-align:center;">Palopo, <?= tanggal_indo() ?></td>
-    </tr>
-    <tr>
-        <td></td>
-        <td style="text-align:center;">Mengetahui,<br>Kepala Sekolah,</td>
-    </tr>
-    <tr>
-        <td></td>
-        <td style="text-align:center;"><br><br><br><br><br><u><strong><?= htmlspecialchars($setting['nama_kepsek'] ?? '-') ?></strong></u><br>NIP. <?= htmlspecialchars($setting['nip_kepsek'] ?? '-') ?></td>
-    </tr>
-</table>
+else:
+    $rows[] = ['Jenis laporan tidak dikenal.'];
+endif;
 
-</body>
-</html>
+// Tanda tangan
+$rows[] = [];
+$rows[] = ['', '', '', '', 'Palopo, ' . tanggal_indo()];
+$rows[] = ['', '', '', '', 'Mengetahui,'];
+$rows[] = ['', '', '', '', 'Kepala Sekolah,'];
+$rows[] = [];
+$rows[] = [];
+$rows[] = ['', '', '', '', ($setting['nama_kepsek'] ?? '-')];
+$rows[] = ['', '', '', '', 'NIP. ' . ($setting['nip_kepsek'] ?? '-')];
+
+export_xlsx('Laporan_' . ucfirst($jenis) . '_' . date('Y-m-d'), [
+    'Laporan' => ['rows' => $rows, 'header_row' => $headerIdx],
+]);
+exit;

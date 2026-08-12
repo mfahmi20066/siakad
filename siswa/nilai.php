@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 cekSiswa();
@@ -25,12 +25,12 @@ $remidi = mysqli_fetch_row(mysqli_query($koneksi,
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_siswa.php'; ?>
+<?php include '../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_siswa.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-star text-gold me-2"></i>Nilai Saya</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-star text-icon me-2"></i>Nilai Saya</h4>
     </div>
 
     <!-- Ringkasan -->
@@ -47,7 +47,7 @@ $remidi = mysqli_fetch_row(mysqli_query($koneksi,
             <div class="card text-center text-white bg-success">
                 <div class="card-body py-3">
                     <h3><?= $lulus ?></h3>
-                    <p class="mb-0">Mapel Lulus (≥75)</p>
+                    <p class="mb-0">Mapel Lulus (&ge;75)</p>
                 </div>
             </div>
         </div>
@@ -112,7 +112,7 @@ $remidi = mysqli_fetch_row(mysqli_query($koneksi,
                     <?php $no = 1; while ($r = mysqli_fetch_assoc($data)):
                         $na = $r['nilai_akhir'] ?? 0;
 
-                        // ── FIX: deteksi otomatis nama kolom nilai harian ──
+                        // â”€â”€ FIX: deteksi otomatis nama kolom nilai harian â”€â”€
                         $nh = $r['nilai_harian'] ?? $r['nilai_uh'] ?? $r['uh'] ?? $r['nilai_ulangan'] ?? 0;
                         $nu = $r['nilai_uts']    ?? $r['uts'] ?? 0;
                         $nuas = $r['nilai_uas']  ?? $r['uas'] ?? 0;
@@ -125,7 +125,7 @@ $remidi = mysqli_fetch_row(mysqli_query($koneksi,
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                        <td><?= e($r['nama_mapel']) ?></td>
                         <td><?= $nh ?></td>
                         <td><?= $nu ?></td>
                         <td><?= $nuas ?></td>

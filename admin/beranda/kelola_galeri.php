@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -17,6 +17,13 @@ $success = '';
 $error = '';
 $folder_path = '../../assets/img/' . $folder . '/';
 
+// Helper program unggulan (dipakai untuk memasang foto program via galeri)
+if ($folder === 'foto_program') {
+    require_once '../../config/helper_program.php';
+    program_cek_table($koneksi);
+}
+$program_list = $folder === 'foto_program' ? program_get_all($koneksi) : [];
+
 // Buat folder jika belum ada
 if (!is_dir($folder_path)) {
     mkdir($folder_path, 0755, true);
@@ -34,11 +41,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_galeri'])) {
     } elseif ($file_size > 5 * 1024 * 1024) {
         $error = "Ukuran file terlalu besar (max 5MB)";
     } else {
-        $new_filename = time() . '_' . preg_replace('/[^a-z0-9_.-]/i', '', basename($file['name']));
+        // Folder foto_program: foto dipasang langsung ke program unggulan
+        // (pilihan via dropdown, atau otomatis ke program yang belum punya foto)
+        $target_program = null;
+        if ($folder === 'foto_program') {
+            $pid = (int) ($_POST['pasang_program'] ?? 0);
+            if ($pid === 0) {
+                $q = mysqli_query($koneksi, "SELECT id, judul FROM program_unggulan WHERE foto = '' OR foto IS NULL ORDER BY urutan ASC, id ASC LIMIT 1");
+                $target_program = $q ? mysqli_fetch_assoc($q) : null;
+            } else {
+                $q = mysqli_query($koneksi, "SELECT id, judul FROM program_unggulan WHERE id = $pid");
+                $target_program = $q ? mysqli_fetch_assoc($q) : null;
+            }
+        }
+
+        if ($target_program) {
+            $new_filename = 'program_' . (int) $target_program['id'] . '_' . time() . '.' . $file_ext;
+            $old = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT foto FROM program_unggulan WHERE id=" . (int) $target_program['id']));
+            if (!empty($old['foto']) && is_file($folder_path . $old['foto'])) @unlink($folder_path . $old['foto']);
+        } else {
+            $new_filename = time() . '_' . preg_replace('/[^a-z0-9_.-]/i', '', basename($file['name']));
+        }
         $upload_path = $folder_path . $new_filename;
 
         if (move_uploaded_file($file['tmp_name'], $upload_path)) {
-            $success = "Foto berhasil diupload!";
+            if ($target_program) {
+                mysqli_query($koneksi, "UPDATE program_unggulan SET foto='$new_filename' WHERE id=" . (int) $target_program['id']);
+                $success = "Foto berhasil diupload dan dipasang ke program \"" . e($target_program['judul']) . "\"!";
+            } else {
+                $success = "Foto berhasil diupload!";
+            }
         } else {
             $error = "Gagal mengupload file";
         }
@@ -47,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_galeri'])) {
 
 // Handle delete foto
 if (isset($_GET['delete'])) {
+    verifyCsrf();
     $delete_file = preg_replace('/[^a-z0-9_.-]/i', '', $_GET['delete']);
     $delete_path = $folder_path . $delete_file;
 
@@ -69,14 +102,14 @@ if (is_dir($folder_path)) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header mb-4">
             <div class="d-flex justify-content-between align-items-center">
-                <h4><i class="fas fa-images text-gold me-2"></i><?php echo $folder_label[$folder] ?? 'Galeri'; ?></h4>
+                <h4><i class="fas fa-images text-icon me-2"></i><?php echo $folder_label[$folder] ?? 'Galeri'; ?></h4>
                 <a href="index.php" class="btn btn-secondary btn-sm">
                     <i class="fas fa-arrow-left me-2"></i>Kembali
                 </a>
@@ -106,6 +139,29 @@ if (is_dir($folder_path)) {
                     <div class="card-body">
                         <form method="POST" enctype="multipart/form-data">
                             <div class="row">
+                                <?php if ($folder === 'foto_program' && !empty($program_list)): ?>
+                                <div class="col-md-9">
+                                    <div class="row g-2">
+                                        <div class="col-md-7">
+                                            <input type="file" class="form-control" name="foto_galeri" accept="image/*" required>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <select class="form-select" name="pasang_program">
+                                                <option value="0">Foto dimasukkan ke program yang belum punya foto (otomatis)</option>
+                                                <?php foreach ($program_list as $p): ?>
+                                                <option value="<?= (int) $p['id'] ?>">Ganti foto: <?= e($p['judul']) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">JPG, JPEG, PNG, GIF, WebP (Max 5MB). Foto langsung tampil di beranda.</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-upload me-2"></i>Upload
+                                    </button>
+                                </div>
+                                <?php else: ?>
                                 <div class="col-md-9">
                                     <input type="file" class="form-control" name="foto_galeri" accept="image/*" required>
                                     <small class="text-muted">JPG, JPEG, PNG, GIF, WebP (Max 5MB)</small>
@@ -115,6 +171,7 @@ if (is_dir($folder_path)) {
                                         <i class="fas fa-upload me-2"></i>Upload
                                     </button>
                                 </div>
+                                <?php endif; ?>
                             </div>
                         </form>
                     </div>
@@ -135,23 +192,23 @@ if (is_dir($folder_path)) {
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-light shadow-sm overflow-hidden">
                             <div class="ratio ratio-1x1 bg-light overflow-hidden">
-                                <img src="/siakad/assets/img/<?php echo $folder; ?>/<?php echo htmlspecialchars($file); ?>" 
-                                    alt="<?php echo htmlspecialchars($file); ?>" 
+                                <img src="/siakad/assets/img/<?php echo $folder; ?>/<?php echo e($file); ?>" 
+                                    alt="<?php echo e($file); ?>" 
                                     class="w-100 h-100 object-fit-cover"
                                     loading="lazy">
                             </div>
                             <div class="card-body p-3">
-                                <p class="card-text text-truncate small mb-2" title="<?php echo htmlspecialchars($file); ?>">
-                                    <strong><?php echo htmlspecialchars($file); ?></strong>
+                                <p class="card-text text-truncate small mb-2" title="<?php echo e($file); ?>">
+                                    <strong><?php echo e($file); ?></strong>
                                 </p>
                                 <div class="d-flex gap-2">
-                                    <a href="/siakad/assets/img/<?php echo $folder; ?>/<?php echo htmlspecialchars($file); ?>" 
+                                    <a href="/siakad/assets/img/<?php echo $folder; ?>/<?php echo e($file); ?>" 
                                         target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1">
                                         <i class="fas fa-eye me-1"></i>Lihat
                                     </a>
-                                    <a href="?folder=<?php echo $folder; ?>&delete=<?php echo htmlspecialchars($file); ?>" 
+                                    <a href="?folder=<?php echo $folder; ?>&delete=<?php echo e($file); ?>" 
                                         class="btn btn-sm btn-outline-danger"
-                                        onclick="return siHapus('?folder=<?php echo $folder; ?>&delete=<?php echo htmlspecialchars($file); ?>', '<?php echo addslashes(htmlspecialchars($file)); ?>');">
+                                        onclick="return siHapus('?folder=<?php echo $folder; ?>&delete=<?php echo e($file); ?>', '<?php echo addslashes(e($file)); ?>');">
                                         <i class="fas fa-trash me-1"></i>Hapus
                                     </a>
                                 </div>

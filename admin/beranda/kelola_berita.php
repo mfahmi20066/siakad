@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -132,6 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_berita'])) {
 
 // Handle hapus berita
 if (isset($_GET['hapus'])) {
+    verifyCsrf();
     $id = (int)$_GET['hapus'];
     
     $query_get = "SELECT gambar FROM berita_sekolah WHERE id=$id";
@@ -175,13 +176,13 @@ if (isset($_GET['edit'])) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header mb-4">
-            <h4><i class="fas fa-newspaper text-gold me-2"></i>Kelola Berita & Pengumuman</h4>
+            <h4><i class="fas fa-newspaper text-icon me-2"></i>Kelola Berita & Pengumuman</h4>
         </div>
 
         <?php if ($success): ?>
@@ -227,20 +228,20 @@ if (isset($_GET['edit'])) {
                                     <?php foreach ($berita_list as $berita): ?>
                                     <tr>
                                         <td>
-                                            <strong><?php echo htmlspecialchars(substr($berita['judul'], 0, 40)); ?></strong>
+                                            <strong><?php echo e(substr($berita['judul'], 0, 40)); ?></strong>
                                         </td>
                                         <td>
                                             <small><?php echo tanggal_waktu_indo($berita['tanggal']); ?></small>
                                         </td>
                                         <td>
-                                            <span class="badge bg-secondary"><?php echo htmlspecialchars($berita['kategori'] ?? 'Umum'); ?></span>
+                                            <span class="badge bg-secondary"><?php echo e($berita['kategori'] ?? 'Umum'); ?></span>
                                         </td>
                                         <td class="text-center">
                                             <a href="?edit=<?php echo $berita['id']; ?>" class="btn btn-sm btn-primary" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <a href="?hapus=<?php echo $berita['id']; ?>" class="btn btn-sm btn-danger" 
-                                                onclick="return siHapus('?hapus=<?php echo $berita['id']; ?>', '<?php echo addslashes(htmlspecialchars($berita['judul'])); ?>');" title="Hapus">
+                                                onclick="return siHapus('?hapus=<?php echo $berita['id']; ?>', '<?php echo addslashes(e($berita['judul'])); ?>');" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </td>
@@ -276,24 +277,24 @@ if (isset($_GET['edit'])) {
                             <div class="mb-3">
                                 <label for="judul" class="form-label">Judul <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="judul" name="judul" 
-                                    value="<?php echo htmlspecialchars($edit_data['judul'] ?? ''); ?>" required>
+                                    value="<?php echo e($edit_data['judul'] ?? ''); ?>" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="ringkasan" class="form-label">Ringkasan</label>
-                                <textarea class="form-control" id="ringkasan" name="ringkasan" rows="2"><?php echo htmlspecialchars($edit_data['ringkasan'] ?? ''); ?></textarea>
+                                <textarea class="form-control" id="ringkasan" name="ringkasan" rows="2"><?php echo e($edit_data['ringkasan'] ?? ''); ?></textarea>
                                 <small class="text-muted">Opsional, untuk preview di halaman beranda</small>
                             </div>
 
                             <div class="mb-3">
                                 <label for="isi" class="form-label">Isi Berita <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="isi" name="isi" rows="4" required><?php echo htmlspecialchars($edit_data['isi'] ?? ''); ?></textarea>
+                                <textarea class="form-control" id="isi" name="isi" rows="4" required><?php echo e($edit_data['isi'] ?? ''); ?></textarea>
                             </div>
 
                             <div class="mb-3">
                                 <label for="kategori" class="form-label">Kategori</label>
                                 <input type="text" class="form-control" id="kategori" name="kategori" 
-                                    value="<?php echo htmlspecialchars($edit_data['kategori'] ?? ''); ?>">
+                                    value="<?php echo e($edit_data['kategori'] ?? ''); ?>">
                                 <small class="text-muted">Contoh: Akademik, Pengumuman, Kegiatan</small>
                             </div>
 
@@ -307,7 +308,7 @@ if (isset($_GET['edit'])) {
                                 <label for="gambar" class="form-label">Gambar</label>
                                 <?php if ($edit_mode && $edit_data['gambar']): ?>
                                 <div class="mb-2">
-                                    <img src="/siakad/assets/img/foto_berita/<?php echo htmlspecialchars($edit_data['gambar']); ?>" 
+                                    <img src="/siakad/assets/img/foto_berita/<?php echo e($edit_data['gambar']); ?>" 
                                         alt="Gambar Berita" class="img-thumbnail" style="max-height: 100px;">
                                     <small class="d-block text-muted mt-1">Ganti dengan upload baru jika perlu</small>
                                 </div>

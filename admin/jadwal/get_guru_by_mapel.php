@@ -5,56 +5,45 @@ cekAdmin();
 header('Content-Type: application/json');
 
 $mapel_id = isset($_GET['mapel_id']) ? (int)$_GET['mapel_id'] : 0;
+$kelas_id = isset($_GET['kelas_id']) ? (int)$_GET['kelas_id'] : 0;
 
 if ($mapel_id <= 0) {
     echo json_encode([]);
     exit();
 }
 
-$guru      = [];
-$seen_ids  = [];
+// Sumber kebenaran: pivot kelas_mapel_guru.
+// Jika kelas dipilih, tampilkan guru yang mengajar mapel tersebut DI KELAS ITU.
+// Jika kelas tidak dipilih, tampilkan semua guru yang mengajar mapel tersebut.
+$where = "kmg.mapel_id = $mapel_id";
+if ($kelas_id > 0) $where .= " AND kmg.kelas_id = $kelas_id";
 
-// 1) Guru yang terdaftar langsung di tabel mata_pelajaran.guru_id
+$guru = [];
+$cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM guru LIKE 'nama_lengkap'");
+$nama_guru = (mysqli_num_rows($cek_kolom) > 0) ? "g.nama_lengkap AS nama" : "g.nama";
+
 $q = mysqli_query($koneksi,
-    "SELECT g.id, g.nama
-     FROM guru g
-     JOIN mata_pelajaran mp ON mp.guru_id = g.id
-     WHERE mp.id = '$mapel_id'
-     ORDER BY g.nama");
+    "SELECT DISTINCT g.id, $nama_guru
+     FROM kelas_mapel_guru kmg
+     JOIN guru g ON g.id = kmg.guru_id
+     WHERE $where
+     ORDER BY nama");
 
 if ($q) {
     while ($r = mysqli_fetch_assoc($q)) {
-        $guru[] = $r;
-        $seen_ids[(int)$r['id']] = true;
+        $guru[] = ['id' => (int)$r['id'], 'nama' => $r['nama']];
     }
 }
 
-// 2) Guru yang mengajar mapel ini di tabel jadwal (mapel_id)
-$q2 = mysqli_query($koneksi,
-    "SELECT DISTINCT g.id, g.nama
-     FROM jadwal j
-     JOIN guru g ON g.id = j.guru_id
-     WHERE j.mapel_id = '$mapel_id'
-     ORDER BY g.nama");
-
-if ($q2) {
-    while ($r = mysqli_fetch_assoc($q2)) {
-        if (!isset($seen_ids[(int)$r['id']])) {
-            $guru[] = $r;
-            $seen_ids[(int)$r['id']] = true;
-        }
-    }
-}
-
-// 3) Fallback: jika sama sekali tidak ada relasi, tampilkan semua guru
+// Fallback: bila belum ada penugasan di pivot, tampilkan semua guru agar admin tetap bisa mengisi.
 if (empty($guru)) {
-    $q3 = mysqli_query($koneksi, "SELECT id, nama FROM guru ORDER BY nama");
+    $q3 = mysqli_query($koneksi,
+        "SELECT g.id, $nama_guru FROM guru g ORDER BY nama");
     if ($q3) {
         while ($r = mysqli_fetch_assoc($q3)) {
-            $guru[] = $r;
+            $guru[] = ['id' => (int)$r['id'], 'nama' => $r['nama']];
         }
     }
 }
 
 echo json_encode($guru);
-

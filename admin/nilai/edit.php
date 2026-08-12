@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -7,14 +7,11 @@ $title = "Edit Nilai";
 $id   = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
 // SINKRONISASI SELECT: Menggunakan s.nama untuk menampilkan nama siswa secara utuh
-$data = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT n.*, s.nama AS nama_siswa, s.nis,
-                m.nama_mapel, k.nama_kelas
-         FROM nilai n
-         JOIN siswa s ON n.siswa_id = s.id
-         JOIN mata_pelajaran m ON n.mapel_id = m.id
-         LEFT JOIN kelas k ON s.kelas_id = k.id
-         WHERE n.id = '$id'"));
+$stmt_data = mysqli_prepare($koneksi, "SELECT n.*, s.nama AS nama_siswa, s.nis, m.nama_mapel, k.nama_kelas FROM nilai n JOIN siswa s ON n.siswa_id = s.id JOIN mata_pelajaran m ON n.mapel_id = m.id LEFT JOIN kelas k ON s.kelas_id = k.id WHERE n.id = ?");
+mysqli_stmt_bind_param($stmt_data, "i", $id);
+mysqli_stmt_execute($stmt_data);
+mysqli_stmt_bind_result($stmt_data, $n_id, $n_siswa_id, $n_mapel_id, $n_nilai_harian, $n_nilai_uts, $n_nilai_uas, $n_nilai_akhir, $n_nilai_kehadiran, $n_nilai_uh, $n_semester, $n_nama_siswa, $n_nis, $n_nama_mapel, $n_nama_kelas);
+mysqli_stmt_fetch($stmt_data);
 
 // FITUR AMAN: Cek struktur nama kolom nilai saat ini (nilai_uh vs nilai_harian)
 $cek_uh = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
@@ -23,23 +20,28 @@ $kolom_uh = (mysqli_num_rows($cek_uh) > 0) ? "nilai_uh" : "nilai_harian";
 // OTOMATIS: rekap kehadiran diambil langsung dari tabel absensi, untuk ditampilkan sebagai info
 $kehadiran_info = ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpa' => 0, 'total' => 0, 'persen' => 0];
 if (!empty($data['siswa_id']) && !empty($data['mapel_id'])) {
-    $abs_q = mysqli_query($koneksi, "SELECT
-            SUM(status = 'Hadir') AS hadir,
-            SUM(status = 'Izin')  AS izin,
-            SUM(status = 'Sakit') AS sakit,
-            SUM(status = 'Alpa')  AS alpa,
-            COUNT(*) AS total
-        FROM absensi WHERE siswa_id = '{$data['siswa_id']}' AND mapel_id = '{$data['mapel_id']}'");
-    if ($abs_row = mysqli_fetch_assoc($abs_q)) {
-        $kehadiran_info['hadir'] = (int) $abs_row['hadir'];
-        $kehadiran_info['izin']  = (int) $abs_row['izin'];
-        $kehadiran_info['sakit'] = (int) $abs_row['sakit'];
-        $kehadiran_info['alpa']  = (int) $abs_row['alpa'];
-        $kehadiran_info['total'] = (int) $abs_row['total'];
-        $kehadiran_info['persen'] = $kehadiran_info['total'] > 0
-            ? round(($kehadiran_info['hadir'] / $kehadiran_info['total']) * 100, 2)
-            : 0;
+    // Prepared statement ambil rekap kehadiran
+    if (!isset($stmt_abs_rekap) || $stmt_abs_rekap === null) {
+        $stmt_abs_rekap = mysqli_prepare($koneksi,
+            "SELECT SUM(status = 'Hadir') AS hadir,
+             SUM(status = 'Izin')  AS izin,
+             SUM(status = 'Sakit') AS sakit,
+             SUM(status = 'Alpa')  AS alpa,
+             COUNT(*) AS total
+             FROM absensi WHERE siswa_id = ? AND mapel_id = ?");
+        mysqli_stmt_bind_param($stmt_abs_rekap, "is", $data['siswa_id'], $data['mapel_id']);
     }
+    mysqli_stmt_execute($stmt_abs_rekap);
+    mysqli_stmt_bind_result($stmt_abs_rekap, $hadir, $izin, $sakit, $alpa, $total);
+    mysqli_stmt_fetch($stmt_abs_rekap);
+    $kehadiran_info['hadir'] = (int) $hadir;
+    $kehadiran_info['izin']  = (int) $izin;
+    $kehadiran_info['sakit'] = (int) $sakit;
+    $kehadiran_info['alpa']  = (int) $alpa;
+    $kehadiran_info['total'] = (int) $total;
+    $kehadiran_info['persen'] = $kehadiran_info['total'] > 0
+        ? round(($kehadiran_info['hadir'] / $kehadiran_info['total']) * 100, 2)
+        : 0;
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -55,13 +57,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $cek_kolom_kehadiran = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_kehadiran'");
         $ada_kolom_kehadiran = mysqli_num_rows($cek_kolom_kehadiran) > 0;
 
-        $abs = mysqli_query($koneksi, "SELECT
-                SUM(status = 'Hadir') AS hadir, COUNT(*) AS total
-                FROM absensi WHERE siswa_id = '{$data['siswa_id']}' AND mapel_id = '{$data['mapel_id']}'");
-        $row_abs = mysqli_fetch_assoc($abs);
-        $total_abs = (int) ($row_abs['total'] ?? 0);
+        // Prepared statement ambil rekap kehadiran untuk update
+        if (!isset($stmt_abs_update) || $stmt_abs_update === null) {
+            $stmt_abs_update = mysqli_prepare($koneksi,
+                "SELECT SUM(status = 'Hadir') AS hadir, COUNT(*) AS total
+                FROM absensi WHERE siswa_id = ? AND mapel_id = ?");
+            mysqli_stmt_bind_param($stmt_abs_update, "is", $data['siswa_id'], $data['mapel_id']);
+        }
+        mysqli_stmt_execute($stmt_abs_update);
+        mysqli_stmt_bind_result($stmt_abs_update, $hadir, $total_abs);
+        mysqli_stmt_fetch($stmt_abs_update);
         $kehadiran = $total_abs > 0
-            ? round(((int) $row_abs['hadir'] / $total_abs) * 100, 2)
+            ? round(((int) $hadir / $total_abs) * 100, 2)
             : 0;
         $kehadiran_sql = "'$kehadiran'";
 
@@ -70,15 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Update yang konsisten dengan skema tabel nilai
         $set_kehadiran = $ada_kolom_kehadiran ? "nilai_kehadiran = $kehadiran_sql," : "";
-        mysqli_query($koneksi,
-            "UPDATE nilai 
-             SET nilai_harian = '$nh', 
-                 nilai_uts = '$uts',
-                 nilai_uas = '$uas',
-                 $kolom_uh = '$nh',
-                 $set_kehadiran
-                 nilai_akhir = '$akhir'
-             WHERE id = '$id'");
+        // Prepared statement UPDATE nilai
+        if (!isset($stmt_update_nilai) || $stmt_update_nilai === null) {
+            $stmt_update_nilai = mysqli_prepare($koneksi,
+                "UPDATE nilai SET nilai_harian = ?, nilai_uts = ?, nilai_uas = ?, $kolom_uh = ?, $set_kehadiran nilai_akhir = ? WHERE id = ?");
+            mysqli_stmt_bind_param($stmt_update_nilai, "sssssii", $nh, $uts, $uas, $nh, $kehadiran_sql, $akhir, $id);
+        }
+        mysqli_stmt_execute($stmt_update_nilai);
 
 
         header("Location: index.php?success=Nilai berhasil diupdate");
@@ -88,12 +93,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Nilai</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Nilai</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -113,23 +118,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="row">
                     <div class="col-md-3">
                         <small class="text-muted">Siswa</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_siswa'] ?? 'Tidak Diketahui') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_siswa'] ?? 'Tidak Diketahui') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">NIS</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nis'] ?? '-') ?></div>
+                        <div class="fw-bold"><?= e($data['nis'] ?? '-') ?></div>
                     </div>
                     <div class="col-md-3">
                         <small class="text-muted">Mata Pelajaran</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_mapel'] ?? '-') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_mapel'] ?? '-') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Kelas</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_kelas'] ?? 'Tanpa Kelas') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_kelas'] ?? 'Tanpa Kelas') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Semester</small>
-                        <div class="fw-bold">Semester <?= htmlspecialchars($data['semester'] ?? '-') ?></div>
+                        <div class="fw-bold">Semester <?= e($data['semester'] ?? '-') ?></div>
                     </div>
                 </div>
             </div>
@@ -137,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
                 <strong>Rumus:</strong>
-                (Harian × 20%) + (UTS × 25%) + (UAS × 35%) + (Kehadiran × 20%)
+                (Harian — 20%) + (UTS — 25%) + (UAS — 35%) + (Kehadiran — 20%)
             </div>
 
             <form method="POST">

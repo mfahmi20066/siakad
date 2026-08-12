@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -61,12 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-trophy text-gold me-2"></i>Edit Prestasi</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-trophy text-icon me-2"></i>Edit Prestasi</h4>
     </div>
 
     <?php if (isset($error)): ?>
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="siswa-search">
                                 <input type="text" id="pencarian_siswa" class="form-control"
                                        placeholder="Ketik nama siswa, NIS, atau kelas..." autocomplete="off"
-                                       value="<?= htmlspecialchars($nama_siswa_terpilih) ?>">
+                                       value="<?= e($nama_siswa_terpilih) ?>">
                                 <input type="hidden" name="siswa_id" id="siswa_id" value="<?= (int) $data['siswa_id'] ?>">
                                 <div class="siswa-search-results" id="hasil_pencarian_siswa"></div>
                             </div>
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Nama Prestasi</label>
                             <input type="text" name="nama_prestasi" class="form-control"
-                                   value="<?= htmlspecialchars($data['nama_prestasi']) ?>" required>
+                                   value="<?= e($data['nama_prestasi']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kategori</label>
@@ -117,11 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Tanggal</label>
                             <input type="date" name="tanggal" class="form-control"
-                                   value="<?= htmlspecialchars($data['tanggal']) ?>">
+                                   value="<?= e($data['tanggal']) ?>">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Keterangan</label>
-                            <textarea name="keterangan" class="form-control" rows="4"><?= htmlspecialchars($data['keterangan']) ?></textarea>
+                            <textarea name="keterangan" class="form-control" rows="4"><?= e($data['keterangan']) ?></textarea>
                         </div>
                     </div>
                 </div>

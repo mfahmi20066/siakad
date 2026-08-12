@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';
@@ -19,22 +19,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama     = mysqli_real_escape_string($koneksi, $_POST['nama']);
     $username = mysqli_real_escape_string($koneksi, $_POST['username']);
     $role     = mysqli_real_escape_string($koneksi, $_POST['role']);
+    $email    = mysqli_real_escape_string($koneksi, trim($_POST['email'] ?? ''));
 
+    $error = null;
     $cek = mysqli_fetch_row(mysqli_query($koneksi,
            "SELECT COUNT(*) FROM users
             WHERE username='$username' AND id!='$id'"))[0];
     if ($cek > 0) {
         $error = "Username sudah digunakan!";
-    } else {
+    } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Format email tidak valid!";
+    } elseif (!empty($email) && mysqli_fetch_row(mysqli_query($koneksi,
+                "SELECT COUNT(*) FROM users WHERE email='$email' AND id!='$id'"))[0] > 0) {
+        $error = "Email sudah digunakan oleh pengguna lain!";
+    }
+
+    if ($error === null) {
+        $emailSql = $email !== '' ? "'$email'" : "NULL";
         if (!empty($_POST['password'])) {
             $pass = hashPassword($_POST['password']);
             mysqli_query($koneksi,
                 "UPDATE users SET nama='$nama', username='$username',
-                 role='$role', password='$pass' WHERE id='$id'");
+                 role='$role', email=$emailSql, password='$pass' WHERE id='$id'");
         } else {
             mysqli_query($koneksi,
                 "UPDATE users SET nama='$nama', username='$username',
-                 role='$role' WHERE id='$id'");
+                 role='$role', email=$emailSql WHERE id='$id'");
+        }
+        // Sinkronkan nama & email ke tabel guru/siswa agar tetap terelasi dengan data master
+        if ($role === 'guru' && !empty($data['id_ref'])) {
+            mysqli_query($koneksi, "UPDATE guru SET nama='$nama', nama_lengkap='$nama', email=$emailSql WHERE id='{$data['id_ref']}'");
+        } elseif ($role === 'siswa' && !empty($data['id_ref'])) {
+            mysqli_query($koneksi, "UPDATE siswa SET nama='$nama', nama_lengkap='$nama', email=$emailSql WHERE id='{$data['id_ref']}'");
         }
         header("Location: index.php?success=edit");
         exit();
@@ -43,12 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-user-edit text-gold me-2"></i>Edit User</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-user-edit text-icon me-2"></i>Edit User</h4>
     </div>
 
     <div class="card">
@@ -70,15 +86,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label class="form-label">Nama Lengkap</label>
                             <input type="text" name="nama"
                                    class="form-control"
-                                   value="<?= htmlspecialchars($data['nama']) ?>"
+                                   value="<?= e($data['nama']) ?>"
                                    required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Username</label>
                             <input type="text" name="username"
                                    class="form-control"
-                                   value="<?= htmlspecialchars($data['username']) ?>"
+                                   value="<?= e($data['username']) ?>"
                                    required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email"
+                                   class="form-control"
+                                   value="<?= e($data['email'] ?? '') ?>"
+                                   placeholder="nama@email.com">
+                            <small class="text-muted">Tersinkron otomatis dengan data guru/siswa terkait.</small>
                         </div>
                     </div>
                     <div class="col-md-6">

@@ -2,15 +2,21 @@
 // Perbaikan path include koneksi agar tidak salah folder
 include '../../config/koneksi.php';
 
-$kelas_id = isset($_GET['kelas_id']) ? mysqli_real_escape_string($koneksi, $_GET['kelas_id']) : '';
+$kelas_id = isset($_GET['kelas_id']) ? (int) $_GET['kelas_id'] : '';
 
 if (!empty($kelas_id)) {
-    // Menarik data siswa berdasarkan kelas_id yang dipilih
-    $query = mysqli_query($koneksi, "SELECT * FROM siswa WHERE kelas_id = '$kelas_id' ORDER BY nama");
+    // Prepared statement ambil siswa berdasarkan kelas_id
+    if (!isset($stmt_siswa) || $stmt_siswa === null) {
+        $stmt_siswa = mysqli_prepare($koneksi, "SELECT * FROM siswa WHERE kelas_id = ? ORDER BY nama");
+        mysqli_stmt_bind_param($stmt_siswa, "i");
+    }
+    mysqli_stmt_bind_param($stmt_siswa, "i", $kelas_id);
+    mysqli_stmt_execute($stmt_siswa);
+    $result = mysqli_stmt_get_result($stmt_siswa);
     
-    if (mysqli_num_rows($query) > 0) {
+    if ($result && mysqli_num_rows($result) > 0) {
         echo '<option value="">-- Pilih Siswa --</option>';
-        while ($s = mysqli_fetch_assoc($query)) {
+        while ($s = mysqli_fetch_assoc($result)) {
             // Deteksi penamaan kolom nama secara fleksibel
             $nama_tampil = '';
             if (isset($s['nama'])) { $nama_tampil = $s['nama']; }
@@ -18,7 +24,7 @@ if (!empty($kelas_id)) {
             elseif (isset($s['nama_lengkap'])) { $nama_tampil = $s['nama_lengkap']; }
             else { $nama_tampil = "Siswa ID: " . $s['id']; }
             
-            echo '<option value="' . $s['id'] . '">' . htmlspecialchars($nama_tampil) . '</option>';
+            echo '<option value="' . $s['id'] . '">' . e($nama_tampil) . '</option>';
         }
     } else {
         echo '<option value="">Tidak ada siswa di kelas ini</option>';
@@ -26,4 +32,3 @@ if (!empty($kelas_id)) {
 } else {
     echo '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
 }
-?>

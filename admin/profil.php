@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 cekAdmin();
@@ -34,13 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_admin.php'; ?>
+<?php include '../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_admin.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header mb-4">
-            <h4><i class="fas fa-user-circle text-gold me-2"></i>Profil Saya</h4>
+            <h4><i class="fas fa-user-circle text-icon me-2"></i>Profil Saya</h4>
         </div>
 
         <?php if ($success): ?>
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
                     <div class="card-body text-center">
                         <div style="width: 120px; height: 120px; margin: 0 auto 20px; background: linear-gradient(135deg, #163A63, #2C5A8F); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;">
                             <?php 
-                            $nama = htmlspecialchars($user['nama'] ?? 'Admin');
+                            $nama = e($user['nama'] ?? 'Admin');
                             $nameParts = explode(' ', $nama);
                             $initials = '';
                             foreach ($nameParts as $part) {
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
                             echo substr($initials, 0, 2);
                             ?>
                         </div>
-                        <h5 class="card-title"><?php echo htmlspecialchars($user['nama'] ?? 'Admin'); ?></h5>
+                        <h5 class="card-title"><?php echo e($user['nama'] ?? 'Admin'); ?></h5>
                         <p class="text-muted mb-3">
                             <span class="badge bg-primary">Administrator</span>
                         </p>
@@ -94,18 +94,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
                         <form method="POST">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" value="<?php echo htmlspecialchars($user['username'] ?? ''); ?>" disabled>
+                                <input type="text" class="form-control" id="username" value="<?php echo e($user['username'] ?? ''); ?>" disabled>
                                 <small class="text-muted">Username tidak dapat diubah</small>
                             </div>
 
                             <div class="mb-3">
                                 <label for="nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nama" name="nama" value="<?php echo htmlspecialchars($user['nama'] ?? ''); ?>" required>
+                                <input type="text" class="form-control" id="nama" name="nama" value="<?php echo e($user['nama'] ?? ''); ?>" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" value="<?php echo htmlspecialchars($user['email'] ?? '-'); ?>" disabled>
+                                <input type="email" class="form-control" id="email" value="<?php echo e($user['email'] ?? '-'); ?>" disabled>
                             </div>
 
                             <div class="mb-3">

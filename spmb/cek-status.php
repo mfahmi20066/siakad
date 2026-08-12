@@ -50,14 +50,14 @@ $status_config = [
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/siakad/assets/css/landing.css?v=1.0">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #F5F7FB; }
+        body { font-family: 'Roboto', sans-serif; background: #F5F7FB; }
         .form-section { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 18px; box-shadow: 0 8px 24px rgba(13, 37, 64, 0.08); margin-top: 40px; }
         .form-title { color: #163A63; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .form-subtitle { color: #4A5568; margin-bottom: 32px; }
@@ -118,14 +118,14 @@ $status_config = [
         <div class="form-group mb-3">
             <label for="no_pendaftaran">Nomor Pendaftaran <span style="color: #E11D48;">*</span></label>
             <input type="text" class="form-control" id="no_pendaftaran" name="no_pendaftaran" 
-                placeholder="Contoh: SPMB-2026-00001" value="<?php echo htmlspecialchars($_POST['no_pendaftaran'] ?? ''); ?>" required>
+                placeholder="Contoh: SPMB-2026-00001" value="<?php echo e($_POST['no_pendaftaran'] ?? ''); ?>" required>
             <small class="text-muted">Nomor yang dikirim melalui email pendaftaran</small>
         </div>
         
         <div class="form-group mb-4">
             <label for="tanggal_lahir">Tanggal Lahir <span style="color: #E11D48;">*</span></label>
             <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" 
-                value="<?php echo htmlspecialchars($_POST['tanggal_lahir'] ?? ''); ?>" required>
+                value="<?php echo e($_POST['tanggal_lahir'] ?? ''); ?>" required>
         </div>
         
         <button type="submit" class="btn-cek">
@@ -143,27 +143,27 @@ $status_config = [
         
         <div class="result-row">
             <div class="result-label">Nama</div>
-            <div class="result-value"><?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></div>
+            <div class="result-value"><?php echo e($pendaftar['nama_lengkap']); ?></div>
         </div>
         
         <div class="result-row">
             <div class="result-label">No. Pendaftaran</div>
-            <div class="result-value"><strong><?php echo htmlspecialchars($pendaftar['no_pendaftaran']); ?></strong></div>
+            <div class="result-value"><strong><?php echo e($pendaftar['no_pendaftaran']); ?></strong></div>
         </div>
         
         <div class="result-row">
             <div class="result-label">Email</div>
-            <div class="result-value"><?php echo htmlspecialchars($pendaftar['email']); ?></div>
+            <div class="result-value"><?php echo e($pendaftar['email']); ?></div>
         </div>
         
         <div class="result-row">
             <div class="result-label">Jalur</div>
-            <div class="result-value"><?php echo htmlspecialchars($pendaftar['nama_jalur'] ?? 'N/A'); ?></div>
+            <div class="result-value"><?php echo e($pendaftar['nama_jalur'] ?? 'N/A'); ?></div>
         </div>
         
         <div class="result-row">
             <div class="result-label">Gelombang</div>
-            <div class="result-value"><?php echo htmlspecialchars($pendaftar['nama_gelombang'] ?? 'N/A'); ?></div>
+            <div class="result-value"><?php echo e($pendaftar['nama_gelombang'] ?? 'N/A'); ?></div>
         </div>
         
         <div class="result-row">
@@ -209,7 +209,7 @@ $status_config = [
         <?php if ($pendaftar['catatan_verifikasi']): ?>
         <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 16px; border-radius: 8px; margin-top: 20px;">
             <p style="margin: 0; color: #92400E; font-size: 13px;">
-                <strong>Catatan:</strong> <?php echo htmlspecialchars($pendaftar['catatan_verifikasi']); ?>
+                <strong>Catatan:</strong> <?php echo e($pendaftar['catatan_verifikasi']); ?>
             </p>
         </div>
         <?php endif; ?>

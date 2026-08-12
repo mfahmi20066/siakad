@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once '../../config/session.php';
 require_once '../../config/koneksi.php';
 require_once '../../config/helper_auth.php';
@@ -12,14 +12,14 @@ $id_siswa = $_SESSION['id_ref']; // id siswa dari session
 $pesan    = '';
 $error    = '';
 
-// ── Ambil data siswa ─────────────────────────────────────────
+// â”€â”€ Ambil data siswa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $query = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas 
                                FROM siswa s 
-                               LEFT JOIN kelas k ON s.id_kelas = k.id
+                               LEFT JOIN kelas k ON s.kelas_id = k.id
                                WHERE s.id = '$id_siswa'");
 $data  = mysqli_fetch_assoc($query);
 
-// ── Proses Upload Foto ───────────────────────────────────────
+// â”€â”€ Proses Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     $file    = $_FILES['foto'];
     $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -51,7 +51,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
             // Refresh data
             $query = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas 
                                           FROM siswa s 
-                                          LEFT JOIN kelas k ON s.id_kelas = k.id
+                                          LEFT JOIN kelas k ON s.kelas_id = k.id
                                           WHERE s.id = '$id_siswa'");
             $data  = mysqli_fetch_assoc($query);
         } else {
@@ -60,7 +60,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     }
 }
 
-// ── Proses Update Kontak ─────────────────────────────────────
+// â”€â”€ Proses Update Kontak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (isset($_POST['simpan_kontak'])) {
     $no_hp  = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
@@ -68,7 +68,7 @@ if (isset($_POST['simpan_kontak'])) {
     $pesan = "Data kontak berhasil diperbarui.";
 }
 
-// ── Proses Ganti Password ────────────────────────────────────
+// â”€â”€ Proses Ganti Password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (isset($_POST['simpan_password'])) {
     $pass_baru   = $_POST['password_baru'];
     $pass_konfirm = $_POST['password_konfirm'];
@@ -86,7 +86,7 @@ if (isset($_POST['simpan_password'])) {
     }
 }
 
-// ── Path foto ────────────────────────────────────────────────
+// â”€â”€ Path foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $foto_file = $data['foto'] ?? '';
 $foto_src  = (!empty($foto_file) && file_exists(__DIR__ . "/../../assets/img/foto_siswa/" . $foto_file))
              ? "/siakad/assets/img/foto_siswa/" . $foto_file
@@ -98,11 +98,12 @@ require_once '../../includes/header.php';
 ?>
 
 <?php require_once '../../includes/sidebar_siswa.php'; ?>
+        <?php include '../../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-  <?php require_once '../../includes/topbar_siswa.php'; ?>
-  <div class="page-header">
-    <h4><i class="fas fa-user text-gold me-2"></i>Profil Saya</h4>
+    <div class="page-header">
+    <h4><i class="fas fa-user text-icon me-2"></i>Profil Saya</h4>
   </div>
   <div class="container-fluid">
 
@@ -122,7 +123,7 @@ require_once '../../includes/header.php';
 
     <div class="row g-4">
 
-      <!-- ── Kartu Foto & Info Singkat ─────────────────── -->
+      <!-- â”€â”€ Kartu Foto & Info Singkat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="col-md-4">
         <div class="card shadow-sm h-100">
           <div class="card-body text-center py-4">
@@ -142,11 +143,11 @@ require_once '../../includes/header.php';
               </label>
             </div>
 
-            <h5 class="fw-bold mb-1"><?= htmlspecialchars($data['nama_lengkap']) ?></h5>
+            <h5 class="fw-bold mb-1"><?= e($data['nama_lengkap']) ?></h5>
             <p class="text-muted mb-2" style="font-size:13px;">
-              NIS: <strong><?= htmlspecialchars($data['nis']) ?></strong>
+              NIS: <strong><?= e($data['nis']) ?></strong>
             </p>
-            <span class="badge bg-info me-1"><?= htmlspecialchars($data['nama_kelas'] ?? '-') ?></span>
+            <span class="badge bg-info me-1"><?= e($data['nama_kelas'] ?? '-') ?></span>
             <span class="badge bg-primary">Siswa</span>
 
             <hr>
@@ -155,11 +156,11 @@ require_once '../../includes/header.php';
             <table class="table table-sm text-start" style="font-size:13px;">
               <tr>
                 <td class="fw-semibold text-muted">Jenis Kelamin</td>
-                <td>: <?= htmlspecialchars($data['jenis_kelamin'] ?? '-') ?></td>
+                <td>: <?= e($data['jenis_kelamin'] ?? '-') ?></td>
               </tr>
               <tr>
                 <td class="fw-semibold text-muted">Tempat Lahir</td>
-                <td>: <?= htmlspecialchars($data['tempat_lahir'] ?? '-') ?></td>
+                <td>: <?= e($data['tempat_lahir'] ?? '-') ?></td>
               </tr>
               <tr>
                 <td class="fw-semibold text-muted">Tanggal Lahir</td>
@@ -167,11 +168,11 @@ require_once '../../includes/header.php';
               </tr>
               <tr>
                 <td class="fw-semibold text-muted">Tahun Ajaran</td>
-                <td>: <?= htmlspecialchars($data['tahun_ajaran'] ?? $taTahun) ?></td>
+                <td>: <?= e($data['tahun_ajaran'] ?? $taTahun) ?></td>
               </tr>
               <tr>
                 <td class="fw-semibold text-muted">Username</td>
-                <td>: <code><?= htmlspecialchars($_SESSION['username'] ?? '-') ?></code></td>
+                <td>: <code><?= e($_SESSION['username'] ?? '-') ?></code></td>
               </tr>
             </table>
 
@@ -194,7 +195,7 @@ require_once '../../includes/header.php';
         </div>
       </div>
 
-      <!-- ── Kartu Update Info ──────────────────────────── -->
+      <!-- â”€â”€ Kartu Update Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="col-md-8">
         <div class="card shadow-sm mb-4">
           <div class="card-header bg-white fw-bold">
@@ -207,23 +208,23 @@ require_once '../../includes/header.php';
             <div class="row g-2 mb-4" style="font-size:14px;">
               <div class="col-md-6">
                 <span class="text-muted">Nama Lengkap</span><br>
-                <strong>: <?= htmlspecialchars($data['nama_lengkap']) ?></strong>
+                <strong>: <?= e($data['nama_lengkap']) ?></strong>
               </div>
               <div class="col-md-6">
                 <span class="text-muted">NIS</span><br>
-                <strong>: <?= htmlspecialchars($data['nis']) ?></strong>
+                <strong>: <?= e($data['nis']) ?></strong>
               </div>
               <div class="col-md-6">
                 <span class="text-muted">Kelas</span><br>
-                <strong>: <span class="badge bg-info"><?= htmlspecialchars($data['nama_kelas'] ?? '-') ?></span></strong>
+                <strong>: <span class="badge bg-info"><?= e($data['nama_kelas'] ?? '-') ?></span></strong>
               </div>
               <div class="col-md-6">
                 <span class="text-muted">Alamat Saat Ini</span><br>
-                <strong>: <?= htmlspecialchars($data['alamat'] ?? '-') ?></strong>
+                <strong>: <?= e($data['alamat'] ?? '-') ?></strong>
               </div>
               <div class="col-md-6">
                 <span class="text-muted">No HP Saat Ini</span><br>
-                <strong>: <?= htmlspecialchars($data['no_hp'] ?? '-') ?></strong>
+                <strong>: <?= e($data['no_hp'] ?? '-') ?></strong>
               </div>
             </div>
 
@@ -235,13 +236,13 @@ require_once '../../includes/header.php';
               <div class="mb-3">
                 <label class="form-label">No HP</label>
                 <input type="text" name="no_hp" class="form-control"
-                       value="<?= htmlspecialchars($data['no_hp'] ?? '') ?>"
+                       value="<?= e($data['no_hp'] ?? '') ?>"
                        placeholder="Contoh: 08123456789">
               </div>
               <div class="mb-3">
                 <label class="form-label">Alamat</label>
                 <textarea name="alamat" class="form-control" rows="3"
-                          placeholder="Masukkan alamat lengkap"><?= htmlspecialchars($data['alamat'] ?? '') ?></textarea>
+                          placeholder="Masukkan alamat lengkap"><?= e($data['alamat'] ?? '') ?></textarea>
               </div>
               <button type="submit" name="simpan_kontak" class="btn btn-primary">
                 <i class="fas fa-save me-1"></i>Simpan Kontak

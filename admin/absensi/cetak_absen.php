@@ -10,8 +10,8 @@ $id_mapel   = $_GET['id_mapel'] ?? '';
 $bulan_nama = ['','Januari','Februari','Maret','April','Mei','Juni',
                'Juli','Agustus','September','Oktober','November','Desember'];
 
-$q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas");
-$q_mapel = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
+$q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY nama_kelas");
+$q_mapel = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
 
 $data_absen = []; $data_siswa = []; $nama_kelas = '-'; $nama_mapel = '-';
 
@@ -36,7 +36,8 @@ $title = "Cetak Absensi"; $icon = "fa-print";
 require_once '../../includes/header.php';
 ?>
 <?php require_once '../../includes/sidebar_admin.php'; ?>
-<?php require_once '../../includes/topbar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 <div class="main-content"><div class="container-fluid">
 
 <div class="card shadow-sm mb-4">
@@ -48,7 +49,7 @@ require_once '../../includes/header.php';
         <select name="id_kelas" class="form-select" required>
           <option value="">-- Pilih Kelas --</option>
           <?php while($k=mysqli_fetch_assoc($q_kelas)): ?>
-          <option value="<?=$k['id']?>" <?=$id_kelas==$k['id']?'selected':''?>><?=htmlspecialchars($k['nama_kelas'])?></option>
+          <option value="<?=$k['id']?>" <?=$id_kelas==$k['id']?'selected':''?>><?=e($k['nama_kelas'])?></option>
           <?php endwhile; ?>
         </select>
       </div>
@@ -57,7 +58,7 @@ require_once '../../includes/header.php';
         <select name="id_mapel" class="form-select">
           <option value="">-- Semua Mapel --</option>
           <?php while($m=mysqli_fetch_assoc($q_mapel)): ?>
-          <option value="<?=$m['id']?>" <?=$id_mapel==$m['id']?'selected':''?>><?=htmlspecialchars($m['nama_mapel'])?></option>
+          <option value="<?=$m['id']?>" <?=$id_mapel==$m['id']?'selected':''?>><?=e($m['nama_mapel'])?></option>
           <?php endwhile; ?>
         </select>
       </div>
@@ -120,8 +121,8 @@ require_once '../../includes/header.php';
           ?>
           <tr>
             <td class="text-center"><?=$no++?></td>
-            <td><?=htmlspecialchars($siswa['nama_lengkap']??$siswa['nama']??'-')?></td>
-            <td class="text-center"><?=htmlspecialchars($siswa['nis']??'-')?></td>
+            <td><?=e($siswa['nama_lengkap']??$siswa['nama']??'-')?></td>
+            <td class="text-center"><?=e($siswa['nis']??'-')?></td>
             <?php for($d=1;$d<=$jumlah_hari;$d++):
               $st=$data_absen[$id_s][$d]??'';
               $tgl_full="$tahun-".str_pad($bulan,2,'0',STR_PAD_LEFT)."-".str_pad($d,2,'0',STR_PAD_LEFT);

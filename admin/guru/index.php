@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -8,17 +8,17 @@ $data = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-chalkboard-teacher text-gold me-2"></i>Data Guru</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-chalkboard-teacher text-icon me-2"></i>Data Guru</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -71,7 +71,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
                         <img src="<?= $foto_g_src ?>" alt="Foto" class="rounded-circle" width="40" height="40" style="object-fit:cover;">
                     </td>
                     <td><?= $r['nip'] ?></td>
-                    <td><?= htmlspecialchars($r['nama']) ?></td>
+                    <td><?= e($r['nama']) ?></td>
                     <td>
                         <?php if ($r['jenis_kelamin'] == 'L'): ?>
                             <span class="badge bg-primary">Laki-laki</span>
@@ -82,7 +82,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
                     <td><?= $r['no_hp'] ?></td>
                     <td>
                         <span class="text-muted small">
-                            <?= htmlspecialchars(substr($r['alamat'] ?? '', 0, 40)) ?>...
+                            <?= e(substr($r['alamat'] ?? '', 0, 40)) ?>...
                         </span>
                     </td>
                     <td>

@@ -129,17 +129,17 @@ foreach ($jadwal_pelajaran as $jp) {
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_siswa.php'; ?>
+<?php include '../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-  <?php include '../includes/topbar_siswa.php'; ?>
-
-  <!-- Selamat Datang -->
+    <!-- Selamat Datang -->
   <div class="welcome-banner mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3 p-4"
        style="background:linear-gradient(135deg,#0D2540 0%,#163A63 55%,#2C5A8F 100%);border-radius:18px;box-shadow:0 18px 44px rgba(13,37,64,.14);border:1px solid rgba(255,255,255,.08);">
     <div>
       <h4 class="mb-1 fw-bold" style="color:#fff;font-size:22px;">
-        <i class="fas fa-hand-sparkles me-2" style="color:#F09000;"></i>
-        Selamat datang, <?= htmlspecialchars($nama) ?>!
+        <i class="fas fa-hand-sparkles me-2" style="color:#fff;"></i>
+        Selamat datang, <?= e($nama) ?>!
       </h4>
       <p class="mb-0" style="color:rgba(255,255,255,.78);font-size:13.5px;">
         Sistem Informasi Akademik SMA Negeri 4 Palopo
@@ -160,7 +160,7 @@ foreach ($jadwal_pelajaran as $jp) {
       <div class="stat-card bg-blue">
         <i class="fas fa-school stat-icon"></i>
         <div class="stat-info">
-          <h3><?= htmlspecialchars($siswa['nama_kelas']) ?></h3>
+          <h3><?= e($siswa['nama_kelas']) ?></h3>
           <p>Kelas Saya</p>
         </div>
       </div>
@@ -229,10 +229,10 @@ foreach ($jadwal_pelajaran as $jp) {
                 <small class="text-muted"><?= substr($j['jam_selesai'], 0, 5) ?></small>
               </div>
               <div>
-                <div class="fw-bold small"><?= htmlspecialchars($j['nama_mapel'] ?? '-') ?></div>
+                <div class="fw-bold small"><?= e($j['nama_mapel'] ?? '-') ?></div>
                 <small class="text-muted">
                   <i class="fas fa-user-tie"></i>
-                  <?= htmlspecialchars($j['nama_guru'] ?? $j['nama_guru2'] ?? '-') ?>
+                  <?= e($j['nama_guru'] ?? $j['nama_guru2'] ?? '-') ?>
                 </small>
               </div>
             </div>
@@ -248,6 +248,7 @@ foreach ($jadwal_pelajaran as $jp) {
       <div class="card">
         <div class="card-header"><i class="fas fa-star"></i> Nilai Terbaru</div>
         <div class="card-body p-0">
+          <div class="table-responsive">
           <table class="table table-sm mb-0">
             <thead>
               <tr>
@@ -264,7 +265,7 @@ foreach ($jadwal_pelajaran as $jp) {
                 $p = $na>=90?'A':($na>=80?'B':($na>=70?'C':($na>=60?'D':'E')));
             ?>
             <tr>
-              <td class="ps-3"><?= htmlspecialchars($n['nama_mapel'] ?? '-') ?></td>
+              <td class="ps-3"><?= e($n['nama_mapel'] ?? '-') ?></td>
               <td><strong class="<?= $na>=75?'text-success':'text-danger' ?>"><?= $na ?></strong></td>
               <td><span class="badge bg-<?= $na>=75?'success':'danger' ?>"><?= $p ?></span></td>
               <td><small>Smt <?= $n['semester'] ?? '-' ?></small></td>
@@ -275,6 +276,7 @@ foreach ($jadwal_pelajaran as $jp) {
             <?php endif; ?>
             </tbody>
           </table>
+          </div>
           <div class="p-2 text-end">
             <a href="nilai.php" class="btn btn-outline-primary btn-sm">Lihat Semua Nilai →</a>
           </div>
@@ -303,9 +305,9 @@ foreach ($jadwal_pelajaran as $jp) {
                   <span class="badge bg-light text-dark me-2" style="min-width:50px;font-weight:600;">
                     <?= substr($s['jam_mulai'], 0, 5) ?>
                   </span>
-                  <span class="small text-dark"><?= htmlspecialchars($s['nama_mapel'] ?? '-') ?></span>
+                  <span class="small text-dark"><?= e($s['nama_mapel'] ?? '-') ?></span>
                   <small class="text-muted ms-auto">
-                    <i class="fas fa-user-tie"></i> <?= htmlspecialchars($s['nama_guru'] ?? '-') ?>
+                    <i class="fas fa-user-tie"></i> <?= e($s['nama_guru'] ?? '-') ?>
                   </small>
                 </div>
                 <?php endforeach; ?>
@@ -330,13 +332,13 @@ foreach ($jadwal_pelajaran as $jp) {
           <?php if ($pengumuman && mysqli_num_rows($pengumuman) > 0): ?>
             <?php while ($pg = mysqli_fetch_assoc($pengumuman)): ?>
             <div class="p-3 border-bottom">
-              <strong class="small d-block"><?= htmlspecialchars($pg['judul'] ?? '') ?></strong>
+              <strong class="small d-block"><?= e($pg['judul'] ?? '') ?></strong>
               <small class="text-muted">
                 <i class="fas fa-calendar"></i>
                 <?= tanggal_indo_pendek($pg['tanggal'] ?? 'now') ?>
               </small>
               <p class="small mb-0 mt-1 text-muted">
-                <?= substr(htmlspecialchars($pg['isi'] ?? ''), 0, 80) ?>...
+                <?= substr(e($pg['isi'] ?? ''), 0, 80) ?>...
               </p>
             </div>
             <?php endwhile; ?>
@@ -353,4 +355,8 @@ foreach ($jadwal_pelajaran as $jp) {
   </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php
+// Tampilkan widget chatbot SiA Bot di halaman ini (footer.php bersifat kondisional)
+$show_chatbot = true;
+include '../includes/footer.php';
+?>

@@ -22,3 +22,26 @@ Options -Indexes
 
 # Karakter encoding default
 AddDefaultCharset UTF-8
+
+# ── Security Headers ──
+<IfModule mod_headers.c>
+    # Cegah clickjacking (halaman tidak boleh di-frame situs lain)
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Cegah MIME-type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Batasi informasi referrer yang dikirim ke situs lain
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # HSTS — aktifkan hanya jika situs sudah full HTTPS
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+    # Batasi fitur browser
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Sembunyikan versi server (fingerprinting)
+<IfModule mod_headers.c>
+    ServerSignature Off
+</IfModule>

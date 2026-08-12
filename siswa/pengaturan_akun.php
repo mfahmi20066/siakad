@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_auth.php';
@@ -40,40 +40,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
     }
 }
 
-// Handle email update
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
-    $email = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
+    // Handle email update
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
+        $email_lama = mysqli_real_escape_string($koneksi, $_POST['email_lama'] ?? '');
+        $email_baru = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
 
-    if (empty($email)) {
-        $error = "Email tidak boleh kosong!";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Format email tidak valid!";
-    } else {
-        // Check if email already exists
-        $check = mysqli_query($koneksi, "SELECT id FROM users WHERE email='$email' AND id != $user_id");
-        if (mysqli_num_rows($check) > 0) {
-            $error = "Email sudah digunakan oleh akun lain!";
+        if (empty($email_lama)) {
+            $error = "Email lama harus diisi!";
+        } elseif ($email_lama !== ($user['email'] ?? '')) {
+            $error = "Email lama tidak sesuai!";
+        } elseif (empty($email_baru)) {
+            $error = "Email baru tidak boleh kosong!";
+        } elseif (!filter_var($email_baru, FILTER_VALIDATE_EMAIL)) {
+            $error = "Format email baru tidak valid!";
         } else {
-            $update = mysqli_query($koneksi, "UPDATE users SET email='$email' WHERE id=$user_id");
-            if ($update) {
-                $success = "Email berhasil diperbarui!";
-                $user['email'] = $email;
+            $check = mysqli_query($koneksi, "SELECT id FROM users WHERE email='$email_baru' AND id != $user_id");
+            if (mysqli_num_rows($check) > 0) {
+                $error = "Email sudah digunakan oleh akun lain!";
             } else {
-                $error = "Gagal mengubah email: " . mysqli_error($koneksi);
+                $update = mysqli_query($koneksi, "UPDATE users SET email='$email_baru' WHERE id=$user_id");
+                if ($update) {
+                    $success = "Email berhasil diperbarui!";
+                    $user['email'] = $email_baru;
+                } else {
+                    $error = "Gagal mengubah email: " . mysqli_error($koneksi);
+                }
             }
         }
     }
-}
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_siswa.php'; ?>
+<?php include '../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_siswa.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header mb-4">
-            <h4><i class="fas fa-cog text-gold me-2"></i>Pengaturan Akun</h4>
+            <h4><i class="fas fa-cog text-icon me-2"></i>Pengaturan Akun</h4>
         </div>
 
         <?php if ($success): ?>
@@ -98,8 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
             <div class="card-body">
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required>
+                        <label for="email_lama" class="form-label">Email Lama <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email_lama" name="email_lama" value="<?php echo e($user['email'] ?? ''); ?>" required readonly>
+                        <small class="text-muted">Email saat ini (klik untuk salin)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Baru <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Masukkan email baru" required>
                         <small class="text-muted">Email digunakan untuk notifikasi dan reset password</small>
                     </div>
 
@@ -149,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
                 <div class="row">
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Username:</strong></p>
-                        <p class="text-muted"><?php echo htmlspecialchars($user['username'] ?? '-'); ?></p>
+                        <p class="text-muted"><?php echo e($user['username'] ?? '-'); ?></p>
                     </div>
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Status Akun:</strong></p>

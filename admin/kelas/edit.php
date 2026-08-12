@@ -1,13 +1,18 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
 $title = "Edit Kelas";
 
-$id        = mysqli_real_escape_string($koneksi, $_GET['id']);
+$id        = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 $data      = mysqli_fetch_assoc(mysqli_query($koneksi,
              "SELECT * FROM kelas WHERE id='$id'"));
 $guru_list = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
+
+if (!$data) {
+    header("Location: index.php?error=Data kelas tidak ditemukan");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Tahun ajaran TIDAK dapat diubah dari halaman edit: gunakan tahun_ajaran_id dari record
@@ -18,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $nama    = mysqli_real_escape_string($koneksi, $_POST['nama_kelas']);
     $tingkat = $_POST['tingkat'];
+    $jurusan = in_array($_POST['jurusan'] ?? 'Umum', ['Umum', 'IPA', 'IPS']) ? $_POST['jurusan'] : 'Umum';
     $wali    = $_POST['wali_kelas'];
 
     // Cek nama kelas duplikat, kecuali data diri sendiri (berbasis tahun_ajaran_id)
@@ -32,13 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (empty($wali)) {
             mysqli_query($koneksi,
                 "UPDATE kelas 
-                 SET nama_kelas='$nama', tingkat='$tingkat', 
+                 SET nama_kelas='$nama', tingkat='$tingkat', jurusan='$jurusan',
                      wali_kelas=NULL, tahun_ajaran=$taTxtSql, tahun_ajaran_id=$taIdSql
                  WHERE id='$id'");
         } else {
             mysqli_query($koneksi,
                 "UPDATE kelas 
-                 SET nama_kelas='$nama', tingkat='$tingkat', 
+                 SET nama_kelas='$nama', tingkat='$tingkat', jurusan='$jurusan',
                      wali_kelas='$wali', tahun_ajaran=$taTxtSql, tahun_ajaran_id=$taIdSql
                  WHERE id='$id'");
         }
@@ -50,12 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Kelas</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Kelas</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -77,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Nama Kelas</label>
                             <input type="text" name="nama_kelas" class="form-control"
-                                   value="<?= htmlspecialchars($data['nama_kelas']) ?>"
+                                   value="<?= e($data['nama_kelas']) ?>"
                                    required>
                         </div>
 
@@ -97,13 +103,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Jurusan</label>
+                            <select name="jurusan" class="form-select">
+                                <?php $j = $data['jurusan'] ?? 'Umum'; ?>
+                                <option value="Umum" <?= $j == 'Umum' ? 'selected' : '' ?>>Umum</option>
+                                <option value="IPA"  <?= $j == 'IPA'  ? 'selected' : '' ?>>IPA</option>
+                                <option value="IPS"  <?= $j == 'IPS'  ? 'selected' : '' ?>>IPS</option>
+                            </select>
+                            <small class="text-muted">Umum untuk kelas X (fase umum); IPA/IPS untuk kelas XI/XII berpenjurusan.</small>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Wali Kelas</label>
                             <select name="wali_kelas" class="form-select">
                                 <option value="">-- Pilih Wali Kelas --</option>
                                 <?php while ($g = mysqli_fetch_assoc($guru_list)): ?>
                                 <option value="<?= $g['id'] ?>"
                                     <?= $data['wali_kelas'] == $g['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($g['nama']) ?>
+                                    <?= e($g['nama']) ?>
                                 </option>
                                 <?php endwhile; ?>
                             </select>
@@ -112,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Tahun Ajaran</label>
                             <input type="text" name="tahun_ajaran" class="form-control"
-                                   value="<?= htmlspecialchars($data['tahun_ajaran']) ?>"
+                                   value="<?= e($data['tahun_ajaran']) ?>"
                                    readonly>
                             <small class="text-muted">Tahun ajaran tidak dapat diubah di sini. Untuk memindahkan kelas, hubungi langkah khusus.</small>
                         </div>

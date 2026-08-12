@@ -1,4 +1,6 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../config/csrf.php';
 include '../config/koneksi.php';
 include '../config/mailer.php';
 
@@ -35,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['cari'])) {
 
 // Proses upload dokumen
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
+    verifyCsrf();
     $pendaftar_id = (int) $_POST['pendaftar_id'];
     
     // Query ulang untuk validasi
@@ -166,7 +169,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
                 Tim SPMB SMA Negeri 4 Palopo
                 ";
                 
-                kirimEmail($pen_data['email'], $subject, $body);
+                try {
+                    kirimEmail($pen_data['email'], $subject, $body);
+                } catch (\RuntimeException $e) {
+                    error_log("[SPMB Upload] Gagal kirim email notifikasi ke {$pen_data['email']}: " . $e->getMessage());
+                }
                 
                 // Tambahkan notifikasi admin
                 addAdminNotification(
@@ -227,9 +234,14 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
         $admin = mysqli_fetch_assoc($query_admin);
         $admin_id = $admin['id'];
         
+        // Simpan pesan sebagai PLAIN TEXT (buang tag HTML agar tidak bocor
+        // ke tampilan dropdown notifikasi yang men-escape HTML).
+        $judul_clean = trim(strip_tags($judul));
+        $pesan_clean = trim(strip_tags($pesan));
+        
         // Escape strings untuk keamanan
-        $judul_escaped = mysqli_real_escape_string($koneksi, $judul);
-        $pesan_escaped = mysqli_real_escape_string($koneksi, $pesan);
+        $judul_escaped = mysqli_real_escape_string($koneksi, $judul_clean);
+        $pesan_escaped = mysqli_real_escape_string($koneksi, $pesan_clean);
         $link_escaped = $link ? mysqli_real_escape_string($koneksi, $link) : null;
         
         // Insert notifikasi ke database
@@ -256,7 +268,7 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -264,7 +276,7 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
     <link rel="stylesheet" href="/siakad/assets/css/alert.css?v=1.0">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #F5F7FB; }
+        body { font-family: 'Roboto', sans-serif; background: #F5F7FB; }
         .form-section { max-width: 700px; margin: 0 auto; background: white; padding: 40px; border-radius: 18px; box-shadow: 0 8px 24px rgba(13, 37, 64, 0.08); margin-top: 40px; }
         .form-title { color: #163A63; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .form-subtitle { color: #4A5568; margin-bottom: 32px; }
@@ -382,7 +394,7 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
         <h1 class="form-title">
             <i class="fas fa-upload me-2"></i> Upload Dokumen
         </h1>
-        <p class="form-subtitle">Pendaftar: <?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></p>
+        <p class="form-subtitle">Pendaftar: <?php echo e($pendaftar['nama_lengkap']); ?></p>
         
         <?php if ($error): ?>
         <div class="alert alert-danger" role="alert">
@@ -475,6 +487,7 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
         </div>
         
         <form method="POST" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
             <input type="hidden" name="pendaftar_id" value="<?php echo $pendaftar['id']; ?>">
             <input type="hidden" name="upload_dokumen" value="1">
             
@@ -504,11 +517,11 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
                             <?php if (in_array('kk', $uploaded_docs)): ?>
                                 <span><i class="fas fa-check me-1"></i>File terupload</span>
                                 <?php if ($uploaded_status['kk'] == 'valid'): ?>
-                                    <span class="status-badge badge-valid ms-2">✓ Valid</span>
+                                    <span class="status-badge badge-valid ms-2"><i class="fas fa-check-circle"></i> Valid</span>
                                 <?php elseif ($uploaded_status['kk'] == 'tidak_valid'): ?>
-                                    <span class="status-badge badge-invalid ms-2">✗ Ditolak</span>
+                                    <span class="status-badge badge-invalid ms-2"><i class="fas fa-times-circle"></i> Ditolak</span>
                                 <?php else: ?>
-                                    <span class="status-badge badge-verifying ms-2">⏳ Diverifikasi</span>
+                                    <span class="status-badge badge-verifying ms-2"><i class="fas fa-hourglass-half"></i> Diverifikasi</span>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span style="color: #94A3B8;">PDF, JPG, PNG (Max 2MB)</span>
@@ -543,11 +556,11 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
                             <?php if (in_array('akta', $uploaded_docs)): ?>
                                 <span><i class="fas fa-check me-1"></i>File terupload</span>
                                 <?php if ($uploaded_status['akta'] == 'valid'): ?>
-                                    <span class="status-badge badge-valid ms-2">✓ Valid</span>
+                                    <span class="status-badge badge-valid ms-2"><i class="fas fa-check-circle"></i> Valid</span>
                                 <?php elseif ($uploaded_status['akta'] == 'tidak_valid'): ?>
-                                    <span class="status-badge badge-invalid ms-2">✗ Ditolak</span>
+                                    <span class="status-badge badge-invalid ms-2"><i class="fas fa-times-circle"></i> Ditolak</span>
                                 <?php else: ?>
-                                    <span class="status-badge badge-verifying ms-2">⏳ Diverifikasi</span>
+                                    <span class="status-badge badge-verifying ms-2"><i class="fas fa-hourglass-half"></i> Diverifikasi</span>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span style="color: #94A3B8;">PDF, JPG, PNG (Max 2MB)</span>
@@ -582,11 +595,11 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
                             <?php if (in_array('ijazah', $uploaded_docs)): ?>
                                 <span><i class="fas fa-check me-1"></i>File terupload</span>
                                 <?php if ($uploaded_status['ijazah'] == 'valid'): ?>
-                                    <span class="status-badge badge-valid ms-2">✓ Valid</span>
+                                    <span class="status-badge badge-valid ms-2"><i class="fas fa-check-circle"></i> Valid</span>
                                 <?php elseif ($uploaded_status['ijazah'] == 'tidak_valid'): ?>
-                                    <span class="status-badge badge-invalid ms-2">✗ Ditolak</span>
+                                    <span class="status-badge badge-invalid ms-2"><i class="fas fa-times-circle"></i> Ditolak</span>
                                 <?php else: ?>
-                                    <span class="status-badge badge-verifying ms-2">⏳ Diverifikasi</span>
+                                    <span class="status-badge badge-verifying ms-2"><i class="fas fa-hourglass-half"></i> Diverifikasi</span>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span style="color: #94A3B8;">PDF, JPG, PNG (Max 2MB)</span>
@@ -621,11 +634,11 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
                             <?php if (in_array('foto', $uploaded_docs)): ?>
                                 <span><i class="fas fa-check me-1"></i>File terupload</span>
                                 <?php if ($uploaded_status['foto'] == 'valid'): ?>
-                                    <span class="status-badge badge-valid ms-2">✓ Valid</span>
+                                    <span class="status-badge badge-valid ms-2"><i class="fas fa-check-circle"></i> Valid</span>
                                 <?php elseif ($uploaded_status['foto'] == 'tidak_valid'): ?>
-                                    <span class="status-badge badge-invalid ms-2">✗ Ditolak</span>
+                                    <span class="status-badge badge-invalid ms-2"><i class="fas fa-times-circle"></i> Ditolak</span>
                                 <?php else: ?>
-                                    <span class="status-badge badge-verifying ms-2">⏳ Diverifikasi</span>
+                                    <span class="status-badge badge-verifying ms-2"><i class="fas fa-hourglass-half"></i> Diverifikasi</span>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span style="color: #94A3B8;">JPG, PNG (Max 2MB)</span>
@@ -660,11 +673,11 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
                             <?php if (in_array('rapor', $uploaded_docs)): ?>
                                 <span><i class="fas fa-check me-1"></i>File terupload</span>
                                 <?php if ($uploaded_status['rapor'] == 'valid'): ?>
-                                    <span class="status-badge badge-valid ms-2">✓ Valid</span>
+                                    <span class="status-badge badge-valid ms-2"><i class="fas fa-check-circle"></i> Valid</span>
                                 <?php elseif ($uploaded_status['rapor'] == 'tidak_valid'): ?>
-                                    <span class="status-badge badge-invalid ms-2">✗ Ditolak</span>
+                                    <span class="status-badge badge-invalid ms-2"><i class="fas fa-times-circle"></i> Ditolak</span>
                                 <?php else: ?>
-                                    <span class="status-badge badge-verifying ms-2">⏳ Diverifikasi</span>
+                                    <span class="status-badge badge-verifying ms-2"><i class="fas fa-hourglass-half"></i> Diverifikasi</span>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <span style="color: #94A3B8;">PDF, JPG, PNG (Max 2MB)</span>

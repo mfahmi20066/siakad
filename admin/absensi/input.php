@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -10,7 +10,7 @@ $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
 
-$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 $guru_list  = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
 // Tahap 1: tampilkan daftar siswa setelah kelas dipilih
@@ -60,12 +60,12 @@ if (isset($_POST['simpan'])) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-clipboard-check text-gold me-2"></i>Input Absensi</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-clipboard-check text-icon me-2"></i>Input Absensi</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -86,7 +86,7 @@ if (isset($_POST['simpan'])) {
                             <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                             <option value="<?= $k['id'] ?>"
                                 <?= (isset($kid) && $kid == $k['id']) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($k['nama_kelas']) ?>
+                                <?= e($k['nama_kelas']) ?>
                             </option>
                             <?php endwhile; ?>
                         </select>
@@ -98,7 +98,7 @@ if (isset($_POST['simpan'])) {
                             <?php while ($g = mysqli_fetch_assoc($guru_list)): ?>
                             <option value="<?= $g['id'] ?>"
                                 <?= (isset($gid) && $gid == $g['id']) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($g['nama']) ?>
+                                <?= e($g['nama']) ?>
                             </option>
                             <?php endwhile; ?>
                         </select>
@@ -144,6 +144,7 @@ if (isset($_POST['simpan'])) {
                     </button>
                 </div>
 
+                <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -159,7 +160,7 @@ if (isset($_POST['simpan'])) {
                     <tr>
                         <td><?= $no++ ?></td>
                         <td><?= $s['nis'] ?></td>
-                        <td><?= htmlspecialchars($s['nama']) ?></td>
+                        <td><?= e($s['nama']) ?></td>
                         <td>
                             <input type="hidden" name="siswa_id[]" value="<?= $s['id'] ?>">
                             <select name="status[]" class="form-select form-select-sm status-select">
@@ -178,6 +179,7 @@ if (isset($_POST['simpan'])) {
                     <?php endwhile; ?>
                     </tbody>
                 </table>
+                </div>
 
                 <hr>
                 <button type="submit" name="simpan" class="btn btn-success">

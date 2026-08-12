@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -13,12 +13,12 @@ catch (Throwable $e) { $taId = null; }
 // SINKRONISASI SESSION: Menggunakan id_ref untuk ID Guru
 $gid = $_SESSION['id_ref'];
 
-// Hanya tampilkan kelas yang diajar guru ini berdasarkan tabel jadwal
+// Hanya tampilkan kelas yang diajar guru ini (dari pivot kelas_mapel_guru)
 $kelas_list = mysqli_query($koneksi,
     "SELECT DISTINCT k.*
      FROM kelas k
-     JOIN jadwal j ON j.kelas_id = k.id
-     WHERE j.guru_id = '$gid'
+     JOIN kelas_mapel_guru kmg ON kmg.kelas_id = k.id
+     WHERE kmg.guru_id = '$gid' AND k.status = 'aktif'
      ORDER BY k.tingkat, k.nama_kelas");
 
 if (isset($_POST['kelas_id']) && !isset($_POST['simpan'])) {
@@ -34,8 +34,8 @@ if (isset($_POST['simpan'])) {
     $statuses    = $_POST['status'];
     $keterangans = $_POST['keterangan'];
 
-    // Ambil mapel_id secara otomatis dari jadwal guru untuk kelas ini
-    $q_mapel = mysqli_query($koneksi, "SELECT mapel_id FROM jadwal WHERE kelas_id='$kid' AND guru_id='$gid' LIMIT 1");
+    // Ambil mapel_id secara otomatis dari pivot guru untuk kelas ini
+    $q_mapel = mysqli_query($koneksi, "SELECT mapel_id FROM kelas_mapel_guru WHERE kelas_id='$kid' AND guru_id='$gid' LIMIT 1");
     $res_mapel = mysqli_fetch_assoc($q_mapel);
     $mapel_id = $res_mapel ? (int)$res_mapel['mapel_id'] : 0;
 
@@ -101,18 +101,18 @@ if (isset($_POST['simpan'])) {
         exit();
     } else {
         // Jika gagal, jangan redirect sukses palsu — tampilkan pesan error
-        $simpan_error = "Gagal menyimpan absensi tanggal $tgl: " . htmlspecialchars($error_msg);
+        $simpan_error = "Gagal menyimpan absensi tanggal $tgl: " . e($error_msg);
     }
 }
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-clipboard-check text-gold me-2"></i>Input Absensi</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-clipboard-check text-icon me-2"></i>Input Absensi</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -139,7 +139,7 @@ if (isset($_POST['simpan'])) {
                                 <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                                 <option value="<?= $k['id'] ?>"
                                     <?= (isset($kid) && $kid == $k['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($k['nama_kelas']) ?>
+                                    <?= e($k['nama_kelas']) ?>
                                 </option>
                                 <?php endwhile; ?>
                             <?php endif; ?>
@@ -148,7 +148,7 @@ if (isset($_POST['simpan'])) {
                     <div class="col-md-4">
                         <label class="form-label">Tanggal <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal" class="form-control"
-                               value="<?= isset($tgl) ? htmlspecialchars($tgl) : date('Y-m-d') ?>" required>
+                               value="<?= isset($tgl) ? e($tgl) : date('Y-m-d') ?>" required>
                     </div>
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-primary w-100">
@@ -170,8 +170,8 @@ if (isset($_POST['simpan'])) {
         </div>
         <div class="card-body">
             <form method="POST">
-                <input type="hidden" name="kelas_id" value="<?= htmlspecialchars($kid) ?>">
-                <input type="hidden" name="tanggal"  value="<?= htmlspecialchars($tgl) ?>">
+                <input type="hidden" name="kelas_id" value="<?= e($kid) ?>">
+                <input type="hidden" name="tanggal"  value="<?= e($tgl) ?>">
 
                 <div class="mb-3">
                     <button type="button" class="btn btn-success btn-sm"
@@ -199,8 +199,8 @@ if (isset($_POST['simpan'])) {
                     <?php $no = 1; while ($s = mysqli_fetch_assoc($siswa_kelas)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= htmlspecialchars($s['nis']) ?></td>
-                        <td><?= htmlspecialchars($s['nama']) ?></td>
+                        <td><?= e($s['nis']) ?></td>
+                        <td><?= e($s['nama']) ?></td>
                         <td>
                             <input type="hidden" name="siswa_id[]" value="<?= $s['id'] ?>">
                             <select name="status[]" class="form-select form-select-sm st">

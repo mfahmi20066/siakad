@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -6,7 +6,7 @@ $title = "Edit Rapor";
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// ── Cek kolom yang ada di tabel rapor ───────────────────────
+// â”€â”€ Cek kolom yang ada di tabel rapor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $cols_res = mysqli_query($koneksi, "SHOW COLUMNS FROM rapor");
 $cols = [];
 while ($c = mysqli_fetch_assoc($cols_res)) $cols[] = $c['Field'];
@@ -18,7 +18,7 @@ $col_catatan = in_array('catatan_wali', $cols) ? 'catatan_wali'
 // Tentukan nama kolom status yang benar
 $col_status = in_array('status', $cols) ? 'status' : 'status';
 
-// ── Ambil data rapor dengan LEFT JOIN ────────────────────────
+// â”€â”€ Ambil data rapor dengan LEFT JOIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $data = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT r.*,
             COALESCE(s.nama_lengkap, s.nama, '') AS nama_siswa,
@@ -34,7 +34,7 @@ if (!$data) {
     exit();
 }
 
-// ── Proses simpan ────────────────────────────────────────────
+// â”€â”€ Proses simpan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cat = mysqli_real_escape_string($koneksi, $_POST['catatan'] ?? '');
     $st  = mysqli_real_escape_string($koneksi, $_POST['status'] ?? 'draft');
@@ -72,12 +72,12 @@ $status_saat_ini  = $data[$col_status] ?? 'draft';
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Rapor</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Rapor</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -92,23 +92,23 @@ $status_saat_ini  = $data[$col_status] ?? 'draft';
                 <div class="row">
                     <div class="col-md-3">
                         <small class="text-muted">Siswa</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_siswa'] ?: 'Tidak Diketahui') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_siswa'] ?: 'Tidak Diketahui') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">NIS</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nis'] ?: '-') ?></div>
+                        <div class="fw-bold"><?= e($data['nis'] ?: '-') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Kelas</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_kelas'] ?: '-') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_kelas'] ?: '-') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Semester</small>
-                        <div class="fw-bold">Semester <?= htmlspecialchars($data['semester'] ?? '-') ?></div>
+                        <div class="fw-bold">Semester <?= e($data['semester'] ?? '-') ?></div>
                     </div>
                     <div class="col-md-3">
                         <small class="text-muted">Tahun Ajaran</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['tahun_ajaran'] ?? '-') ?></div>
+                        <div class="fw-bold"><?= e($data['tahun_ajaran'] ?? '-') ?></div>
                     </div>
                 </div>
             </div>
@@ -119,7 +119,7 @@ $status_saat_ini  = $data[$col_status] ?? 'draft';
                         <div class="mb-3">
                             <label class="form-label">Catatan Wali Kelas</label>
                             <textarea name="catatan" class="form-control" rows="6"
-                                      placeholder="Masukkan catatan wali kelas untuk siswa ini..."><?= htmlspecialchars($catatan_saat_ini) ?></textarea>
+                                      placeholder="Masukkan catatan wali kelas untuk siswa ini..."><?= e($catatan_saat_ini) ?></textarea>
                         </div>
 
                         <label class="form-label fw-bold">Kepribadian</label>
@@ -154,7 +154,7 @@ $status_saat_ini  = $data[$col_status] ?? 'draft';
                             <label class="form-label">Kegiatan Pengembangan Diri / Ekstrakurikuler</label>
                             <input type="text" name="ekstrakurikuler" class="form-control"
                                    placeholder="Contoh: Pramuka, PMR, dsb"
-                                   value="<?= htmlspecialchars($data['ekstrakurikuler'] ?? '') ?>">
+                                   value="<?= e($data['ekstrakurikuler'] ?? '') ?>">
                         </div>
                     </div>
                     <div class="col-md-4">

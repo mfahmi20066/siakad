@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -23,27 +23,27 @@ $data = mysqli_query($koneksi,
                   j.jam_mulai");
 
 $kelas_list = mysqli_query($koneksi,
-              "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+              "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-calendar-alt text-gold me-2"></i>Jadwal Pelajaran</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-calendar-alt text-icon me-2"></i>Jadwal Pelajaran</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
     <?php if (isset($_GET['error'])): ?>
     <div class="alert alert-danger alert-auto">
-        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_GET['error']) ?>
+        <i class="fas fa-exclamation-circle"></i> <?= e($_GET['error']) ?>
     </div>
     <?php endif; ?>
 
@@ -58,7 +58,7 @@ $kelas_list = mysqli_query($koneksi,
                         <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                         <option value="<?= $k['id'] ?>"
                             <?= $filter_kelas == $k['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($k['nama_kelas']) ?>
+                            <?= e($k['nama_kelas']) ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -139,13 +139,13 @@ $kelas_list = mysqli_query($koneksi,
                     <td><?= $no++ ?></td>
                     <td>
                         <span class="badge bg-info">
-                            <?= htmlspecialchars($r['nama_kelas']) ?>
+                            <?= e($r['nama_kelas']) ?>
                         </span>
                     </td>
-                    <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                    <td><?= e($r['nama_mapel']) ?></td>
                     <td>
                         <i class="fas fa-user-tie text-success"></i>
-                        <?= htmlspecialchars($r['nama_guru']) ?>
+                        <?= e($r['nama_guru']) ?>
                     </td>
                     <td>
                         <span class="badge bg-<?= $warna_hari[$r['hari']] ?? 'secondary' ?>">

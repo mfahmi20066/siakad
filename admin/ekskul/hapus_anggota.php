@@ -2,6 +2,7 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
 $id       = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $ekskul_id = isset($_GET['ekskul_id']) ? (int) $_GET['ekskul_id'] : 0;

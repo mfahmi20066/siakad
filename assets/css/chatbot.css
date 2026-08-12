@@ -1,5 +1,5 @@
 ﻿/* ================================================================
-   Chatbot AI â€” SiA Bot (SMA Negeri 4 Palopo)
+   Chatbot AI — SiA Bot (SMA Negeri 4 Palopo)
    ================================================================ */
 
 /* ---- Tombol mengambang (floating button) ---- */
@@ -87,7 +87,7 @@
     opacity: 0;
     pointer-events: none;
     transition: transform .22s ease, opacity .22s ease;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .chatbot-panel.open {
@@ -302,7 +302,7 @@
 }
 
 .chat-chip {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 12px;
     font-weight: 500;
     color: #163A63;

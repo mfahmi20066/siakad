@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -29,12 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-plus text-gold me-2"></i>Buat Pengumuman</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-plus text-icon me-2"></i>Buat Pengumuman</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </label>
                             <input type="text" name="judul" class="form-control"
                                    placeholder="Judul pengumuman yang jelas dan singkat"
-                                   value="<?= isset($_POST['judul']) ? htmlspecialchars($_POST['judul']) : '' ?>"
+                                   value="<?= isset($_POST['judul']) ? e($_POST['judul']) : '' ?>"
                                    required>
                         </div>
 
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </label>
                             <textarea name="isi" class="form-control" rows="8"
                                       placeholder="Tulis isi pengumuman secara lengkap..."
-                                      required><?= isset($_POST['isi']) ? htmlspecialchars($_POST['isi']) : '' ?></textarea>
+                                      required><?= isset($_POST['isi']) ? e($_POST['isi']) : '' ?></textarea>
                         </div>
 
                         <div class="mb-3">

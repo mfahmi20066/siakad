@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
@@ -15,13 +15,13 @@ if (!$tgl || !$kid) {
     exit();
 }
 
-// Validasi: pastikan guru benar-benar mengajar kelas ini
+// Validasi: pastikan guru benar-benar mengajar kelas ini (via pivot)
 $cek = mysqli_query($koneksi,
-    "SELECT j.kelas_id, k.nama_kelas, mp.nama_mapel
-     FROM jadwal j
-     JOIN kelas k ON k.id = j.kelas_id
-     LEFT JOIN mata_pelajaran mp ON mp.id = j.mapel_id
-     WHERE j.kelas_id = '$kid' AND j.guru_id = '$gid'
+    "SELECT kmg.kelas_id, k.nama_kelas, mp.nama_mapel
+     FROM kelas_mapel_guru kmg
+     JOIN kelas k ON k.id = kmg.kelas_id
+     LEFT JOIN mata_pelajaran mp ON mp.id = kmg.mapel_id
+     WHERE kmg.kelas_id = '$kid' AND kmg.guru_id = '$gid'
      LIMIT 1");
 $info = mysqli_fetch_assoc($cek);
 
@@ -35,9 +35,9 @@ $data = mysqli_query($koneksi,
     "SELECT a.*, s.nama, s.nis
      FROM absensi a
      JOIN siswa s ON a.siswa_id = s.id
-     JOIN jadwal j ON a.kelas_id = j.kelas_id
-                   AND j.guru_id = '$gid'
-                   AND (a.mapel_id IS NULL OR a.mapel_id = j.mapel_id)
+     JOIN kelas_mapel_guru kmg ON a.kelas_id = kmg.kelas_id
+                   AND kmg.guru_id = '$gid'
+                   AND (a.mapel_id IS NULL OR a.mapel_id = kmg.mapel_id)
      WHERE a.tanggal = '$tgl' AND a.kelas_id = '$kid'
      GROUP BY a.id
      ORDER BY s.nama");
@@ -46,8 +46,8 @@ if (!$data) {
     die("Query Error: " . mysqli_error($koneksi));
 }
 
-$nama_kelas = htmlspecialchars($info['nama_kelas']);
-$nama_mapel = htmlspecialchars($info['nama_mapel'] ?? '-');
+$nama_kelas = e($info['nama_kelas']);
+$nama_mapel = e($info['nama_mapel'] ?? '-');
 
 $hari_id = ['Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu','Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu','Sunday'=>'Minggu'];
 
@@ -61,12 +61,12 @@ function normalStatus($st) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-clipboard-list text-gold me-2"></i>Detail Absensi</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-clipboard-list text-icon me-2"></i>Detail Absensi</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -114,13 +114,13 @@ function normalStatus($st) {
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= htmlspecialchars($r['nis']) ?></td>
-                        <td><?= htmlspecialchars($r['nama']) ?></td>
+                        <td><?= e($r['nis']) ?></td>
+                        <td><?= e($r['nama']) ?></td>
                         <td>
                             <span class="badge bg-<?= $bg_color ?>"><?= $status_text ?></span>
                         </td>
                         <td>
-                            <small class="text-muted"><?= htmlspecialchars($r['keterangan'] ?? '') ?></small>
+                            <small class="text-muted"><?= e($r['keterangan'] ?? '') ?></small>
                         </td>
                         <td>
                             <a href="edit.php?id=<?= $r['id'] ?>" class="btn btn-warning btn-sm">

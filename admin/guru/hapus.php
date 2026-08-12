@@ -2,6 +2,7 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 

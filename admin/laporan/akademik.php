@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -33,12 +33,12 @@ $rekap_nilai = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-chart-bar text-gold me-2"></i>Laporan Akademik</h4>
+        <div class="page-header d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-chart-bar text-icon me-2"></i>Laporan Akademik</h4>
         <a href="export.php?jenis=akademik" class="btn btn-success btn-sm">
             <i class="fas fa-file-excel"></i> Export Excel
         </a>
@@ -87,7 +87,7 @@ $rekap_nilai = mysqli_query($koneksi,
                             <?php if ($distribusi_kelas && mysqli_num_rows($distribusi_kelas) > 0): ?>
                                 <?php while ($r = mysqli_fetch_assoc($distribusi_kelas)): ?>
                                 <tr>
-                                    <td><strong><?= htmlspecialchars($r['nama_kelas']) ?></strong></td>
+                                    <td><strong><?= e($r['nama_kelas']) ?></strong></td>
                                     <td class="text-end"><span class="badge bg-primary"><?= (int) $r['jml'] ?> siswa</span></td>
                                 </tr>
                                 <?php endwhile; ?>
@@ -115,8 +115,8 @@ $rekap_nilai = mysqli_query($koneksi,
                             <?php if ($rekap_nilai && mysqli_num_rows($rekap_nilai) > 0): ?>
                                 <?php while ($r = mysqli_fetch_assoc($rekap_nilai)): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($r['nama_kelas'] ?: '-') ?></td>
-                                    <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                                    <td><?= e($r['nama_kelas'] ?: '-') ?></td>
+                                    <td><?= e($r['nama_mapel']) ?></td>
                                     <td class="text-end">
                                         <strong><?= $r['rata'] !== null ? number_format($r['rata'], 2) : '-' ?></strong>
                                     </td>

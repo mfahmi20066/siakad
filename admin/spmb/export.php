@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -34,37 +34,26 @@ if (!empty($search)) {
 
 $query .= " ORDER BY sp.created_at DESC";
 
-// Export to Excel
+// Export to Excel (XLSX)
 if (isset($_GET['export']) && $_GET['export'] == 'excel') {
+    require_once __DIR__ . '/../../config/helper_xlsx.php';
+
     $data = mysqli_query($koneksi, $query);
-    
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment; filename="spmb-export-' . date('Y-m-d') . '.xls"');
-    header('Cache-Control: max-age=0');
-    
+
     $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
     $setting   = mysqli_fetch_assoc($q_setting);
-    
-    echo "<table border='1'>";
-    echo "<tr><td colspan='8' style='font-size:10px;text-align:center;border:none;'>PEMERINTAH KOTA PALOPO</td></tr>";
-    echo "<tr><td colspan='8' style='font-size:10px;text-align:center;border:none;'>DINAS PENDIDIKAN</td></tr>";
-    echo "<tr><td colspan='8' style='font-size:18px;font-weight:bold;text-align:center;border:none;color:#163A63;'>SMA NEGERI 4 PALOPO</td></tr>";
-    echo "<tr><td colspan='8' style='font-size:10px;text-align:center;border:none;'>" . htmlspecialchars($setting['alamat_sekolah'] ?? '-') . "</td></tr>";
-    echo "<tr><td colspan='8' style='border:none;'>&nbsp;</td></tr>";
-    echo "<tr><td colspan='8' style='font-size:13px;font-weight:bold;text-align:center;border:none;'>REKAP DATA PENDAFTAR SPMB</td></tr>";
-    echo "<tr><td colspan='8' style='font-size:10px;text-align:center;border:none;'>Dicetak pada: " . date('d-m-Y H:i') . " WITA</td></tr>";
-    echo "<tr><td colspan='8' style='border:none;'>&nbsp;</td></tr>";
-    echo "<tr>";
-    echo "<th>No</th>";
-    echo "<th>No. Pendaftaran</th>";
-    echo "<th>Nama</th>";
-    echo "<th>Email</th>";
-    echo "<th>Jalur</th>";
-    echo "<th>Gelombang</th>";
-    echo "<th>Status</th>";
-    echo "<th>Tgl. Daftar</th>";
-    echo "</tr>";
-    
+
+    $rows = [];
+    $rows[] = ['PEMERINTAH KOTA PALOPO'];
+    $rows[] = ['DINAS PENDIDIKAN'];
+    $rows[] = ['SMA NEGERI 4 PALOPO'];
+    $rows[] = [$setting['alamat_sekolah'] ?? '-'];
+    $rows[] = ['REKAP DATA PENDAFTAR SPMB'];
+    $rows[] = ['Dicetak pada: ' . date('d-m-Y H:i') . ' WITA'];
+    $rows[] = [];
+    $rows[] = ['No', 'No. Pendaftaran', 'Nama', 'Email', 'Jalur', 'Gelombang', 'Status', 'Tgl. Daftar'];
+    $headerIdx = count($rows);
+
     if ($data && mysqli_num_rows($data) > 0):
         $no = 1;
         while ($row = mysqli_fetch_assoc($data)):
@@ -78,28 +67,21 @@ if (isset($_GET['export']) && $_GET['export'] == 'excel') {
             ];
             $status = $status_labels[$row['status']] ?? $row['status'];
             $tgl_daftar = date('d-m-Y H:i', strtotime($row['created_at']));
-            
-            echo "<tr>";
-            echo "<td>$no</td>";
-            echo "<td>" . htmlspecialchars($row['no_pendaftaran']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['nama_lengkap']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['nama_jalur']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['nama_gelombang']) . "</td>";
-            echo "<td>$status</td>";
-            echo "<td>$tgl_daftar</td>";
-            echo "</tr>";
+            $rows[] = [$no, $row['no_pendaftaran'], $row['nama_lengkap'], $row['email'], $row['nama_jalur'], $row['nama_gelombang'], $status, $tgl_daftar];
             $no++;
         endwhile;
     endif;
-    
-    echo "</table>";
-    
-    echo "<br><table border='0' width='100%'>";
-    echo "<tr><td width='70%'></td><td style='text-align:center;'>Palopo, " . date('d-m-Y') . "</td></tr>";
-    echo "<tr><td></td><td style='text-align:center;'>Mengetahui,<br>Kepala Sekolah,</td></tr>";
-    echo "<tr><td></td><td style='text-align:center;'><br><br><br><br><br><u><strong>" . htmlspecialchars($setting['nama_kepsek'] ?? '-') . "</strong></u><br>NIP. " . htmlspecialchars($setting['nip_kepsek'] ?? '-') . "</td></tr>";
-    echo "</table>";
+
+    $rows[] = [];
+    $rows[] = ['', '', '', '', '', '', 'Palopo, ' . date('d-m-Y')];
+    $rows[] = ['', '', '', '', '', '', 'Mengetahui,'];
+    $rows[] = ['', '', '', '', '', '', 'Kepala Sekolah,'];
+    $rows[] = [];
+    $rows[] = [];
+    $rows[] = ['', '', '', '', '', '', $setting['nama_kepsek'] ?? '-'];
+    $rows[] = ['', '', '', '', '', '', 'NIP. ' . ($setting['nip_kepsek'] ?? '-')];
+
+    export_xlsx('spmb-export-' . date('Y-m-d'), ['SPMB' => ['rows' => $rows, 'header_row' => $headerIdx]]);
     exit();
 }
 
@@ -113,8 +95,8 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
 
     $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
     $setting   = mysqli_fetch_assoc($q_setting);
-    $logo = realpath(__DIR__ . '/../../assets/img/logo-sekolah.png');
-    $logo_src = $logo ? 'file://' . str_replace('\\','/',$logo) : '';
+    require_once __DIR__ . '/../../config/helper_pdf.php';
+    $logo_src = pdf_logo_data_uri(__DIR__ . '/../../assets/img/logo-sekolah.png');
     
     $html = "
     <!DOCTYPE html>
@@ -122,20 +104,22 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
     <head>
         <meta charset='UTF-8'>
         <style>
+            @page { margin: 1.6cm; }
             body { font-family: Arial, sans-serif; font-size: 12px; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th { background: #163A63; color: white; padding: 10px; text-align: left; }
             td { border: 1px solid #E2E8F0; padding: 8px; }
             h2 { color: #163A63; }
             .header { text-align: center; margin-bottom: 20px; }
-            .kop { display:flex; align-items:center; border-bottom:3px double #000; padding-bottom:10px; margin-bottom:10px; }
-            .kop img { width:60px; height:60px; object-fit:contain; }
-            .kop .logo-kiri { margin-right:12px; }
-            .kop .logo-kanan { margin-left:12px; }
-            .kop-text { text-align:center; flex:1; line-height:1.3; }
-            .kop-text .instansi { font-size:10px; }
-            .kop-text .sekolah { font-size:15px; font-weight:bold; text-transform:uppercase; color:#163A63; }
-            .kop-text .alamat { font-size:10px; }
+            .kop-table { width:100%; border-collapse:collapse; border-bottom:3px double #000; padding-bottom:8px; margin-bottom:10px; }
+            .kop-table td { border:none; vertical-align:middle; padding:0 4px; }
+            .kop-table .logo-kiri { width:90px; text-align:left; }
+            .kop-table .logo-kanan { width:62px; text-align:right; }
+            .kop-table img { width:86px; height:86px; }
+            .kop-table .kop-text { text-align:center; line-height:1.3; padding-right:90px; }
+            .kop-text .instansi { font-size:13px; }
+            .kop-text .sekolah { font-size:21px; font-weight:bold; text-transform:uppercase; }
+            .kop-text .alamat { font-size:12px; }
             .judul { text-align:center; font-size:15px; font-weight:bold; text-decoration:underline; margin:12px 0; }
             .ttd { margin-top:40px; width:100%; }
             .ttd .tgl { text-align:right; font-size:11px; }
@@ -146,15 +130,15 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
         </style>
     </head>
     <body>
-        <div class='kop'>
-            " . ($logo_src ? "<img class='logo-kiri' src='$logo_src'>" : '') . "
-            <div class='kop-text'>
+        <table class='kop-table'><tr>
+            <td class='logo-kiri'>" . ($logo_src ? "<img src='$logo_src'>" : '') . "</td>
+            <td class='kop-text'>
                 <div class='instansi'>PEMERINTAH KOTA PALOPO<br>DINAS PENDIDIKAN</div>
                 <div class='sekolah'>SMA NEGERI 4 PALOPO</div>
-                <div class='alamat'>" . htmlspecialchars($setting['alamat_sekolah'] ?? '-') . "</div>
-            </div>
-            " . ($logo_src ? "<img class='logo-kanan' src='$logo_src'>" : '') . "
-        </div>
+                <div class='alamat'>" . e($setting['alamat_sekolah'] ?? '-') . "</div>
+                " . (trim(($setting['telepon'] ?? '') . ($setting['email'] ?? '')) !== '' ? "<div class='alamat'>" . e(trim((($setting['telepon'] ?? '') ? 'Telp. ' . $setting['telepon'] : '') . (($setting['email'] ?? '') ? ' | Email: ' . $setting['email'] : ''))) . "</div>" : '') . "
+            </td>
+        </tr></table>
         <div class='judul'>REKAP DATA PENDAFTAR SPMB</div>
         <p style='text-align:center; font-size:11px;'>Dicetak pada: " . date('d-m-Y H:i:s') . " WITA</p>
         
@@ -188,11 +172,11 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
             $html .= "
             <tr>
                 <td>$no</td>
-                <td>" . htmlspecialchars($row['no_pendaftaran']) . "</td>
-                <td>" . htmlspecialchars($row['nama_lengkap']) . "</td>
-                <td>" . htmlspecialchars($row['email']) . "</td>
-                <td>" . htmlspecialchars($row['nama_jalur']) . "</td>
-                <td>" . htmlspecialchars($row['nama_gelombang']) . "</td>
+                <td>" . e($row['no_pendaftaran']) . "</td>
+                <td>" . e($row['nama_lengkap']) . "</td>
+                <td>" . e($row['email']) . "</td>
+                <td>" . e($row['nama_jalur']) . "</td>
+                <td>" . e($row['nama_gelombang']) . "</td>
                 <td>$status</td>
                 <td>$tgl_daftar</td>
             </tr>
@@ -204,7 +188,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
     $html .= "</table>";
     $html .= "<div class='ttd' style='page-break-inside:avoid;'><div class='tgl'>Palopo, " . date('d-m-Y') . "</div>";
     $html .= "<table><tr><td>Mengetahui,<br>Kepala Sekolah,</td><td></td></tr>";
-    $html .= "<tr><td><div class='garis'></div><div class='nama'>" . htmlspecialchars($setting['nama_kepsek'] ?? '-') . "</div><div>NIP. " . htmlspecialchars($setting['nip_kepsek'] ?? '-') . "</div></td><td><div class='garis'></div><div class='nama'>&nbsp;</div></td></tr></table></div>";
+    $html .= "<tr><td><div class='garis'></div><div class='nama'>" . e($setting['nama_kepsek'] ?? '-') . "</div><div>NIP. " . e($setting['nip_kepsek'] ?? '-') . "</div></td><td><div class='garis'></div><div class='nama'>&nbsp;</div></td></tr></table></div>";
     $html .= "</body></html>";
     
     $dompdf->loadHtml($html);
@@ -222,12 +206,12 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-file-export text-gold me-2"></i>Export Data SPMB</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-file-export text-icon me-2"></i>Export Data SPMB</h4>
     </div>
 
     <!-- Filter -->
@@ -240,7 +224,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
                         <option value="">Semua Gelombang</option>
                         <?php while ($g = mysqli_fetch_assoc($query_gelombang)): ?>
                         <option value="<?php echo $g['id']; ?>" <?php echo $gelombang_filter == $g['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($g['nama_gelombang']); ?>
+                            <?php echo e($g['nama_gelombang']); ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -252,7 +236,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
                         <option value="">Semua Jalur</option>
                         <?php while ($j = mysqli_fetch_assoc($query_jalur)): ?>
                         <option value="<?php echo $j['id']; ?>" <?php echo $jalur_filter == $j['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($j['nama_jalur']); ?>
+                            <?php echo e($j['nama_jalur']); ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -269,12 +253,12 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
                 
                 <div class="col-md-3">
                     <label for="search" class="form-label">Cari</label>
-                    <input type="text" class="form-control" id="search" name="search" placeholder="Nama / No." value="<?php echo htmlspecialchars($search); ?>">
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Nama / No." value="<?php echo e($search); ?>">
                 </div>
                 
                 <div class="col-12 mt-3">
                     <a href="?export=excel" class="btn btn-success me-2">
-                        <i class="fas fa-file-excel me-2"></i> Export Excel (.xls)
+                        <i class="fas fa-file-excel me-2"></i> Export Excel (.xlsx)
                     </a>
                     <a href="?export=pdf" class="btn btn-danger">
                         <i class="fas fa-file-pdf me-2"></i> Export PDF (.pdf)
@@ -292,7 +276,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
         <div class="card-body">
             <h5 class="mb-3"><i class="fas fa-info-circle"></i> Informasi Export</h5>
             <ul>
-                <li><strong>Excel (.xls):</strong> Format terbuka yang bisa dibuka di Microsoft Excel, Google Sheets, dll.</li>
+                <li><strong>Excel (.xlsx):</strong> Format tabel yang bisa dibuka di Microsoft Excel, Google Sheets, dll.</li>
                 <li><strong>PDF (.pdf):</strong> Format dokumen statis yang siap dicetak atau dibagikan.</li>
                 <li>Data yang di-export: No. Pendaftaran, Nama, Email, Jalur, Gelombang, Status, Tgl. Daftar</li>
             </ul>

@@ -41,15 +41,15 @@ $notif_display  = $notif_belum > 99 ? '99+' : $notif_belum;
             <?php else: ?>
                 <?php foreach ($notif_list as $n): ?>
                     <?php
-                    $link = $n['link'] ? htmlspecialchars($n['link']) : '#';
+                    $link = $n['link'] ? e($n['link']) : '#';
                     $unread = (int)$n['is_read'] === 0;
                     $waktu = tanggal_waktu_indo($n['created_at']);
                     ?>
                     <a href="<?= $link ?>" class="notif-item <?= $unread ? 'unread' : '' ?>"
                        data-id="<?= (int)$n['id'] ?>">
                         <div class="notif-item-text">
-                            <strong><?= htmlspecialchars($n['judul']) ?></strong>
-                            <span class="notif-msg"><?= htmlspecialchars($n['pesan']) ?></span>
+                            <strong><?= e(strip_tags($n['judul'])) ?></strong>
+                            <span class="notif-msg"><?= e(strip_tags($n['pesan'])) ?></span>
                             <span class="notif-time"><?= $waktu ?></span>
                         </div>
                         <?php if ($unread): ?>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -35,12 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-futbol text-gold me-2"></i>Tambah Ekstrakurikuler</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-futbol text-icon me-2"></i>Tambah Ekstrakurikuler</h4>
     </div>
 
     <?php if (isset($error)): ?>

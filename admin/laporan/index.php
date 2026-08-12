@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -13,12 +13,12 @@ $log = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-folder-open text-gold me-2"></i>Laporan</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-folder-open text-icon me-2"></i>Laporan</h4>
     </div>
 
     <div class="row g-3">
@@ -44,7 +44,7 @@ $log = mysqli_query($koneksi,
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center py-5">
-                    <div class="icon-wrap mb-3" style="font-size: 40px; color: var(--gold);">
+                    <div class="icon-wrap mb-3" style="font-size: 40px; color: var(--primary);">
                         <i class="fas fa-chart-pie"></i>
                     </div>
                     <h5 class="fw-bold">Statistik</h5>
@@ -92,8 +92,8 @@ $log = mysqli_query($koneksi,
                     <?php if ($log && mysqli_num_rows($log) > 0): ?>
                         <?php while ($r = mysqli_fetch_assoc($log)): ?>
                         <tr>
-                            <td><span class="badge bg-primary"><?= htmlspecialchars(ucfirst($r['jenis_laporan'])) ?></span></td>
-                            <td><?= htmlspecialchars($r['nama_user'] ?: '-') ?></td>
+                            <td><span class="badge bg-primary"><?= e(ucfirst($r['jenis_laporan'])) ?></span></td>
+                            <td><?= e($r['nama_user'] ?: '-') ?></td>
                             <td><small class="text-muted"><?= tanggal_waktu_indo($r['created_at']) ?></small></td>
                         </tr>
                         <?php endwhile; ?>

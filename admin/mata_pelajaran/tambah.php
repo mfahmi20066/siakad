@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -56,12 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-plus text-gold me-2"></i>Tambah Mata Pelajaran</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-plus text-icon me-2"></i>Tambah Mata Pelajaran</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-wpforms"></i> Form Tambah Mata Pelajaran
+            <i class="fas fa-add"></i> Form Tambah Mata Pelajaran
         </div>
         <div class="card-body">
             <form method="POST">
@@ -86,20 +86,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <select name="mapel_id" class="form-select" required onchange="syncMapel()">
                                 <option value="">-- Pilih --</option>
                                 <?php
-                                $mata_pelajaran_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
+                                $mata_pelajaran_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
                                 while ($mp = mysqli_fetch_assoc($mata_pelajaran_list)):
                                 ?>
                                     <option value="<?= (int)$mp['id'] ?>"
                                         <?= (isset($_POST['mapel_id']) && (int)$_POST['mapel_id'] === (int)$mp['id']) ? 'selected' : '' ?> >
-                                        <?= htmlspecialchars($mp['nama_mapel']) ?> (<?= htmlspecialchars($mp['kode_mapel']) ?>)
+                                        <?= e($mp['nama_mapel']) ?> (<?= e($mp['kode_mapel']) ?>) — <?= e(ucfirst($mp['kategori'] ?? 'wajib')) ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
-                            <small class="text-muted">Kode & nama diambil otomatis dari data yang sudah ada.</small>
+                            <small class="text-muted">Kode & nama diambil otomatis. Kategori (wajib/pilihan/projek) ditampilkan agar mudah membedakan mapel Kurikulum Merdeka.</small>
                         </div>
 
-                        <input type="hidden" name="kode_mapel" id="kode_mapel" value="<?= isset($_POST['kode_mapel']) ? htmlspecialchars((string)$_POST['kode_mapel']) : '' ?>">
-                        <input type="hidden" name="nama_mapel" id="nama_mapel" value="<?= isset($_POST['nama_mapel']) ? htmlspecialchars((string)$_POST['nama_mapel']) : '' ?>">
+                        <input type="hidden" name="kode_mapel" id="kode_mapel" value="<?= isset($_POST['kode_mapel']) ? e((string)$_POST['kode_mapel']) : '' ?>">
+                        <input type="hidden" name="nama_mapel" id="nama_mapel" value="<?= isset($_POST['nama_mapel']) ? e((string)$_POST['nama_mapel']) : '' ?>">
 
                         <div class="mb-3">
                             <label class="form-label">Guru Pengampu</label>
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php while ($g = mysqli_fetch_assoc($guru_list)): ?>
                                     <option value="<?= (int)$g['id'] ?>"
                                         <?= (isset($_POST['guru_id']) && (int)$_POST['guru_id'] === (int)$g['id']) ? 'selected' : '' ?> >
-                                        <?= htmlspecialchars($g['nama']) ?>
+                                        <?= e($g['nama']) ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
@@ -120,12 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <select name="kelas_id_wali" class="form-select">
                                 <option value="0">-- Tidak sebagai Wali Kelas --</option>
                                 <?php
-                                $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas");
+                                $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY nama_kelas");
                                 while ($k = mysqli_fetch_assoc($kelas_list)):
                                 ?>
                                     <option value="<?= (int)$k['id'] ?>"
                                         <?= (isset($_POST['kelas_id_wali']) && (int)$_POST['kelas_id_wali'] === (int)$k['id']) ? 'selected' : '' ?> >
-                                        <?= htmlspecialchars($k['nama_kelas']) ?>
+                                        <?= e($k['nama_kelas']) ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
@@ -135,6 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="col-md-6">
                         <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Fungsi Halaman Ini</h6>
+                            <p class="small mb-2">
+                                Form ini untuk <strong>mengatur guru pengampu & wali kelas</strong> dari mata pelajaran yang sudah ada.
+                                Data mapel (nama, kode, kelompok, kategori, KKM, status) dikelola di <strong>Edit Mata Pelajaran</strong>.
+                            </p>
                             <h6><i class="fas fa-info-circle"></i> Contoh Kode Mapel</h6>
                             <table class="table table-sm table-borderless mb-0">
                                 <tr>

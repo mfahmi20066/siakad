@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -9,23 +9,23 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-book text-gold me-2"></i>Mata Pelajaran</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-book text-icon me-2"></i>Mata Pelajaran</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
     <?php if (isset($_GET['error'])): ?>
     <div class="alert alert-danger alert-auto">
-        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_GET['error']) ?>
+        <i class="fas fa-exclamation-circle"></i> <?= e($_GET['error']) ?>
     </div>
     <?php endif; ?>
 
@@ -44,14 +44,16 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
                         <th>No</th>
                         <th>Kode</th>
                         <th>Nama Mata Pelajaran</th>
+                        <th>Kategori</th>
                         <th>Guru Pengampu</th>
                         <th>Jumlah Kelas</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php if (mysqli_num_rows($data) == 0): ?>
-                    <tr><td colspan="6">
+                    <tr><td colspan="8">
                         <div class="empty-state">
                             <i class="bi bi-inbox"></i>
                             <p>Belum ada data.</p>
@@ -74,31 +76,40 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
                         if ($g = mysqli_fetch_assoc($q_guru)) { $nama_guru = $g['nama']; }
                     }
 
-                    // 2. Hitung berapa kelas yang menggunakan mapel ini
+                    // 2. Hitung berapa kelas yang menggunakan mapel ini (dari pivot kelas_mapel_guru)
                     $jml_kelas = 0;
-                    $q_kelas = mysqli_query($koneksi, "SELECT COUNT(DISTINCT kelas_id) FROM jadwal WHERE mapel_id = '{$r['id']}'");
+                    $q_kelas = mysqli_query($koneksi, "SELECT COUNT(DISTINCT kelas_id) FROM kelas_mapel_guru WHERE mapel_id = '{$r['id']}'");
                     if ($row_kelas = mysqli_fetch_row($q_kelas)) {
                         $jml_kelas = $row_kelas[0];
                     }
+
+                    // Kategori (Kurikulum Merdeka) & status
+                    $kategori = $r['kategori'] ?? 'wajib';
+                    $k_badge  = $kategori === 'pilihan' ? 'info' : ($kategori === 'projek' ? 'warning' : 'secondary');
+                    $status   = $r['status'] ?? 'aktif';
+                    $s_badge  = $status === 'nonaktif' ? 'secondary' : 'success';
                 ?>
                 <tr>
                     <td><?= $no++ ?></td>
                     <td>
-                        <span class="badge bg-secondary"><?= htmlspecialchars($r['kode_mapel']) ?></span>
+                        <span class="badge bg-secondary"><?= e($r['kode_mapel']) ?></span>
                     </td>
                     <td>
-                        <strong><?= htmlspecialchars($r['nama_mapel']) ?></strong>
+                        <strong><?= e($r['nama_mapel']) ?></strong>
+                    </td>
+                    <td>
+                        <span class="badge bg-<?= $k_badge ?>"><?= e(ucfirst($kategori)) ?></span>
                     </td>
                     <td>
                         <?php
-                        // Multi-guru: tampilkan semua guru yang mengajar mapel ini (dari tabel jadwal)
+                        // Multi-guru: tampilkan semua guru yang mengajar mapel ini (dari pivot kelas_mapel_guru)
                         $list_guru_mapel = [];
                         $q_guru_mapel = mysqli_query(
                             $koneksi,
-                            "SELECT DISTINCT j.guru_id, g.nama_lengkap AS nama_guru
-                             FROM jadwal j
-                             JOIN guru g ON g.id = j.guru_id
-                             WHERE j.mapel_id = '{$r['id']}'"
+                            "SELECT DISTINCT kmg.guru_id, g.nama_lengkap AS nama_guru
+                             FROM kelas_mapel_guru kmg
+                             JOIN guru g ON g.id = kmg.guru_id
+                             WHERE kmg.mapel_id = '{$r['id']}'"
                         );
                         if ($q_guru_mapel) {
                             while ($gm = mysqli_fetch_assoc($q_guru_mapel)) {
@@ -111,7 +122,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
 
                         <?php if (!empty($list_guru_mapel)): ?>
                             <i class="fas fa-user-tie text-success"></i>
-                            <?= htmlspecialchars(implode(', ', $list_guru_mapel)) ?>
+                            <?= e(implode(', ', $list_guru_mapel)) ?>
                         <?php else: ?>
                             <span class="text-muted">Belum ditentukan</span>
                         <?php endif; ?>
@@ -122,15 +133,25 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
                         <span class="badge bg-info"><?= $jml_kelas ?> Kelas</span>
                     </td>
                     <td>
+                        <span class="badge bg-<?= $s_badge ?>"><?= e(ucfirst($status)) ?></span>
+                    </td>
+                    <td>
                         <div class="table-actions">
                             <a href="edit.php?id=<?= $r['id'] ?>"
                                class="btn btn-warning btn-sm" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>')"
-                                    class="btn btn-danger btn-sm" title="Hapus">
-                                <i class="fas fa-trash"></i>
+                            <?php if ($status === 'nonaktif'): ?>
+                            <button onclick="aktifkanMapel(<?= $r['id'] ?>, '<?= e($r['nama_mapel'], ENT_QUOTES) ?>')"
+                                    class="btn btn-success btn-sm" title="Aktifkan kembali">
+                                <i class="fas fa-check-circle"></i>
                             </button>
+                            <?php else: ?>
+                            <button onclick="arsipkanMapel(<?= $r['id'] ?>, '<?= e($r['nama_mapel'], ENT_QUOTES) ?>')"
+                                    class="btn btn-secondary btn-sm" title="Arsipkan (nonaktif)">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -142,5 +163,36 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
         </div>
     </div>
 </div>
+
+<script>
+function _csrfMapel() {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute('content') : '';
+}
+function arsipkanMapel(id, nama) {
+    siConfirm({
+        icon: 'warning',
+        title: 'Arsipkan Mata Pelajaran?',
+        text: 'Mapel "' + nama + '" akan dinonaktifkan sehingga tidak muncul di dropdown input nilai/jadwal. Data & riwayat tetap tersimpan.',
+        confirmText: 'Ya, Arsipkan',
+        cancelText: 'Batal',
+        danger: true
+    }).then(function (ok) {
+        if (ok) window.location.href = 'hapus.php?id=' + id + '&csrf_token=' + encodeURIComponent(_csrfMapel());
+    });
+}
+function aktifkanMapel(id, nama) {
+    siConfirm({
+        icon: 'question',
+        title: 'Aktifkan Kembali?',
+        text: 'Mapel "' + nama + '" akan diaktifkan kembali dan muncul di dropdown.',
+        confirmText: 'Ya, Aktifkan',
+        cancelText: 'Batal',
+        danger: false
+    }).then(function (ok) {
+        if (ok) window.location.href = 'aktifkan.php?id=' + id + '&csrf_token=' + encodeURIComponent(_csrfMapel());
+    });
+}
+</script>
 
 <?php include '../../includes/footer.php'; ?>

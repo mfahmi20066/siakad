@@ -15,9 +15,9 @@ $nama = $_SESSION['nama'] ?? ($guru['nama_lengkap'] ?? ($guru['nama'] ?? 'Guru')
 $jml_jadwal = mysqli_fetch_row(mysqli_query($koneksi,
               "SELECT COUNT(*) FROM jadwal WHERE guru_id='$id_guru'"))[0] ?? 0;
 $jml_mapel  = mysqli_fetch_row(mysqli_query($koneksi,
-              "SELECT COUNT(DISTINCT mapel_id) FROM jadwal WHERE guru_id='$id_guru'"))[0] ?? 0;
+              "SELECT COUNT(DISTINCT mapel_id) FROM kelas_mapel_guru WHERE guru_id='$id_guru'"))[0] ?? 0;
 $jml_kelas  = mysqli_fetch_row(mysqli_query($koneksi,
-              "SELECT COUNT(DISTINCT kelas_id) FROM jadwal WHERE guru_id='$id_guru'"))[0] ?? 0;
+              "SELECT COUNT(DISTINCT kelas_id) FROM kelas_mapel_guru WHERE guru_id='$id_guru'"))[0] ?? 0;
 
 $pengumuman = mysqli_query($koneksi,
               "SELECT * FROM pengumuman ORDER BY tanggal DESC LIMIT 5");
@@ -33,22 +33,22 @@ $jadwal_hari_ini = mysqli_query($koneksi,
      FROM jadwal j
      JOIN kelas k ON j.kelas_id = k.id
      JOIN mata_pelajaran m ON j.mapel_id = m.id
-     WHERE j.guru_id = '$id_guru' AND j.hari = '$hari_id'
+     WHERE j.guru_id = '$id_guru' AND k.status = 'aktif' AND j.hari = '$hari_id'
      ORDER BY j.jam_mulai");
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_guru.php'; ?>
+<?php include '../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_guru.php'; ?>
-
-    <!-- Selamat Datang -->
+        <!-- Selamat Datang -->
     <div class="welcome-banner mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3 p-4"
          style="background:linear-gradient(135deg,#0D2540 0%,#163A63 55%,#2C5A8F 100%);border-radius:18px;box-shadow:0 18px 44px rgba(13,37,64,.14);border:1px solid rgba(255,255,255,.08);">
         <div>
             <h4 class="mb-1 fw-bold" style="color:#fff;font-size:22px;">
-                <i class="fas fa-hand-sparkles me-2" style="color:#F09000;"></i>
-                Selamat datang, <?= htmlspecialchars($nama) ?>!
+                <i class="fas fa-hand-sparkles me-2" style="color:#fff;"></i>
+                Selamat datang, <?= e($nama) ?>!
             </h4>
             <p class="mb-0" style="color:rgba(255,255,255,.78);font-size:13.5px;">
                 Sistem Informasi Akademik SMA Negeri 4 Palopo
@@ -65,7 +65,7 @@ $jadwal_hari_ini = mysqli_query($koneksi,
     </div>
 
     <!-- Stat Cards -->
-    <div class="row g-3">
+    <div class="row g-4">
         <div class="col-md-4">
             <div class="stat-card bg-blue">
                 <i class="fas fa-calendar stat-icon"></i>
@@ -95,7 +95,7 @@ $jadwal_hari_ini = mysqli_query($koneksi,
         </div>
     </div>
 
-    <div class="row">
+    <div class="row mt-4">
 
         <!-- Jadwal Hari Ini -->
         <div class="col-md-8">
@@ -108,7 +108,7 @@ $jadwal_hari_ini = mysqli_query($koneksi,
                 <div class="card-body">
                     <?php if ($jadwal_hari_ini && mysqli_num_rows($jadwal_hari_ini) > 0): ?>
                         <?php while ($j = mysqli_fetch_assoc($jadwal_hari_ini)): ?>
-                        <div class="d-flex align-items-center p-2 mb-2 bg-light rounded">
+                        <div class="d-flex align-items-center p-3 mb-3 bg-light rounded">
                             <div class="me-3 text-center" style="min-width:75px">
                                 <strong class="text-primary">
                                     <?= substr($j['jam_mulai'], 0, 5) ?>
@@ -119,10 +119,10 @@ $jadwal_hari_ini = mysqli_query($koneksi,
                                 </small>
                             </div>
                             <div class="flex-grow-1">
-                                <strong><?= htmlspecialchars($j['nama_mapel']) ?></strong>
+                                <strong><?= e($j['nama_mapel']) ?></strong>
                                 <br>
                                 <span class="badge bg-info">
-                                    <?= htmlspecialchars($j['nama_kelas']) ?>
+                                    <?= e($j['nama_kelas']) ?>
                                 </span>
                             </div>
                             <div>
@@ -185,14 +185,14 @@ $jadwal_hari_ini = mysqli_query($koneksi,
                         <?php while ($p = mysqli_fetch_assoc($pengumuman)): ?>
                         <div class="p-3 border-bottom">
                             <strong class="small d-block">
-                                <?= htmlspecialchars($p['judul']) ?>
+                                <?= e($p['judul']) ?>
                             </strong>
                             <small class="text-muted">
                                 <i class="fas fa-calendar"></i>
                                 <?= tanggal_indo_pendek($p['tanggal']) ?>
                             </small>
                             <p class="small mb-0 mt-1 text-muted">
-                                <?= substr(htmlspecialchars($p['isi']), 0, 70) ?>...
+                                <?= substr(e($p['isi']), 0, 70) ?>...
                             </p>
                         </div>
                         <?php endwhile; ?>
@@ -211,4 +211,8 @@ $jadwal_hari_ini = mysqli_query($koneksi,
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php
+// Tampilkan widget chatbot SiA Bot di halaman ini (footer.php bersifat kondisional)
+$show_chatbot = true;
+include '../includes/footer.php';
+?>

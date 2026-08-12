@@ -19,25 +19,29 @@ if (file_exists('../../config/koneksi.php')) {
 }
 
 if (isset($_POST['kelas_id'])) {
-    $kelas_id = mysqli_real_escape_string($koneksi, $_POST['kelas_id']);
+    $kelas_id = $_POST['kelas_id'];
 
-    // Ambil mapel + guru dari tabel jadwal berdasarkan kelas_id.
-    // Ini jauh lebih cepat dibanding mengambil semua mapel dan semua guru lalu meng-copy list guru ke tiap mapel.
+    // Ambil mapel + guru dari tabel pivot kelas_mapel_guru berdasarkan kelas_id.
+    // Sumber kebenaratan relasi kelas-mapel-guru (bukan jadwal).
     $data_mapel = [];
 
     $cek_kolom_guru = mysqli_query($koneksi, "SHOW COLUMNS FROM guru LIKE 'nama_lengkap'");
     $kolom_nama_guru = (mysqli_num_rows($cek_kolom_guru) > 0) ? "nama_lengkap" : "nama";
 
-    // Ambil mapel + guru untuk kelas yang dipilih dari tabel jadwal
-    $sql = "SELECT j.mapel_id, mp.nama_mapel,
-                   j.guru_id, g.$kolom_nama_guru AS nama_guru
-            FROM jadwal j
-            JOIN mata_pelajaran mp ON mp.id = j.mapel_id
-            JOIN guru g ON g.id = j.guru_id
-            WHERE j.kelas_id = '$kelas_id'
-            ORDER BY mp.nama_mapel";
-
-    $result = mysqli_query($koneksi, $sql);
+    // Prepared statement ambil mapel + guru untuk kelas yang dipilih dari tabel pivot kelas_mapel_guru
+    if (!isset($stmt_mapel_guru) || $stmt_mapel_guru === null) {
+        $stmt_mapel_guru = mysqli_prepare($koneksi,
+            "SELECT kmg.mapel_id, mp.nama_mapel,
+                   kmg.guru_id, g.$kolom_nama_guru AS nama_guru
+            FROM kelas_mapel_guru kmg
+            JOIN mata_pelajaran mp ON mp.id = kmg.mapel_id
+            JOIN guru g ON g.id = kmg.guru_id
+            WHERE kmg.kelas_id = ?
+            ORDER BY mp.nama_mapel");
+        mysqli_stmt_bind_param($stmt_mapel_guru, "s", $kelas_id);
+    }
+    mysqli_stmt_execute($stmt_mapel_guru);
+    $result = mysqli_stmt_get_result($stmt_mapel_guru);
 
     $mapel_seen = [];
     $list_guru_by_mapel = []; // mapel_id => [guru_id => ['guru_id'=>..., 'nama_guru'=>...]]
@@ -64,28 +68,23 @@ if (isset($_POST['kelas_id'])) {
                 ];
             }
         }
-
-        // Isi list_guru per mapel (biar multi-guru tidak kacau)
-        foreach ($data_mapel as &$item) {
-            $mid = (int)$item['mapel_id'];
-            if (isset($list_guru_by_mapel[$mid])) {
-                $item['list_guru'] = array_values($list_guru_by_mapel[$mid]);
-            } else {
-                $item['list_guru'] = [];
-            }
-        }
-        unset($item);
-
-        echo json_encode($data_mapel);
-        exit();
     }
 
-    echo json_encode([]);
+    // Isi list_guru per mapel (biar multi-guru tidak kacau)
+    foreach ($data_mapel as &$item) {
+        $mid = (int)$item['mapel_id'];
+        if (isset($list_guru_by_mapel[$mid])) {
+            $item['list_guru'] = array_values($list_guru_by_mapel[$mid]);
+        } else {
+            $item['list_guru'] = [];
+        }
+    }
+    unset($item);
+
+    echo json_encode($data_mapel);
     exit();
 } else {
     echo json_encode([]);
     exit();
 }
 ?>
-
-

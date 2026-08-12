@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';
@@ -8,9 +8,10 @@ include '../../config/database.php';
 cekAdmin();
 $title = "Verifikasi Akun";
 
-// ── Aksi setujui / tolak ──────────────────────────────────────
+// â”€â”€ Aksi setujui / tolak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Setujui via GET link; tolak via POST modal (atau GET fallback).
 if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak']))) {
+    verifyCsrf();
     $aksi = isset($_GET['aksi']) ? $_GET['aksi'] : 'tolak';
     $id   = isset($_GET['id']) ? (int) $_GET['id'] : (int) $_POST['id_tolak'];
 
@@ -46,12 +47,12 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
                 $nis = app_generate_nis_sementara($tahunMasuk);
                 if ($taSI !== null) {
                     mysqli_query($koneksi,
-                        "INSERT INTO siswa (nis, nisn, nama, nama_lengkap, email, tahun_ajaran, tahun_ajaran_id)
-                         VALUES ('$nis', NULL, '$nama_e', '$nama_e', '$email_e', '$taST', '$taSI')");
+                        "INSERT INTO siswa (nis, nisn, nama, nama_lengkap, email, tahun_ajaran, tahun_ajaran_id, tahun_masuk)
+                         VALUES ('$nis', NULL, '$nama_e', '$nama_e', '$email_e', '$taST', '$taSI', $tahunMasuk)");
                 } else {
                     mysqli_query($koneksi,
-                        "INSERT INTO siswa (nis, nisn, nama, nama_lengkap, email, tahun_ajaran)
-                         VALUES ('$nis', NULL, '$nama_e', '$nama_e', '$email_e', '$taST')");
+                        "INSERT INTO siswa (nis, nisn, nama, nama_lengkap, email, tahun_ajaran, tahun_masuk)
+                         VALUES ('$nis', NULL, '$nama_e', '$nama_e', '$email_e', '$taST', $tahunMasuk)");
                 }
                 $id_ref = mysqli_insert_id($koneksi);
             }
@@ -62,7 +63,7 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
 
             if ($email) {
                 $body = templatEmail('Akun Anda Disetujui',
-                    '<p>Halo <strong>' . htmlspecialchars($nama) . '</strong>,</p>'
+                    '<p>Halo <strong>' . e($nama) . '</strong>,</p>'
                     . '<p>Pendaftaran akun Anda di Sistem Informasi Akademik SMA Negeri 4 Palopo '
                     . 'telah <strong>disetujui</strong> oleh admin.</p>'
                     . '<p>Anda sekarang dapat login menggunakan username dan password yang '
@@ -71,7 +72,11 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
                     . 'style="display:inline-block;background:#F09000;color:#0D2540;'
                     . 'padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">'
                     . 'Login Sekarang</a></p>');
-                kirimEmail($email, 'Akun Anda Disetujui — SIA SMAN 4 Palopo', $body);
+                try {
+                    kirimEmail($email, 'Akun Anda Disetujui — SIA SMAN 4 Palopo', $body);
+                } catch (\RuntimeException $e) {
+                    error_log("[Verifikasi Akun] Gagal kirim email disetujui ke $email: " . $e->getMessage());
+                }
             }
 
             header("Location: index.php?success=" . urlencode("Akun $nama disetujui."));
@@ -88,12 +93,16 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
 
             if ($email) {
                 $body = templatEmail('Pendaftaran Akun Ditolak',
-                    '<p>Halo <strong>' . htmlspecialchars($nama) . '</strong>,</p>'
+                    '<p>Halo <strong>' . e($nama) . '</strong>,</p>'
                     . '<p>Mohon maaf, pendaftaran akun Anda di Sistem Informasi Akademik '
                     . 'SMA Negeri 4 Palopo <strong>ditolak</strong> oleh admin.</p>'
-                    . '<p><strong>Alasan:</strong> ' . htmlspecialchars($alasan) . '</p>'
+                    . '<p><strong>Alasan:</strong> ' . e($alasan) . '</p>'
                     . '<p>Jika Anda merasa ini sebuah kesalahan, silakan hubungi admin sekolah.</p>');
-                kirimEmail($email, 'Pendaftaran Akun Ditolak — SIA SMAN 4 Palopo', $body);
+                try {
+                    kirimEmail($email, 'Pendaftaran Akun Ditolak — SIA SMAN 4 Palopo', $body);
+                } catch (\RuntimeException $e) {
+                    error_log("[Verifikasi Akun] Gagal kirim email ditolak ke $email: " . $e->getMessage());
+                }
             }
 
             header("Location: index.php?error=" . urlencode("Akun $nama ditolak."));
@@ -104,29 +113,29 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
     exit();
 }
 
-// ── Ambil daftar akun pending ─────────────────────────────────
+// â”€â”€ Ambil daftar akun pending â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $data = mysqli_query($koneksi, "SELECT * FROM users WHERE status='pending' ORDER BY created_at DESC");
 $jml_pending = mysqli_num_rows($data);
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-user-check text-gold me-2"></i>Verifikasi Akun</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-user-check text-icon me-2"></i>Verifikasi Akun</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
     <?php if (isset($_GET['error'])): ?>
     <div class="alert alert-danger alert-auto">
-        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_GET['error']) ?>
+        <i class="fas fa-exclamation-circle"></i> <?= e($_GET['error']) ?>
     </div>
     <?php endif; ?>
 
@@ -155,9 +164,9 @@ $jml_pending = mysqli_num_rows($data);
                     <?php $no = 1; while ($r = mysqli_fetch_assoc($data)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><strong><?= htmlspecialchars($r['nama']) ?></strong></td>
-                        <td><?= htmlspecialchars($r['email'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($r['username']) ?></td>
+                        <td><strong><?= e($r['nama']) ?></strong></td>
+                        <td><?= e($r['email'] ?? '-') ?></td>
+                        <td><?= e($r['username']) ?></td>
                         <td>
                             <?php if ($r['role'] == 'guru'): ?>
                                 <span class="badge bg-success">Guru</span>
@@ -172,14 +181,14 @@ $jml_pending = mysqli_num_rows($data);
                         </td>
                         <td>
                             <div class="table-actions">
-                                <a href="?aksi=setujui&id=<?= $r['id'] ?>"
+                                <a href="?aksi=setujui&id=<?= $r['id'] ?>&csrf_token=<?= csrf_token() ?>"
                                    class="btn btn-success btn-sm" title="Setujui">
                                     <i class="fas fa-check"></i>
                                 </a>
                                 <button type="button"
                                         class="btn btn-danger btn-sm"
                                         title="Tolak"
-                                        onclick="openTolak(<?= $r['id'] ?>, '<?= htmlspecialchars($r['nama'], ENT_QUOTES) ?>')">
+                                        onclick="openTolak(<?= $r['id'] ?>, '<?= e($r['nama'], ENT_QUOTES) ?>')">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>

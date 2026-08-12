@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
 $title = "Prestasi Siswa";
 
-// ── Filter ─────────────────────────────────────────────────────
+// â”€â”€ Filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : '';
 $tingkat  = isset($_GET['tingkat']) ? $_GET['tingkat'] : '';
 
@@ -21,12 +21,12 @@ $data = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-trophy text-gold me-2"></i>Prestasi Siswa</h4>
+        <div class="page-header d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-trophy text-icon me-2"></i>Prestasi Siswa</h4>
         <a href="tambah.php" class="btn btn-primary btn-sm">
             <i class="fas fa-plus"></i> Tambah Prestasi
         </a>
@@ -34,7 +34,7 @@ $data = mysqli_query($koneksi,
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -81,10 +81,10 @@ $data = mysqli_query($koneksi,
                     <tr>
                         <td><?= $no++ ?></td>
                         <td>
-                            <strong><?= htmlspecialchars($nama_s ?: '-') ?></strong>
-                            <br><small class="text-muted">NIS: <?= htmlspecialchars($r['nis'] ?: '-') ?></small>
+                            <strong><?= e($nama_s ?: '-') ?></strong>
+                            <br><small class="text-muted">NIS: <?= e($r['nis'] ?: '-') ?></small>
                         </td>
-                        <td><?= htmlspecialchars($r['nama_prestasi']) ?></td>
+                        <td><?= e($r['nama_prestasi']) ?></td>
                         <td>
                             <?php if ($r['kategori'] == 'Akademik'): ?>
                                 <span class="badge bg-primary">Akademik</span>
@@ -92,7 +92,7 @@ $data = mysqli_query($koneksi,
                                 <span class="badge bg-warning">Non-Akademik</span>
                             <?php endif; ?>
                         </td>
-                        <td><span class="badge bg-success"><?= htmlspecialchars($r['tingkat']) ?></span></td>
+                        <td><span class="badge bg-success"><?= e($r['tingkat']) ?></span></td>
                         <td>
                             <?= $r['tanggal'] ? tanggal_indo_pendek($r['tanggal']) : '-' ?>
                         </td>
@@ -101,7 +101,7 @@ $data = mysqli_query($koneksi,
                                 <a href="edit.php?id=<?= $r['id'] ?>" class="btn btn-warning btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= htmlspecialchars($r['nama_prestasi']) ?>')"
+                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= e($r['nama_prestasi']) ?>')"
                                         class="btn btn-danger btn-sm" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>

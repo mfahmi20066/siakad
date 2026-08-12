@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
@@ -11,14 +11,13 @@ $kid = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 // Mengambil daftar kelas untuk dropdown.
 // Tujuan: menampilkan semua kelas yang pernah ada datanya pada absensi guru,
 // sambil memastikan kelas tersebut memang milik guru via jadwal (filter guru saja).
-//
-// Pakai logika: jadwal hanya untuk filter guru, sedangkan sumber kelas dari absensi.
+// Sumber kelas dari absensi; filter guru via pivot kelas_mapel_guru.
 $kelas_list = mysqli_query($koneksi,
     "SELECT DISTINCT k.*
      FROM absensi a
-     JOIN jadwal j ON j.kelas_id = a.kelas_id AND j.mapel_id = a.mapel_id
+     JOIN kelas_mapel_guru kmg ON kmg.kelas_id = a.kelas_id AND kmg.mapel_id = a.mapel_id
      JOIN kelas k ON k.id = a.kelas_id
-     WHERE j.guru_id = '$gid'
+     WHERE kmg.guru_id = '$gid'
        AND a.kelas_id IS NOT NULL
      ORDER BY k.tingkat, k.nama_kelas");
 
@@ -36,7 +35,7 @@ if ($kid) {
                         COUNT(a.id) AS total
                      FROM siswa s
                      LEFT JOIN absensi a ON s.id = a.siswa_id
-                     LEFT JOIN jadwal j ON a.kelas_id = j.kelas_id AND a.mapel_id = j.mapel_id AND j.guru_id = '$gid'
+                     LEFT JOIN kelas_mapel_guru kmg ON a.kelas_id = kmg.kelas_id AND a.mapel_id = kmg.mapel_id AND kmg.guru_id = '$gid'
                      WHERE s.kelas_id = '$kid_clean'
                      GROUP BY s.id
                      ORDER BY s.nama";
@@ -55,12 +54,12 @@ if ($kid) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-chart-bar text-gold me-2"></i>Rekap Absensi</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-chart-bar text-icon me-2"></i>Rekap Absensi</h4>
     </div>
 
     <div class="card mb-3">
@@ -74,7 +73,7 @@ if ($kid) {
                             <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                             <option value="<?= $k['id'] ?>"
                                 <?= $kid == $k['id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($k['nama_kelas']) ?>
+                                <?= e($k['nama_kelas']) ?>
                             </option>
                             <?php endwhile; ?>
                         <?php endif; ?>
@@ -94,7 +93,7 @@ if ($kid) {
         <div class="card-header d-flex justify-content-between align-items-center">
             <span>
                 <i class="fas fa-table"></i>
-                Rekap — <strong><?= htmlspecialchars($nama_kelas) ?></strong>
+                Rekap — <strong><?= e($nama_kelas) ?></strong>
             </span>
             <button onclick="window.print()" class="btn btn-secondary btn-sm">
                 <i class="fas fa-print"></i> Cetak
@@ -124,8 +123,8 @@ if ($kid) {
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= htmlspecialchars($r['nis']) ?></td>
-                        <td><?= htmlspecialchars($r['nama']) ?></td>
+                        <td><?= e($r['nis']) ?></td>
+                        <td><?= e($r['nama']) ?></td>
                         <td>
                             <span class="badge bg-success"><?= $r['hadir'] ?></span>
                         </td>

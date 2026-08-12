@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $guru = mysqli_real_escape_string($koneksi, $_POST['guru_id']);
     $kelompok = mysqli_real_escape_string($koneksi, $_POST['kelompok'] ?? 'Umum');
     $kkm  = (int) ($_POST['kkm'] ?? 75);
+    $kategori = in_array($_POST['kategori'] ?? 'wajib', ['wajib', 'pilihan', 'projek']) ? $_POST['kategori'] : 'wajib';
+    $status   = ($_POST['status'] ?? 'aktif') === 'nonaktif' ? 'nonaktif' : 'aktif';
 
     // Cek duplikat kode, kecuali milik mapel ini sendiri
     $cek_kode = mysqli_query($koneksi, "SELECT id FROM mata_pelajaran WHERE kode_mapel='$kode' AND id != '$id'");
@@ -36,14 +38,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kelompok'");
         $ada_kolom_kelompok = mysqli_num_rows($cek_kolom) > 0;
 
+        // Kolom Kurikulum Merdeka (kategori, status) — ditambah bila kolomnya ada
+        $ada_kategori = mysqli_num_rows(mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kategori'")) > 0;
+        $ada_status   = mysqli_num_rows(mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'status'")) > 0;
+        $kolom_extra = ($ada_kategori ? ", kategori='$kategori'" : '') . ($ada_status ? ", status='$status'" : '');
+
         if ($ada_kolom_kelompok) {
             $update_action = mysqli_query($koneksi,
                 "UPDATE mata_pelajaran 
                  SET kode_mapel='$kode', nama_mapel='$nama', guru_id=$val_guru,
-                     kelompok='$kelompok', kkm='$kkm'
+                     kelompok='$kelompok', kkm='$kkm' $kolom_extra
                  WHERE id='$id'");
         } else {
-            $update_action = mysqli_query($koneksi, "UPDATE mata_pelajaran SET kode_mapel='$kode', nama_mapel='$nama', guru_id=$val_guru WHERE id='$id'");
+            $update_action = mysqli_query($koneksi, "UPDATE mata_pelajaran SET kode_mapel='$kode', nama_mapel='$nama', guru_id=$val_guru $kolom_extra WHERE id='$id'");
         }
 
         if ($update_action) {
@@ -57,12 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Mata Pelajaran</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Mata Pelajaran</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -84,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Kode Mata Pelajaran</label>
                             <input type="text" name="kode_mapel" class="form-control"
-                                   value="<?= htmlspecialchars($data['kode_mapel'] ?? '') ?>"
+                                   value="<?= e($data['kode_mapel'] ?? '') ?>"
                                    style="text-transform:uppercase"
                                    required>
                         </div>
@@ -92,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-3">
                             <label class="form-label">Nama Mata Pelajaran</label>
                             <input type="text" name="nama_mapel" class="form-control"
-                                   value="<?= htmlspecialchars($data['nama_mapel'] ?? '') ?>"
+                                   value="<?= e($data['nama_mapel'] ?? '') ?>"
                                    required>
                         </div>
 
@@ -108,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     ?>
                                     <option value="<?= $g['id'] ?>"
                                         <?= (isset($data['guru_id']) && $data['guru_id'] == $g['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($nama_tampil) ?>
+                                        <?= e($nama_tampil) ?>
                                     </option>
                                     <?php endwhile; ?>
                                 <?php endif; ?>
@@ -139,8 +146,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="mb-3">
                                     <label class="form-label">KKM</label>
                                     <input type="number" name="kkm" class="form-control"
-                                           value="<?= htmlspecialchars($data['kkm'] ?? 75) ?>"
+                                           value="<?= e($data['kkm'] ?? 75) ?>"
                                            min="0" max="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="mb-3">
+                                    <label class="form-label">Kategori (Kurikulum Merdeka)</label>
+                                    <select name="kategori" class="form-select">
+                                        <?php
+                                        $kat = $data['kategori'] ?? 'wajib';
+                                        foreach (['wajib', 'pilihan', 'projek'] as $opt):
+                                        ?>
+                                        <option value="<?= $opt ?>" <?= $kat == $opt ? 'selected' : '' ?>>
+                                            <?= ucfirst($opt) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">wajib = muatan nasional/umum, pilihan = mapel pilihan siswa, projek = P5.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select">
+                                        <?php $st = $data['status'] ?? 'aktif'; ?>
+                                        <option value="aktif" <?= $st == 'aktif' ? 'selected' : '' ?>>Aktif</option>
+                                        <option value="nonaktif" <?= $st == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>

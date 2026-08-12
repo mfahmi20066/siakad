@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 // Jika sudah login, redirect ke dashboard sesuai role
@@ -31,6 +31,12 @@ $query_berita = mysqli_query($koneksi,
      FROM berita_sekolah
      ORDER BY tanggal DESC LIMIT 6");
 
+// Ambil pengumuman publik (terpisah dari berita_sekolah)
+$query_pengumuman = mysqli_query($koneksi,
+    "SELECT id, judul, ringkasan, isi, kategori, gambar, tanggal
+     FROM pengumuman
+     ORDER BY tanggal DESC LIMIT 6");
+
 // Nama sekolah
 $nama_sekolah = "SMA Negeri 4 Palopo";
 $alamat_sekolah = $setting['alamat_sekolah'] ?? "Jl. Bakau, Balandai, Kota Palopo, Sulawesi Selatan";
@@ -38,12 +44,12 @@ $kepala_sekolah = $setting['nama_kepsek'] ?? "Muzakkir, S.Pd., M.Pd";
 
 // Foto kepala sekolah (kolom 'foto_kepsek' di tabel pengaturan, fallback ke file default)
 $foto_kepsek = !empty($setting['foto_kepsek'])
-    ? '/siakad/assets/img/' . htmlspecialchars($setting['foto_kepsek'])
+    ? '/siakad/assets/img/' . e($setting['foto_kepsek'])
     : '/siakad/assets/img/kepala-sekolah.jpg';
 
 // Struktur organisasi (kolom 'foto_struktur' di tabel pengaturan, fallback ke file default)
 $foto_struktur = !empty($setting['foto_struktur'])
-    ? '/siakad/assets/img/' . htmlspecialchars($setting['foto_struktur'])
+    ? '/siakad/assets/img/' . e($setting['foto_struktur'])
     : '/siakad/assets/img/struktur-organisasi.png';
 
 // Sambutan kepala sekolah (auto-add kolom bila belum ada)
@@ -69,8 +75,9 @@ if ($visi_sekolah === '') {
 }
 $misi_sekolah = trim($setting['misi'] ?? '');
 if ($misi_sekolah === '') {
-    $misi_sekolah = 'Menyelenggarakan pembelajaran berbasis teknologi dengan '
-        . 'pendekatan inovatif dan inklusif.';
+    $misi_sekolah = "Menyelenggarakan pembelajaran berbasis teknologi dengan pendekatan inovatif dan inklusif.\n"
+        . "Mengembangkan karakter siswa yang berakhlak mulia, mandiri, dan berdaya saing global.\n"
+        . "Membina prestasi akademik dan non-akademik secara berkelanjutan.";
 }
 
 // Statistik sekolah (counter di landing)
@@ -121,6 +128,7 @@ function scan_folder_foto($folder_path) {
 $galeri_kategori = [
     'sekolah' => ['label' => 'Sekolah',           'folder' => 'foto_sekolah', 'files' => []],
     'berita'  => ['label' => 'Kegiatan & Berita', 'folder' => 'foto_berita',  'files' => []],
+    'program' => ['label' => 'Program',           'folder' => 'foto_program', 'files' => [], 'captions' => []],
 ];
 foreach ($galeri_kategori as $key => &$kat) {
     $kat['files'] = scan_folder_foto(__DIR__ . '/assets/img/' . $kat['folder'] . '/');
@@ -133,12 +141,35 @@ $galeri_foto = $galeri_kategori['sekolah']['files'];
 // Foto untuk section Program Unggulan
 $foto_program = scan_folder_foto(__DIR__ . '/assets/img/foto_program/');
 
-// Daftar program unggulan (statis — silakan sambungkan ke tabel DB jika sudah tersedia)
-$program_list = [
-    ['title' => 'Program IPA', 'desc' => 'Peminatan Ilmu Pengetahuan Alam dengan praktikum laboratorium sains yang lengkap.', 'icon' => 'fa-flask'],
-    ['title' => 'Program IPS', 'desc' => 'Peminatan Ilmu Pengetahuan Sosial dengan pendekatan analisis dan studi kasus nyata.', 'icon' => 'fa-landmark'],
-    ['title' => 'Ekstrakurikuler', 'desc' => 'Beragam kegiatan pengembangan bakat, minat, dan karakter siswa di luar jam pelajaran.', 'icon' => 'fa-futbol'],
-];
+// Daftar program unggulan (dinamis dari tabel program_unggulan, fallback ke data statis)
+require_once __DIR__ . '/config/helper_program.php';
+program_cek_table($koneksi);
+$program_db = program_get_all($koneksi);
+if (!empty($program_db)) {
+    $program_list = [];
+    foreach ($program_db as $p) {
+        $program_list[] = [
+            'title' => $p['judul'],
+            'desc'  => $p['deskripsi'],
+            'icon'  => $p['ikon'] !== '' ? $p['ikon'] : 'fa-star',
+            'foto'  => (!empty($p['foto']) && file_exists(__DIR__ . '/assets/img/foto_program/' . $p['foto']))
+                     ? '/siakad/assets/img/foto_program/' . e($p['foto']) : '',
+        ];
+    }
+} else {
+    $program_list = [
+        ['title' => 'Program IPA', 'desc' => 'Peminatan Ilmu Pengetahuan Alam dengan praktikum laboratorium sains yang lengkap.', 'icon' => 'fa-flask'],
+        ['title' => 'Program IPS', 'desc' => 'Peminatan Ilmu Pengetahuan Sosial dengan pendekatan analisis dan studi kasus nyata.', 'icon' => 'fa-landmark'],
+        ['title' => 'Ekstrakurikuler', 'desc' => 'Beragam kegiatan pengembangan bakat, minat, dan karakter siswa di luar jam pelajaran.', 'icon' => 'fa-futbol'],
+    ];
+}
+
+// Caption foto program unggulan di galeri (dari DB) — fallback ke label kategori
+foreach ($program_db as $p) {
+    if (!empty($p['foto'])) {
+        $galeri_kategori['program']['captions'][$p['foto']] = $p['judul'];
+    }
+}
 
 // Daftar fasilitas sekolah (statis)
 $fasilitas_list = [
@@ -152,7 +183,7 @@ $fasilitas_list = [
 
 // Gambar utama untuk kartu flip Visi & Misi
 $foto_profil_utama = !empty($galeri_foto[0])
-    ? '/siakad/assets/img/foto_sekolah/' . htmlspecialchars($galeri_foto[0])
+    ? '/siakad/assets/img/foto_sekolah/' . e($galeri_foto[0])
     : '/siakad/assets/img/logo-sekolah.png';
 ?>
 <!DOCTYPE html>
@@ -160,24 +191,24 @@ $foto_profil_utama = !empty($galeri_foto[0])
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beranda — <?php echo htmlspecialchars($nama_sekolah); ?></title>
+    <title>Beranda — <?php echo e($nama_sekolah); ?></title>
     <link rel="icon" type="image/png" href="/siakad/assets/img/logo-sekolah.png">
 
-    <meta name="description" content="Website resmi <?php echo htmlspecialchars($nama_sekolah); ?>. Informasi profil sekolah, program unggulan, fasilitas, galeri, berita terkini, dan pendaftaran siswa baru (SPMB) online.">
-    <meta name="keywords" content="<?php echo htmlspecialchars($nama_sekolah); ?>, SPMB, penerimaan siswa baru, sekolah, Palopo">
-    <meta name="theme-color" content="#163A63">
+    <meta name="description" content="Website resmi <?php echo e($nama_sekolah); ?>. Informasi profil sekolah, program unggulan, fasilitas, galeri, berita terkini, dan pendaftaran siswa baru (SPMB) online.">
+    <meta name="keywords" content="<?php echo e($nama_sekolah); ?>, SPMB, penerimaan siswa baru, sekolah, Palopo">
+    <meta name="theme-color" content="#004680">
     <link rel="manifest" href="/siakad/manifest.json">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="<?php echo htmlspecialchars($nama_sekolah); ?> — Sistem Informasi Akademik">
-    <meta property="og:description" content="Website resmi <?php echo htmlspecialchars($nama_sekolah); ?>. Informasi akademik, berita, galeri, dan SPMB online.">
+    <meta property="og:title" content="<?php echo e($nama_sekolah); ?> — Sistem Informasi Akademik">
+    <meta property="og:description" content="Website resmi <?php echo e($nama_sekolah); ?>. Informasi akademik, berita, galeri, dan SPMB online.">
     <meta property="og:image" content="/siakad/assets/img/logo-sekolah.png">
     <meta property="og:locale" content="id_ID">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -185,15 +216,15 @@ $foto_profil_utama = !empty($galeri_foto[0])
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
     <!-- Stylesheet landing page terpusat (token warna, hero slider, tombol, kartu, filter galeri, dsb) -->
-    <link rel="stylesheet" href="/siakad/assets/css/landing.css">
+    <link rel="stylesheet" href="/siakad/assets/css/landing.css?v=10.0">
 
     <style>
         /* Alias variabel & utility lama supaya kelas Tailwind kustom (bg-primary, text-accent, dst.)
            yang dipakai di seluruh halaman tetap konsisten dengan token warna landing.css */
         :root {
-            --primary-color: var(--primary, #163A63);
-            --secondary-color: var(--primary-dark, #0D2540);
-            --accent-color: var(--gold, #F09000);
+            --primary-color: var(--primary, #004680);
+            --secondary-color: var(--primary-dark, #00345F);
+            --accent-color: var(--primary, #004680);
         }
         body { scroll-behavior: smooth; }
 
@@ -208,14 +239,14 @@ $foto_profil_utama = !empty($galeri_foto[0])
 <body class="text-gray-800">
 
 <!-- NAVBAR -->
-<nav class="sticky top-0 z-50 shadow-lg" style="background: linear-gradient(135deg, #0D2540 0%, #163A63 55%, #2C5A8F 100%);">
+<nav class="sticky top-0 z-50 shadow-lg" style="background: linear-gradient(135deg, #00345F 0%, #004680 55%, #075A96 100%);">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center">
             <div class="w-12 h-12 mr-3 rounded-xl bg-white flex items-center justify-center p-1 shadow" style="box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
                 <img src="/siakad/assets/img/logo-sekolah.png" alt="Logo" class="w-full h-full object-contain" loading="lazy">
             </div>
             <div>
-                <h1 class="text-lg font-bold text-white leading-tight"><?php echo htmlspecialchars($nama_sekolah); ?></h1>
+                <h1 class="text-lg font-bold text-white leading-tight"><?php echo e($nama_sekolah); ?></h1>
                 <p class="text-xs text-white/75">Sistem Informasi Akademik</p>
             </div>
         </div>
@@ -228,6 +259,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <a href="#galeri" class="text-white/90 hover:text-white font-medium">Galeri</a>
             <a href="#prestasi" class="text-white/90 hover:text-white font-medium">Prestasi</a>
             <a href="#berita" class="text-white/90 hover:text-white font-medium">Berita</a>
+            <a href="#pengumuman" class="text-white/90 hover:text-white font-medium">Pengumuman</a>
             <?php if ($spmb_aktif == 1): ?>
             <a href="#spmb" class="text-white/90 hover:text-white font-medium">SPMB</a>
             <?php endif; ?>
@@ -250,6 +282,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         <a href="#galeri" class="block py-2 text-white/90 hover:text-white font-medium">Galeri</a>
         <a href="#prestasi" class="block py-2 text-white/90 hover:text-white font-medium">Prestasi</a>
         <a href="#berita" class="block py-2 text-white/90 hover:text-white font-medium">Berita</a>
+        <a href="#pengumuman" class="block py-2 text-white/90 hover:text-white font-medium">Pengumuman</a>
         <?php if ($spmb_aktif == 1): ?>
         <a href="#spmb" class="block py-2 text-white/90 hover:text-white font-medium">SPMB</a>
         <?php endif; ?>
@@ -265,11 +298,11 @@ $foto_profil_utama = !empty($galeri_foto[0])
     <?php if (!empty($galeri_foto)): ?>
         <?php foreach (array_slice($galeri_foto, 0, 5) as $i => $foto): ?>
         <div class="slide <?php echo $i === 0 ? 'active' : ''; ?>">
-            <img src="/siakad/assets/img/foto_sekolah/<?php echo htmlspecialchars($foto); ?>"
-                 alt="Foto Sekolah <?php echo htmlspecialchars($nama_sekolah); ?>" class="w-full h-full object-cover" loading="lazy">
+            <img src="/siakad/assets/img/foto_sekolah/<?php echo e($foto); ?>"
+                 alt="Foto Sekolah <?php echo e($nama_sekolah); ?>" class="w-full h-full object-cover" loading="lazy">
             <div class="slide-content">
                 <div class="container mx-auto">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-3"><?php echo htmlspecialchars($nama_sekolah); ?></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-3"><?php echo e($nama_sekolah); ?></h2>
                     <p class="text-lg md:text-xl mb-6">Sistem Informasi Akademik Terpadu</p>
                     <div class="flex flex-wrap gap-3">
                         <?php if ($spmb_aktif == 1): ?>
@@ -295,7 +328,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <div class="slide-content" style="position: relative; background: none;">
                 <div class="container mx-auto text-center">
                     <img src="/siakad/assets/img/logo-sekolah.png" alt="Logo" class="w-24 h-24 mx-auto mb-4" loading="lazy">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-3"><?php echo htmlspecialchars($nama_sekolah); ?></h2>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-3"><?php echo e($nama_sekolah); ?></h2>
                     <p class="text-lg md:text-xl mb-6">Sistem Informasi Akademik Terpadu</p>
                     <p class="text-sm text-gray-200">Belum ada foto di folder assets/img/foto_sekolah.</p>
                 </div>
@@ -305,7 +338,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
 </section>
 
 <!-- STATISTIK SEKOLAH -->
-<section class="stat-section py-14" style="background: linear-gradient(135deg, #0D2540 0%, #163A63 55%, #2C5A8F 100%);">
+<section class="stat-section py-14" style="background: linear-gradient(135deg, #00345F 0%, #004680 55%, #075A96 100%);">
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div class="stat-card-item text-center" data-aos="zoom-in">
@@ -373,17 +406,17 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <?php foreach ($spmb_jalur_list as $ji => $jalur): ?>
             <div class="bg-white/10 rounded-xl p-5 border border-white/10 transition-all duration-300 hover:bg-white/15 hover:-translate-y-1" data-aos="zoom-in" data-aos-delay="<?php echo $ji * 100; ?>">
                 <i class="fas fa-book-reader text-3xl mb-2 text-accent"></i>
-                <div class="font-semibold text-sm">Jalur <?php echo htmlspecialchars($jalur['nama_jalur']); ?></div>
+                <div class="font-semibold text-sm">Jalur <?php echo e($jalur['nama_jalur']); ?></div>
                 <div class="mt-1 text-xs text-white/70">
                     Kuota: <?php echo (int)$jalur['kuota']; ?> siswa
                 </div>
-                <div class="mt-1 text-xs text-white/60 line-clamp-2"><?php echo htmlspecialchars($jalur['keterangan'] ?? ''); ?></div>
+                <div class="mt-1 text-xs text-white/60 line-clamp-2"><?php echo e($jalur['keterangan'] ?? ''); ?></div>
             </div>
             <?php endforeach; ?>
         </div>
 
         <div class="mt-10 flex flex-wrap justify-center gap-3">
-            <a href="/siakad/spmb/daftar.php" class="bg-gold text-primary px-6 py-3 rounded-full font-medium">
+            <a href="/siakad/spmb/daftar.php" class="bg-primary text-white px-6 py-3 rounded-full font-medium">
                 <i class="fas fa-arrow-right mr-2"></i>Daftar Sekarang
             </a>
             <a href="/siakad/spmb/cek-status.php" class="btn-outline px-6 py-3 rounded-full font-medium">
@@ -401,7 +434,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Tentang Sekolah Kami</h2>
             <div class="section-divider"></div>
             <p class="text-gray-600 max-w-3xl mx-auto">
-                <?php echo htmlspecialchars($nama_sekolah); ?> memiliki akreditasi A berdasarkan SK No. 614/BAN-SM/SK/2019, 
+                <?php echo e($nama_sekolah); ?> memiliki akreditasi A berdasarkan SK No. 614/BAN-SM/SK/2019, 
                 dan berkomitmen untuk memberikan pendidikan berkualitas serta menoreh prestasi gemilang. 
                 Sekolah ini menyelenggarakan pendidikan selama 5 hari dalam seminggu dengan sistem sehari penuh.
             </p>
@@ -417,7 +450,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
                         </div>
                         <div class="flip-back bg-primary flex items-center justify-center p-6">
                             <p class="text-white font-semibold text-xl text-center leading-relaxed">
-                                <?php echo htmlspecialchars($nama_sekolah); ?><br>
+                                <?php echo e($nama_sekolah); ?><br>
                                 Pendidikan berkualitas untuk generasi masa depan
                             </p>
                         </div>
@@ -427,10 +460,20 @@ $foto_profil_utama = !empty($galeri_foto[0])
 
             <div class="w-full md:w-1/2" data-aos="fade-left">
                 <h3 class="text-2xl font-bold text-gray-800 mb-3"><i class="fas fa-lightbulb text-accent mr-2"></i>Visi</h3>
-                <p class="text-gray-700 mb-6"><?php echo nl2br(htmlspecialchars($visi_sekolah)); ?></p>
+                <p class="text-gray-700 mb-6"><?php echo nl2br(e($visi_sekolah)); ?></p>
 
                 <h3 class="text-2xl font-bold text-gray-800 mb-3"><i class="fas fa-bullseye text-accent mr-2"></i>Misi</h3>
-                <p class="text-gray-700"><?php echo nl2br(htmlspecialchars($misi_sekolah)); ?></p>
+                <ul class="space-y-3 text-gray-700">
+                    <?php foreach (preg_split('/\r\n|\r|\n/', $misi_sekolah) as $misi_point): ?>
+                        <?php $misi_point = trim($misi_point); if ($misi_point === '') continue; ?>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full bg-accent/15 text-accent flex items-center justify-center">
+                                <i class="fas fa-check text-xs"></i>
+                            </span>
+                            <span><?php echo e($misi_point); ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
         </div>
 
@@ -465,34 +508,34 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <div class="grid grid-cols-1 md:grid-cols-5">
                 <!-- Panel Foto -->
                 <div class="md:col-span-2 flex flex-col items-center justify-center p-10 relative"
-                     style="background: linear-gradient(135deg, #0D2540 0%, #163A63 55%, #2C5A8F 100%);">
+                     style="background: linear-gradient(135deg, #00345F 0%, #004680 55%, #075A96 100%);">
                     <i class="fas fa-quote-right absolute top-6 left-7 text-white/10" style="font-size:72px;"></i>
                     <div class="relative z-10 w-40 h-40 md:w-44 md:h-44 rounded-full p-2"
-                         style="background:rgba(255,255,255,0.15); box-shadow:0 0 0 4px rgba(240,144,0,0.55), 0 18px 40px rgba(0,0,0,0.35);">
-                        <img src="<?php echo $foto_kepsek; ?>" alt="Kepala Sekolah <?php echo htmlspecialchars($kepala_sekolah); ?>"
+                         style="background:rgba(255,255,255,0.15); box-shadow:0 0 0 4px rgba(255,255,255,0.55), 0 18px 40px rgba(0,0,0,0.35);">
+                        <img src="<?php echo $foto_kepsek; ?>" alt="Kepala Sekolah <?php echo e($kepala_sekolah); ?>"
                              class="w-full h-full rounded-full object-cover" loading="lazy"
                              onerror="this.onerror=null;this.src='/siakad/assets/img/logo-sekolah.png';this.classList.add('object-contain','p-4','bg-white');">
                     </div>
                     <div class="relative z-10 text-center mt-6">
-                        <div class="text-white font-bold text-lg leading-tight"><?php echo htmlspecialchars($kepala_sekolah); ?></div>
+                        <div class="text-white font-bold text-lg leading-tight"><?php echo e($kepala_sekolah); ?></div>
                         <div class="mt-2 inline-flex items-center gap-2 px-4 py-1 rounded-full text-xs font-semibold tracking-widest"
-                             style="background:rgba(240,144,0,0.18); color:#FFB74D;">
+                             style="background:rgba(255,255,255,0.14); color:#FFFFFF;">
                             <i class="fas fa-user-tie"></i> KEPALA SEKOLAH
                         </div>
                         <?php if (!empty($setting['nip_kepsek'])): ?>
-                        <div class="text-white/70 text-xs mt-2">NIP. <?php echo htmlspecialchars($setting['nip_kepsek']); ?></div>
+                        <div class="text-white/70 text-xs mt-2">NIP. <?php echo e($setting['nip_kepsek']); ?></div>
                         <?php endif; ?>
                     </div>
                 </div>
                 <!-- Panel Sambutan -->
                 <div class="md:col-span-3 bg-white p-8 md:p-12">
                     <div class="flex items-center gap-2 mb-2">
-                        <i class="fas fa-quote-left text-2xl" style="color:#F09000;"></i>
-                        <span class="text-xs font-semibold tracking-widest uppercase" style="color:#F09000;">Sambutan</span>
+                        <i class="fas fa-quote-left text-2xl" style="color:#004680;"></i>
+                        <span class="text-xs font-semibold tracking-widest uppercase" style="color:#004680;">Sambutan</span>
                     </div>
                     <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3">Kepala Sekolah</h3>
-                    <div class="w-16 h-1 rounded-full mb-5" style="background:linear-gradient(90deg,#F09000,#FFB74D);"></div>
-                    <p class="text-gray-600 leading-relaxed text-justify text-[15px]"><?php echo nl2br(htmlspecialchars($sambutan_kepsek)); ?></p>
+                    <div class="w-16 h-1 rounded-full mb-5" style="background:linear-gradient(90deg,#004680,#075A96);"></div>
+                    <p class="text-gray-600 leading-relaxed text-justify text-[15px]"><?php echo nl2br(e($sambutan_kepsek)); ?></p>
                 </div>
             </div>
         </div>
@@ -504,12 +547,19 @@ $foto_profil_utama = !empty($galeri_foto[0])
                 <div class="section-divider"></div>
             </div>
             <div class="bg-white rounded-xl shadow-md p-6 max-w-4xl mx-auto">
+                <?php if (!empty($setting['foto_struktur'])): ?>
                 <img src="<?php echo $foto_struktur; ?>" alt="Struktur Organisasi Sekolah" class="w-full rounded-lg" loading="lazy"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <p style="display:none;" class="text-center text-gray-400 py-10">
-                    Struktur organisasi belum diupload. Simpan gambar dengan nama
-                    <code>struktur-organisasi.png</code> di folder <code>assets/img/</code>.
+                    Gagal memuat foto struktur organisasi.
                 </p>
+                <?php else: ?>
+                <div class="text-center py-12">
+                    <i class="fas fa-sitemap fa-3x text-gray-300 mb-3"></i>
+                    <p class="text-gray-400">Belum ada foto struktur organisasi.</p>
+                    <p class="text-sm text-gray-500 mt-2">Kelola di <code>Admin → Beranda → Struktur Organisasi</code></p>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -528,19 +578,35 @@ $foto_profil_utama = !empty($galeri_foto[0])
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <?php foreach ($program_list as $i => $prog): ?>
-            <div class="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl border border-transparent hover:border-accent/40"
-                 data-aos="zoom-in" data-aos-delay="<?php echo $i * 100; ?>">
+            <?php
+            $foto_prog = !empty($prog['foto'])
+                ? $prog['foto']
+                : (!empty($foto_program[$i]) ? '/siakad/assets/img/foto_program/' . e($foto_program[$i]) : '');
+            ?>
+            <div class="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl border border-transparent hover:border-accent/40 cursor-pointer"
+                 data-aos="zoom-in" data-aos-delay="<?php echo $i * 100; ?>"
+                 onclick="bukaProgram(this)"
+                 data-judul="<?php echo e($prog['title']); ?>"
+                 data-deskripsi="<?php echo e($prog['desc']); ?>"
+                 data-ikon="<?php echo e($prog['icon']); ?>"
+                 data-foto="<?php echo e($foto_prog); ?>">
                 <div class="h-48 overflow-hidden bg-primary/5 flex items-center justify-center">
-                    <?php if (!empty($foto_program[$i])): ?>
-                    <img src="/siakad/assets/img/foto_program/<?php echo htmlspecialchars($foto_program[$i]); ?>"
-                         alt="<?php echo htmlspecialchars($prog['title']); ?>" class="w-full h-full object-cover" loading="lazy">
+                    <?php if (!empty($prog['foto'])): ?>
+                    <img src="<?php echo e($prog['foto']); ?>"
+                         alt="<?php echo e($prog['title']); ?>" class="w-full h-full object-cover" loading="lazy">
+                    <?php elseif (!empty($foto_program[$i])): ?>
+                    <img src="/siakad/assets/img/foto_program/<?php echo e($foto_program[$i]); ?>"
+                         alt="<?php echo e($prog['title']); ?>" class="w-full h-full object-cover" loading="lazy">
                     <?php else: ?>
                     <i class="fas <?php echo $prog['icon']; ?> text-5xl text-primary/40"></i>
                     <?php endif; ?>
                 </div>
                 <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2"><?php echo htmlspecialchars($prog['title']); ?></h3>
-                    <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($prog['desc']); ?></p>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2"><?php echo e($prog['title']); ?></h3>
+                    <p class="text-gray-600 text-sm"><?php echo e($prog['desc']); ?></p>
+                    <span class="inline-flex items-center gap-1.5 mt-4 text-sm font-bold text-accent">
+                        Selengkapnya <i class="fas fa-arrow-right text-xs"></i>
+                    </span>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -565,8 +631,8 @@ $foto_profil_utama = !empty($galeri_foto[0])
                  data-aos="zoom-in-up" data-aos-delay="<?php echo $i * 80; ?>">
                 <div class="text-primary text-3xl mr-4"><i class="fas <?php echo $fas['icon']; ?>"></i></div>
                 <div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-1"><?php echo htmlspecialchars($fas['title']); ?></h3>
-                    <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($fas['desc']); ?></p>
+                    <h3 class="text-lg font-bold text-gray-800 mb-1"><?php echo e($fas['title']); ?></h3>
+                    <p class="text-gray-600 text-sm"><?php echo e($fas['desc']); ?></p>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -581,7 +647,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Galeri Sekolah</h2>
             <div class="section-divider"></div>
             <p class="text-gray-600 max-w-3xl mx-auto">
-                Dokumentasi suasana lingkungan dan kegiatan di <?php echo htmlspecialchars($nama_sekolah); ?>.
+                Dokumentasi suasana lingkungan dan kegiatan di <?php echo e($nama_sekolah); ?>.
             </p>
         </div>
 
@@ -589,7 +655,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <button class="filter-btn active px-5 py-2 rounded-full border border-gray-200 font-medium text-sm" data-filter="all">Semua</button>
             <?php foreach ($galeri_kategori as $key => $kat): ?>
             <button class="filter-btn px-5 py-2 rounded-full border border-gray-200 font-medium text-sm" data-filter="<?php echo $key; ?>">
-                <?php echo htmlspecialchars($kat['label']); ?>
+                <?php echo e($kat['label']); ?>
             </button>
             <?php endforeach; ?>
         </div>
@@ -600,12 +666,13 @@ $foto_profil_utama = !empty($galeri_foto[0])
             foreach ($galeri_kategori as $key => $kat):
                 foreach ($kat['files'] as $foto):
                     $ada_foto = true;
+                    $caption_foto = $kat['captions'][$foto] ?? $kat['label'];
             ?>
             <div class="gallery-item overflow-hidden rounded-lg cursor-pointer" data-category="<?php echo $key; ?>"
-                     data-src="/siakad/assets/img/<?php echo $kat['folder']; ?>/<?php echo htmlspecialchars($foto); ?>"
-                     data-caption="<?php echo htmlspecialchars($kat['label']); ?>" onclick="bukaLightbox(this)">
-                <img src="/siakad/assets/img/<?php echo $kat['folder']; ?>/<?php echo htmlspecialchars($foto); ?>"
-                     alt="<?php echo htmlspecialchars($kat['label']); ?>"
+                     data-src="/siakad/assets/img/<?php echo $kat['folder']; ?>/<?php echo e($foto); ?>"
+                     data-caption="<?php echo e($caption_foto); ?>" onclick="bukaLightbox(this)">
+                <img src="/siakad/assets/img/<?php echo $kat['folder']; ?>/<?php echo e($foto); ?>"
+                     alt="<?php echo e($caption_foto); ?>"
                      class="w-full h-48 object-cover hover:scale-110 transition duration-300" loading="lazy">
             </div>
             <?php
@@ -640,7 +707,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Prestasi Siswa</h2>
             <div class="section-divider"></div>
             <p class="text-gray-600 max-w-3xl mx-auto">
-                Kebanggaan <?php echo htmlspecialchars($nama_sekolah); ?> atas capaian prestasi siswa di berbagai bidang.
+                Kebanggaan <?php echo e($nama_sekolah); ?> atas capaian prestasi siswa di berbagai bidang.
             </p>
         </div>
 
@@ -653,19 +720,19 @@ $foto_profil_utama = !empty($galeri_foto[0])
                         <i class="fas <?php echo $prestasi['kategori'] === 'Akademik' ? 'fa-award' : 'fa-medal'; ?>"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-800 mb-1"><?php echo htmlspecialchars($prestasi['nama_prestasi']); ?></h3>
+                        <h3 class="font-bold text-gray-800 mb-1"><?php echo e($prestasi['nama_prestasi']); ?></h3>
                         <div class="flex flex-wrap gap-2 mb-2 text-xs">
-                            <span class="px-2.5 py-1 rounded-full font-semibold" style="background:rgba(240,144,0,0.12); color:#C97000;">
-                                <i class="fas fa-database mr-1"></i><?php echo htmlspecialchars($prestasi['tingkat'] ?? 'Sekolah'); ?>
+                            <span class="px-2.5 py-1 rounded-full font-semibold" style="background:rgba(0,70,128,0.10); color:#00345F;">
+                                <i class="fas fa-database mr-1"></i><?php echo e($prestasi['tingkat'] ?? 'Sekolah'); ?>
                             </span>
                             <span class="px-2.5 py-1 rounded-full font-semibold"
-                                  style="<?php echo $prestasi['kategori'] === 'Akademik' ? 'background:rgba(22,58,99,0.10); color:#163A63;' : 'background:rgba(16,185,129,0.12); color:#0f9d76;'; ?>">
-                                <?php echo htmlspecialchars($prestasi['kategori'] ?? 'Akademik'); ?>
+                                  style="<?php echo $prestasi['kategori'] === 'Akademik' ? 'background:rgba(0,70,128,0.10); color:#004680;' : 'background:rgba(16,185,129,0.12); color:#0f9d76;'; ?>">
+                                <?php echo e($prestasi['kategori'] ?? 'Akademik'); ?>
                             </span>
                         </div>
                         <p class="text-sm text-gray-500">
                             <?php if (!empty($prestasi['siswa_nama'])): ?>
-                            <i class="fas fa-user-graduate mr-1"></i><?php echo htmlspecialchars($prestasi['siswa_nama']); ?>
+                            <i class="fas fa-user-graduate mr-1"></i><?php echo e($prestasi['siswa_nama']); ?>
                             <?php endif; ?>
                             <?php if (!empty($prestasi['tanggal'])): ?>
                             <span class="text-gray-400">• <?php echo tanggal_indo($prestasi['tanggal']); ?></span>
@@ -689,10 +756,10 @@ $foto_profil_utama = !empty($galeri_foto[0])
 <section id="berita" class="py-16 bg-gray-50">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12" data-aos="fade-up">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Berita & Pengumuman</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Berita Sekolah</h2>
             <div class="section-divider"></div>
             <p class="text-gray-600 max-w-3xl mx-auto">
-                Informasi terkini seputar kegiatan akademik dan pengumuman penting.
+                Informasi terkini seputar kegiatan akademik & non-akademik di Sma Negeri 4 Palopo.
             </p>
         </div>
 
@@ -702,20 +769,20 @@ $foto_profil_utama = !empty($galeri_foto[0])
                 while ($berita = mysqli_fetch_assoc($query_berita)):
                     $berita_gambar = null;
                     if (!empty($berita['gambar']) && file_exists(__DIR__ . '/assets/img/foto_berita/' . $berita['gambar'])) {
-                        $berita_gambar = '/siakad/assets/img/foto_berita/' . htmlspecialchars($berita['gambar']);
+                        $berita_gambar = '/siakad/assets/img/foto_berita/' . e($berita['gambar']);
                     }
             ?>
             <div class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl"
                  data-aos="fade-up"
                  onclick="bukaBerita(this)"
-                 data-judul="<?php echo htmlspecialchars($berita['judul'], ENT_QUOTES); ?>"
-                 data-tanggal="<?php echo htmlspecialchars(tanggal_indo_pendek($berita['tanggal']), ENT_QUOTES); ?>"
-                 data-ringkasan="<?php echo htmlspecialchars($berita['ringkasan'] ?? '', ENT_QUOTES); ?>"
-                 data-isi="<?php echo htmlspecialchars($berita['isi'], ENT_QUOTES); ?>"
-                 data-gambar="<?php echo $berita_gambar ? htmlspecialchars($berita_gambar, ENT_QUOTES) : ''; ?>">
+                 data-judul="<?php echo e($berita['judul'], ENT_QUOTES); ?>"
+                 data-tanggal="<?php echo e(tanggal_indo_pendek($berita['tanggal']), ENT_QUOTES); ?>"
+                 data-ringkasan="<?php echo e($berita['ringkasan'] ?? '', ENT_QUOTES); ?>"
+                 data-isi="<?php echo e($berita['isi'], ENT_QUOTES); ?>"
+                 data-gambar="<?php echo $berita_gambar ? e($berita_gambar, ENT_QUOTES) : ''; ?>">
                 <div class="h-44 overflow-hidden bg-primary/5 flex items-center justify-center">
                     <?php if ($berita_gambar): ?>
-                    <img src="<?php echo $berita_gambar; ?>" alt="<?php echo htmlspecialchars($berita['judul']); ?>" class="w-full h-full object-cover" loading="lazy">
+                    <img src="<?php echo $berita_gambar; ?>" alt="<?php echo e($berita['judul']); ?>" class="w-full h-full object-cover" loading="lazy">
                     <?php else: ?>
                     <i class="fas fa-newspaper text-4xl text-primary/40"></i>
                     <?php endif; ?>
@@ -725,8 +792,8 @@ $foto_profil_utama = !empty($galeri_foto[0])
                         <i class="fas fa-calendar-alt mr-1"></i>
                         <?php echo tanggal_indo_pendek($berita['tanggal']); ?>
                     </div>
-                    <h4 class="font-bold text-gray-800 mb-2"><?php echo htmlspecialchars($berita['judul']); ?></h4>
-                    <p class="text-gray-600 text-sm"><?php echo htmlspecialchars(mb_substr($berita['ringkasan'] ?? $berita['isi'], 0, 100)); ?>...</p>
+                    <h4 class="font-bold text-gray-800 mb-2"><?php echo e($berita['judul']); ?></h4>
+                    <p class="text-gray-600 text-sm"><?php echo e(mb_substr($berita['ringkasan'] ?? $berita['isi'], 0, 100)); ?>...</p>
                     <span class="inline-block mt-3 text-sm font-medium text-accent hover:text-accent-dark">
                         Baca selengkapnya <i class="fas fa-arrow-right ml-1"></i>
                     </span>
@@ -738,6 +805,69 @@ $foto_profil_utama = !empty($galeri_foto[0])
             ?>
             <div class="col-span-full text-center py-10">
                 <p class="text-gray-400">Belum ada berita terbaru.</p>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>
+
+<!-- PENGUMUMAN SEKOLAH -->
+<section id="pengumuman" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12" data-aos="fade-up">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Pengumuman</h2>
+            <div class="section-divider"></div>
+            <p class="text-gray-600 max-w-3xl mx-auto">
+                Informasi resmi dan penting seputar kegiatan sekolah yang perlu diketahui warga sekolah.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <?php
+            if ($query_pengumuman && mysqli_num_rows($query_pengumuman) > 0):
+                while ($p = mysqli_fetch_assoc($query_pengumuman)):
+                    $p_gambar = null;
+                    if (!empty($p['gambar']) && file_exists(__DIR__ . '/assets/img/foto_pengumuman/' . $p['gambar'])) {
+                        $p_gambar = '/siakad/assets/img/foto_pengumuman/' . e($p['gambar']);
+                    }
+            ?>
+            <div class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl border border-gray-100"
+                 data-aos="fade-up"
+                 onclick="bukaBerita(this)"
+                 data-judul="<?php echo e($p['judul'], ENT_QUOTES); ?>"
+                 data-tanggal="<?php echo e(tanggal_indo_pendek($p['tanggal']), ENT_QUOTES); ?>"
+                 data-ringkasan="<?php echo e($p['ringkasan'] ?? '', ENT_QUOTES); ?>"
+                 data-isi="<?php echo e($p['isi'], ENT_QUOTES); ?>"
+                 data-gambar="<?php echo $p_gambar ? e($p_gambar, ENT_QUOTES) : ''; ?>"
+                 data-sumber="Pengumuman Sekolah">
+                <div class="h-44 overflow-hidden bg-primary/5 flex items-center justify-center relative">
+                    <span class="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-white text-xs font-bold shadow">
+                        <i class="fas fa-bullhorn"></i> Pengumuman
+                    </span>
+                    <?php if ($p_gambar): ?>
+                    <img src="<?php echo $p_gambar; ?>" alt="<?php echo e($p['judul']); ?>" class="w-full h-full object-cover" loading="lazy">
+                    <?php else: ?>
+                    <i class="fas fa-bullhorn text-4xl text-primary/40"></i>
+                    <?php endif; ?>
+                </div>
+                <div class="p-6">
+                    <div class="text-xs text-gray-400 mb-2">
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        <?php echo tanggal_indo_pendek($p['tanggal']); ?>
+                    </div>
+                    <h4 class="font-bold text-gray-800 mb-2"><?php echo e($p['judul']); ?></h4>
+                    <p class="text-gray-600 text-sm"><?php echo e(mb_substr($p['ringkasan'] ?? $p['isi'], 0, 100)); ?>...</p>
+                    <span class="inline-block mt-3 text-sm font-medium text-accent hover:text-accent-dark">
+                        Baca selengkapnya <i class="fas fa-arrow-right ml-1"></i>
+                    </span>
+                </div>
+            </div>
+            <?php
+                endwhile;
+            else:
+            ?>
+            <div class="col-span-full text-center py-10">
+                <p class="text-gray-400">Belum ada pengumuman terbaru.</p>
             </div>
             <?php endif; ?>
         </div>
@@ -767,7 +897,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
             <p id="modalRingkasan" class="text-gray-500 text-sm md:text-base font-medium mb-4 border-l-4 border-accent/60 pl-3"></p>
             <div id="modalIsi" class="text-gray-700 text-sm md:text-base leading-relaxed whitespace-pre-line"></div>
             <div class="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
-                <span class="text-xs text-gray-400"><i class="fas fa-newspaper mr-1"></i> Berita Sekolah</span>
+                <span id="modalSumber" class="text-xs text-gray-400"><i class="fas fa-newspaper mr-1"></i> Berita Sekolah</span>
                 <button onclick="tutupBerita()" class="text-xs font-bold text-accent hover:text-accent-dark">
                     Tutup <i class="fas fa-times ml-1"></i>
                 </button>
@@ -828,11 +958,102 @@ $foto_profil_utama = !empty($galeri_foto[0])
         }
         document.getElementById('modalIsi').textContent = isi;
 
+        var src = el.dataset.sumber || 'Berita Sekolah';
+        var srcEl = document.getElementById('modalSumber');
+        if (srcEl) {
+            var isPeng = /pengumuman/i.test(src);
+            srcEl.innerHTML = '<i class="fas ' + (isPeng ? 'fa-bullhorn' : 'fa-newspaper') + ' mr-1"></i> ' + src;
+        }
+
         showPanel();
     };
 
     window.tutupBerita = function() {
         var m = document.getElementById('modalBerita');
+        var p = m.querySelector('.modal-panel');
+        p.classList.remove('modal-enter');
+        p.classList.add('modal-exit');
+        setTimeout(function() {
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+            p.classList.remove('modal-exit');
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', escHandler);
+        }, 180);
+    };
+})();
+</script>
+
+<!-- Modal Program Sekolah -->
+<div id="modalProgram" class="modal-berita fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="tutupProgram()"></div>
+    <div class="modal-panel relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+        <div class="relative shrink-0">
+            <div id="modalProgramGambar" class="hidden h-60 md:h-72 shrink-0 bg-gradient-to-br from-primary to-primary-light relative">
+                <img id="modalProgramImg" src="" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10"></div>
+            </div>
+            <button onclick="tutupProgram()" aria-label="Tutup"
+                class="modal-close absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/40 text-white text-lg flex items-center justify-center border border-white/30">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="flex items-center justify-between px-6 md:px-8 py-4 border-b border-gray-100 shrink-0 bg-white">
+            <h3 id="modalProgramJudul" class="text-lg md:text-xl font-bold text-gray-800 pr-8 leading-snug"></h3>
+        </div>
+        <div class="overflow-y-auto px-6 md:px-8 py-6 bg-gray-50/50">
+            <p id="modalProgramDesc" class="text-gray-700 text-sm md:text-base leading-relaxed"></p>
+            <div class="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-xs text-gray-400"><i class="fas fa-rocket mr-1"></i> Program Unggulan Sekolah</span>
+                <button onclick="tutupProgram()" class="text-xs font-bold text-accent hover:text-accent-dark">
+                    Tutup <i class="fas fa-times ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    var escHandler = function(e) {
+        if (e.key === 'Escape') tutupProgram();
+    };
+
+    function showProgramPanel() {
+        var m = document.getElementById('modalProgram');
+        var p = m.querySelector('.modal-panel');
+        m.classList.remove('hidden');
+        void m.offsetWidth;
+        m.classList.add('flex');
+        p.classList.add('modal-enter');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', escHandler);
+    }
+
+    window.bukaProgram = function(el) {
+        var judul = el.dataset.judul || '';
+        var desc  = el.dataset.deskripsi || '';
+        var ikon  = el.dataset.ikon || 'fa-star';
+        var foto  = el.dataset.foto || '';
+
+        document.getElementById('modalProgramJudul').textContent = judul;
+        document.getElementById('modalProgramDesc').textContent = desc;
+
+        var g = document.getElementById('modalProgramGambar');
+        var ig = document.getElementById('modalProgramImg');
+        if (foto) {
+            g.classList.remove('hidden');
+            ig.src = foto;
+            ig.alt = judul;
+        } else {
+            g.classList.add('hidden');
+            ig.src = '';
+        }
+
+        showProgramPanel();
+    };
+
+    window.tutupProgram = function() {
+        var m = document.getElementById('modalProgram');
         var p = m.querySelector('.modal-panel');
         p.classList.remove('modal-enter');
         p.classList.add('modal-exit');
@@ -867,7 +1088,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
                             <div class="text-primary text-xl mr-4 mt-1"><i class="fas fa-map-marker-alt"></i></div>
                             <div>
                                 <h4 class="font-bold text-gray-800">Alamat</h4>
-                                <p class="text-gray-600 text-sm"><?php echo htmlspecialchars($alamat_sekolah); ?></p>
+                                <p class="text-gray-600 text-sm"><?php echo e($alamat_sekolah); ?></p>
                             </div>
                         </div>
                         <div class="flex items-start">
@@ -916,7 +1137,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="md:col-span-2">
-                <h3 class="text-xl font-bold mb-4"><i class="fas fa-graduation-cap mr-2"></i><?php echo htmlspecialchars($nama_sekolah); ?></h3>
+                <h3 class="text-xl font-bold mb-4"><i class="fas fa-graduation-cap mr-2"></i><?php echo e($nama_sekolah); ?></h3>
                 <p class="text-gray-300 mb-4 max-w-md">
                     Institusi pendidikan berkualitas dengan komitmen mengembangkan potensi siswa secara optimal.
                 </p>
@@ -956,7 +1177,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         </div>
 
         <div class="border-t border-white/10 mt-10 pt-6 text-center text-gray-400 text-sm">
-            <p>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($nama_sekolah); ?>. Hak Cipta Dilindungi.</p>
+            <p>&copy; <?php echo date('Y'); ?> <?php echo e($nama_sekolah); ?>. Hak Cipta Dilindungi.</p>
         </div>
     </div>
 </footer>
@@ -1105,7 +1326,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
 </script>
 
 <!-- ===== Chatbot AI (SiA Bot) ===== -->
-<link rel="stylesheet" href="/siakad/assets/css/chatbot.css?v=3">
+<link rel="stylesheet" href="/siakad/assets/css/chatbot.css?v=4">
 <button type="button" class="chatbot-fab" id="chatbotToggle" aria-label="Buka chatbot">
     <i class="fas fa-comments fab-open"></i>
     <i class="fas fa-times fab-close"></i>

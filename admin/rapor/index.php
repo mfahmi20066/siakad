@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -13,17 +13,17 @@ $data = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-file-alt text-gold me-2"></i>Rapor Siswa</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-file-alt text-icon me-2"></i>Rapor Siswa</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
 <?php endif; ?>
 
@@ -87,16 +87,16 @@ $data = mysqli_query($koneksi,
                 ?>
                 <tr>
                     <td><?= $no++ ?></td>
-                    <td><?= htmlspecialchars($r['nis']) ?></td>
-                    <td><?= htmlspecialchars($r['nama']) ?></td>
+                    <td><?= e($r['nis']) ?></td>
+                    <td><?= e($r['nama']) ?></td>
                     <td>
-                        <span class="badge bg-info text-dark"><?= htmlspecialchars($r['nama_kelas']) ?></span>
+                        <span class="badge bg-info text-dark"><?= e($r['nama_kelas']) ?></span>
                     </td>
-                    <td>Semester <?= htmlspecialchars($r['semester']) ?></td>
-                    <td><?= htmlspecialchars($r['tahun_ajaran']) ?></td>
+                    <td>Semester <?= e($r['semester']) ?></td>
+                    <td><?= e($r['tahun_ajaran']) ?></td>
                     <td>
                         <span class="badge bg-<?= $badge_class ?>">
-                            <?= htmlspecialchars($text_display) ?>
+                            <?= e($text_display) ?>
                         </span>
                     </td>
                     <td>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -23,8 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $nama    = mysqli_real_escape_string($koneksi, $_POST['nama_kelas']);
         $tingkat = (int)$_POST['tingkat'];
+        $jurusan = in_array($_POST['jurusan'] ?? 'Umum', ['Umum', 'IPA', 'IPS']) ? $_POST['jurusan'] : 'Umum';
 
-        // ── FIX: wali_kelas NULL jika kosong (foreign key butuh NULL bukan '') ──
+        // â”€â”€ FIX: wali_kelas NULL jika kosong (foreign key butuh NULL bukan '') â”€â”€
         $wali     = !empty($_POST['wali_kelas']) ? (int)$_POST['wali_kelas'] : null;
         $wali_sql = ($wali !== null) ? "'$wali'" : "NULL";
 
@@ -36,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = "Kelas $nama sudah ada di tahun ajaran $taTahun ($taId)!";
         } else {
             $q = mysqli_query($koneksi,
-                "INSERT INTO kelas (nama_kelas, tingkat, wali_kelas, tahun_ajaran, tahun_ajaran_id)
-                 VALUES ('$nama', '$tingkat', $wali_sql, '$taTahun', '$taId')");
+                "INSERT INTO kelas (nama_kelas, tingkat, jurusan, wali_kelas, tahun_ajaran, tahun_ajaran_id)
+                 VALUES ('$nama', '$tingkat', '$jurusan', $wali_sql, '$taTahun', '$taId')");
 
             if ($q) {
                 header("Location: index.php?success=Kelas $nama berhasil ditambahkan");
@@ -51,12 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-plus text-gold me-2"></i>Tambah Kelas</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-plus text-icon me-2"></i>Tambah Kelas</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -82,9 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 Nama Kelas <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="nama_kelas" class="form-control"
-                                   placeholder="Contoh: X A" required>
+                                   placeholder="Contoh: X A / XI IPA 1 / XII IPS 2" required>
                             <small class="text-muted">
-                                Format: Romawi + Spasi + Huruf. Contoh: X A, XI B, XII C
+                                Kelas X umumnya memakai huruf (X A, X B, …). Kelas XI/XII dapat memakai
+                                penjurusan (XI IPA 1, XI IPS 2, …) sesuai Kurikulum Merdeka.
                             </small>
                         </div>
 
@@ -98,12 +100,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Jurusan</label>
+                            <select name="jurusan" class="form-select">
+                                <option value="Umum">Umum</option>
+                                <option value="IPA">IPA</option>
+                                <option value="IPS">IPS</option>
+                            </select>
+                            <small class="text-muted">Kelas X umumnya Umum; kelas XI/XII dapat IPA/IPS (Kurikulum Merdeka).</small>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Wali Kelas</label>
                             <select name="wali_kelas" class="form-select">
                                 <option value="">-- Pilih Wali Kelas (Opsional) --</option>
                                 <?php while ($g = mysqli_fetch_assoc($guru_list)): ?>
                                 <option value="<?= $g['id'] ?>">
-                                    <?= htmlspecialchars($g['nama'] ?? $g['nama_lengkap'] ?? '-') ?>
+                                    <?= e($g['nama'] ?? $g['nama_lengkap'] ?? '-') ?>
                                 </option>
                                 <?php endwhile; ?>
                             </select>
@@ -115,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 Tahun Ajaran <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="tahun_ajaran" class="form-control"
-                                   value="<?= htmlspecialchars($taTahun) ?>" placeholder="<?= htmlspecialchars($taTahun) ?>" readonly>
+                                   value="<?= e($taTahun) ?>" placeholder="<?= e($taTahun) ?>" readonly>
                             <small class="text-muted">Mengikuti tahun ajaran aktif (sumber kebenaran). Tidak dapat diubah manual.</small>
                         </div>
 
@@ -125,10 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <h6><i class="fas fa-info-circle"></i> Informasi</h6>
                             <p class="mb-1">Panduan pengisian nama kelas:</p>
                             <ul class="mb-0 small">
-                                <li>Kelas 10: gunakan angka romawi <strong>X</strong></li>
-                                <li>Kelas 11: gunakan angka romawi <strong>XI</strong></li>
-                                <li>Kelas 12: gunakan angka romawi <strong>XII</strong></li>
-                                <li>Diikuti spasi dan huruf kelas, misal <strong>A, B, C</strong></li>
+                                <li>Kelas 10 (X): fase umum — pakai huruf, misal <strong>X A, X B</strong></li>
+                                <li>Kelas 11 (XI) & 12 (XII): bisa pakai huruf ATAU penjurusan — misal <strong>XI IPA 1, XI IPS 2, XII IPA 1</strong></li>
+                                <li>Pilih <strong>Jurusan</strong>: Umum untuk kelas X, IPA/IPS untuk kelas XI/XII yang berpenjurusan</li>
                             </ul>
                         </div>
                     </div>

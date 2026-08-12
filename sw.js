@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sia-sman4palopo-v1';
+const CACHE_NAME = 'sia-sman4palopo-v2';
 
 // Cache statis minimal (untuk performa & offline ringan)
 const STATIC_ASSETS = [
@@ -34,28 +34,44 @@ self.addEventListener('fetch', (event) => {
   // hanya tangani GET
   if (req.method !== 'GET') return;
 
+  const url = new URL(req.url);
+
+  // hanya dalam scope /siakad/
+  if (!url.pathname.startsWith('/siakad/')) return;
+
+  // Navigasi halaman & PDF: NETWORK-FIRST supaya halaman cetak/rapor dan PDF
+  // SELALU terbaru (tidak tertimpa cache lama). Jaringan gagal -> fallback cache.
+  if (req.mode === 'navigate' || url.pathname.match(/\.(php|pdf)$/)) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => {
+          return caches.match(req).then((cached) => {
+            return cached || caches.match('/siakad/index.php');
+          });
+        })
+    );
+    return;
+  }
+
+  // Aset statis (css/js/gambar): cache-first untuk performa & offline
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
 
       return fetch(req)
         .then((res) => {
-          // Cache response untuk request yang sama dengan aplikasi (path dalam scope)
-          const url = new URL(req.url);
-          if (url.pathname.startsWith('/siakad/')) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
         .catch(() => {
-          // fallback: kalau offline dan request adalah root, kirim halaman awal
-          if (req.mode === 'navigate') {
-            return caches.match('/siakad/index.php');
-          }
           return undefined;
         });
     })
   );
 });
-

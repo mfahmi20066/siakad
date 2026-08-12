@@ -2,9 +2,13 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
-$id = $_GET['id'];
-mysqli_query($koneksi, "DELETE FROM nilai WHERE id='$id'");
+$id = (int) $_GET['id'];
+// Prepared statement DELETE
+$stmt_delete = mysqli_prepare($koneksi, "DELETE FROM nilai WHERE id=?");
+mysqli_stmt_bind_param($stmt_delete, "i", $id);
+mysqli_stmt_execute($stmt_delete);
 
 header("Location: index.php?success=Nilai berhasil dihapus");
 exit();

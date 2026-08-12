@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -6,7 +6,7 @@ $title = "Rekap Absensi";
 
 $kid        = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 $filter_bln = isset($_GET['bulan'])    ? $_GET['bulan']    : '';
-$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
 if ($kid) {
     $where_bln = $filter_bln ? "AND MONTH(a.tanggal) = '$filter_bln'" : '';
@@ -33,12 +33,12 @@ if ($kid) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-chart-bar text-gold me-2"></i>Rekap Absensi</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-chart-bar text-icon me-2"></i>Rekap Absensi</h4>
     </div>
 
     <div class="card mb-3">
@@ -51,7 +51,7 @@ if ($kid) {
                         <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                         <option value="<?= $k['id'] ?>"
                             <?= $kid == $k['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($k['nama_kelas']) ?>
+                            <?= e($k['nama_kelas']) ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -121,7 +121,7 @@ if ($kid) {
                     <tr>
                         <td><?= $no++ ?></td>
                         <td><?= $r['nis'] ?></td>
-                        <td><?= htmlspecialchars($r['nama']) ?></td>
+                        <td><?= e($r['nama']) ?></td>
                         <td>
                             <span class="badge bg-success"><?= $r['hadir'] ?></span>
                         </td>

@@ -26,7 +26,7 @@
 
 ## Fitur Utama
 
-### 🎓 Akademik
+### Akademik
 - **Dashboard** terpisah untuk Admin, Guru, dan Siswa
 - **Jadwal Pelajaran** per kelas, dikelompokkan per hari
 - **Nilai** input & lihat nilai per mata pelajaran
@@ -35,13 +35,13 @@
 - **Tahun Ajaran** & semester berjalan
 - **Mata Pelajaran**, **Kelas**, dan **Wali Kelas**
 
-### 📋 Kesiswaan
+### Kesiswaan
 - **Data Guru** & **Data Siswa** (dengan generator NIS berbasis NPSN)
 - **Prestasi** siswa
 - **BK / Pelanggaran**
 - **Ekstrakurikuler**
 
-### 🏫 SPMB Online (Penerimaan Murid Baru)
+### SPMB Online (Penerimaan Murid Baru)
 - Landing page SPMB publik (tanpa login)
 - Pendaftaran online + upload dokumen
 - Cek status & cetak bukti pendaftaran (PDF)
@@ -49,12 +49,12 @@
 - Panel admin: kelola **Gelombang** & **Jalur**, verifikasi dokumen, seleksi/ranking, finalisasi, ekspor Excel & PDF
 - Akun SIAKAD siswa **dibuat otomatis** saat dinyatakan diterima
 
-### 🌐 Website Publik
+### Website Publik
 - Landing page (index.php): profil, sambutan Kepala Sekolah, berita, prestasi, statistik sekolah, galeri lightbox, kontak
 - Kelola beranda, berita, pengumuman, dan galeri dari panel admin
 - **Chatbot AI "SiA Bot"** dengan wawasan tentang sekolah, SPMB, akademik, dan FAQ
 
-### 🔐 Lainnya
+### Lainnya
 - Autentikasi & otorisasi per role (admin/guru/siswa)
 - Registrasi akun + **Verifikasi Akun** oleh admin
 - Lupa password via **OTP email**
@@ -70,7 +70,7 @@
 | -------------- | ----------------------------------------------------- |
 | Bahasa         | PHP 8.3+ (native, tanpa framework)                    |
 | Database       | MySQL 8.0+                                            |
-| Frontend       | Bootstrap 5.3.0, jQuery, HTML5, CSS3, Font Poppins    |
+| Frontend       | Bootstrap 5.3.0, jQuery, HTML5, CSS3, Font Roboto    |
 | PDF            | dompdf ^3.1                                           |
 | Email          | PHPMailer ^7.1                                        |
 | Migrasi DB     | robmorgan/phinx 0.16                                  |

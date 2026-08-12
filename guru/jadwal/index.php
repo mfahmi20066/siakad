@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
@@ -11,7 +11,7 @@ $data = mysqli_query($koneksi,
          FROM jadwal j
          JOIN kelas k ON j.kelas_id = k.id
          JOIN mata_pelajaran m ON j.mapel_id = m.id
-         WHERE j.guru_id = '$gid'
+         WHERE j.guru_id = '$gid' AND k.status = 'aktif'
          ORDER BY FIELD(j.hari,'Senin','Selasa','Rabu','Kamis','Jumat'),
                   j.jam_mulai");
 
@@ -26,12 +26,12 @@ while ($r = mysqli_fetch_assoc($data)) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-calendar-alt text-gold me-2"></i>Jadwal Mengajar</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-calendar-alt text-icon me-2"></i>Jadwal Mengajar</h4>
     </div>
 
     <div class="row mb-3">
@@ -96,10 +96,10 @@ while ($r = mysqli_fetch_assoc($data)) {
                         </td>
                         <td>
                             <span class="badge bg-info">
-                                <?= htmlspecialchars($r['nama_kelas']) ?>
+                                <?= e($r['nama_kelas']) ?>
                             </span>
                         </td>
-                        <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                        <td><?= e($r['nama_mapel']) ?></td>
                         <td><?= substr($r['jam_mulai'], 0, 5) ?></td>
                         <td><?= substr($r['jam_selesai'], 0, 5) ?></td>
                         <td><span class="text-muted small"><?= $r['durasi'] ?> jam</span></td>

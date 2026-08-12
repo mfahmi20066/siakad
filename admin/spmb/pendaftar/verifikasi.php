@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../../config/koneksi.php';
 include '../../../config/session.php';
 cekAdmin();
@@ -107,40 +107,40 @@ if (isset($_GET['upload'])) {
 ?>
 <?php include '../../../includes/header.php'; ?>
 <?php include '../../../includes/sidebar_admin.php'; ?>
+<?php include '../../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-check-circle text-gold me-2"></i>Verifikasi Dokumen Pendaftar</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-check-circle text-icon me-2"></i>Verifikasi Dokumen Pendaftar</h4>
     </div>
 
     <div class="card mb-4">
         <div class="card-body">
             <div class="mb-3">
                 <label class="form-label text-muted" style="font-size: 13px;">Nama Pendaftar</label>
-                <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></h5>
+                <h5 class="mb-0"><?php echo e($pendaftar['nama_lengkap']); ?></h5>
             </div>
             <div class="mb-3">
                 <label class="form-label text-muted" style="font-size: 13px;">No. Pendaftaran</label>
-                <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['no_pendaftaran']); ?></h5>
+                <h5 class="mb-0"><?php echo e($pendaftar['no_pendaftaran']); ?></h5>
             </div>
             <div class="mb-3">
                 <label class="form-label text-muted" style="font-size: 13px;">Jalur</label>
-                <h5 class="mb-0"><span class="badge bg-primary"><?php echo htmlspecialchars($pendaftar['nama_jalur'] ?? '-'); ?></span></h5>
+                <h5 class="mb-0"><span class="badge bg-primary"><?php echo e($pendaftar['nama_jalur'] ?? '-'); ?></span></h5>
             </div>
         </div>
     </div>
 
     <?php if (isset($success)): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?>
+        <i class="fas fa-check-circle"></i> <?php echo e($success); ?>
     </div>
     <?php endif; ?>
 
     <?php if (isset($error)): ?>
     <div class="alert alert-danger alert-auto">
-        <i class="fas fa-times-circle"></i> <?php echo htmlspecialchars($error); ?>
+        <i class="fas fa-times-circle"></i> <?php echo e($error); ?>
     </div>
     <?php endif; ?>
 
@@ -150,11 +150,11 @@ if (isset($_GET['upload'])) {
             <div class="row">
                 <div class="col-md-4">
                     <label class="form-label text-muted" style="font-size: 13px;">Nama Pendaftar</label>
-                    <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></h5>
+                    <h5 class="mb-0"><?php echo e($pendaftar['nama_lengkap']); ?></h5>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label text-muted" style="font-size: 13px;">No. Pendaftaran</label>
-                    <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['no_pendaftaran']); ?></h5>
+                    <h5 class="mb-0"><?php echo e($pendaftar['no_pendaftaran']); ?></h5>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label text-muted" style="font-size: 13px;">Status Saat Ini</label>
@@ -195,6 +195,7 @@ if (isset($_GET['upload'])) {
                 <span><i class="fas fa-files"></i> Verifikasi Dokumen</span>
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -221,20 +222,20 @@ if (isset($_GET['upload'])) {
                             <td><strong><?php echo ucfirst(str_replace('_', ' ', $jenis)); ?></strong></td>
                             <td>
                                 <i class="fas fa-file"></i> 
-                                <a href="/siakad/uploads/spmb/<?php echo $id; ?>/<?php echo htmlspecialchars($dok['path_file']); ?>" target="_blank" class="text-decoration-none">
-                                    <?php echo htmlspecialchars($dok['path_file']); ?>
+                                <a href="/siakad/uploads/spmb/<?php echo $id; ?>/<?php echo e($dok['path_file']); ?>" target="_blank" class="text-decoration-none">
+                                    <?php echo e($dok['path_file']); ?>
                                 </a>
                             </td>
                             <td>
                                 <select class="form-select form-select-sm" name="status_<?php echo $jenis; ?>">
-                                    <option value="menunggu" <?php echo ($dok['status_verifikasi'] == 'menunggu') ? 'selected' : ''; ?>>⏳ Menunggu</option>
-                                    <option value="valid" <?php echo ($dok['status_verifikasi'] == 'valid') ? 'selected' : ''; ?>>✓ Valid</option>
-                                    <option value="tidak_valid" <?php echo ($dok['status_verifikasi'] == 'tidak_valid') ? 'selected' : ''; ?>>✗ Tidak Valid</option>
+                                    <option value="menunggu" <?php echo ($dok['status_verifikasi'] == 'menunggu') ? 'selected' : ''; ?>>â³ Menunggu</option>
+                                    <option value="valid" <?php echo ($dok['status_verifikasi'] == 'valid') ? 'selected' : ''; ?>>âœ“ Valid</option>
+                                    <option value="tidak_valid" <?php echo ($dok['status_verifikasi'] == 'tidak_valid') ? 'selected' : ''; ?>>âœ— Tidak Valid</option>
                                 </select>
                             </td>
                             <td>
                                 <input type="text" class="form-control form-control-sm" name="catatan_<?php echo $jenis; ?>" 
-                                    placeholder="Catatan..." value="<?php echo htmlspecialchars($dok['catatan'] ?? ''); ?>">
+                                    placeholder="Catatan..." value="<?php echo e($dok['catatan'] ?? ''); ?>">
                             </td>
                         </tr>
                         <?php 
@@ -249,6 +250,7 @@ if (isset($_GET['upload'])) {
                         <?php endif; ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -292,8 +294,8 @@ if (isset($_GET['upload'])) {
                             <option value="menunggu_verifikasi">Menunggu Verifikasi</option>
                             <option value="diverifikasi">Diverifikasi</option>
                             <option value="lolos_seleksi">Lolos Seleksi</option>
-                            <option value="diterima" style="color: green; font-weight: bold;">✓ Diterima</option>
-                            <option value="ditolak" style="color: red; font-weight: bold;">✗ Ditolak</option>
+                            <option value="diterima" style="color: green; font-weight: bold;">âœ“ Diterima</option>
+                            <option value="ditolak" style="color: red; font-weight: bold;">âœ— Ditolak</option>
                         </select>
                     </div>
                     <div class="col-md-6">

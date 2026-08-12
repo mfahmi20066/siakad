@@ -2,6 +2,7 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $row = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM prestasi_siswa WHERE id=$id"));

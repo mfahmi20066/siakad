@@ -1,7 +1,9 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Pragma: no-cache");
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'form';
 
@@ -29,12 +31,12 @@ $kelas_list = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-print text-gold me-2"></i>Cetak Rapor Individu</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-print text-icon me-2"></i>Cetak Rapor Individu</h4>
     </div>
 
     <div class="card">
@@ -60,8 +62,8 @@ $kelas_list = mysqli_query($koneksi,
                             <?php
                             if ($kelas_list && mysqli_num_rows($kelas_list) > 0) {
                                 while ($kl = mysqli_fetch_assoc($kelas_list)) {
-                                    echo '<option value="' . htmlspecialchars($kl['nama_kelas']) . '">'
-                                       . htmlspecialchars($kl['nama_kelas'])
+                                    echo '<option value="' . e($kl['nama_kelas']) . '">'
+                                       . e($kl['nama_kelas'])
                                        . '</option>';
                                 }
                             }
@@ -214,7 +216,7 @@ $nama       = isset($_GET['nama']) ? mysqli_real_escape_string($koneksi, trim($_
 $semester   = isset($_GET['semester']) ? mysqli_real_escape_string($koneksi, $_GET['semester']) : '1';
 $ta         = isset($_GET['ta']) ? mysqli_real_escape_string($koneksi, $_GET['ta']) : '';
 
-// Resolve tahun (legacy string) → ID master; query utama tetap pakai id.
+// Resolve tahun (legacy string) â†’ ID master; query utama tetap pakai id.
 $taId = 0;
 if ($ta !== '') {
     $rq = mysqli_query($koneksi, "SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran='$ta' LIMIT 1");
@@ -239,7 +241,7 @@ $info_kelas = mysqli_fetch_assoc(mysqli_query($koneksi,
      WHERE k.nama_kelas = '$nama_kelas'"));
 
 if (!$info_kelas) {
-    die('Kelas "' . htmlspecialchars($nama_kelas) . '" tidak ditemukan.');
+    die('Kelas "' . e($nama_kelas) . '" tidak ditemukan.');
 }
 
 // Ambil semua siswa di kelas yang cocok dengan nama (kiri), lengkapi dengan data rapor
@@ -247,6 +249,7 @@ if (!$info_kelas) {
 $siswa_list = mysqli_query($koneksi,
     "SELECT s.id AS id_siswa, s.nis, s.nisn, s.nama, s.nama_lengkap,
             s.jenis_kelamin, s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
+            s.nama_ortu, s.no_hp_ortu,
             r.id AS rapor_id, r.semester, r.tahun_ajaran, r.tahun_ajaran_id,
             ta.nama_tahun_ajaran AS nama_tahun, r.status_kenaikan,
             r.status, r.catatan, r.kerajinan, r.kelakuan, r.kerapihan, r.ekstrakurikuler
@@ -287,7 +290,7 @@ function format_semester($s) {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Rapor Kelas <?= htmlspecialchars($info_kelas['nama_kelas']) ?> — <?= htmlspecialchars($ta) ?></title>
+<title>Rapor Kelas <?= e($info_kelas['nama_kelas']) ?> — <?= e($ta) ?></title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -325,7 +328,7 @@ body {
     margin-left: 8px;
     width: 36px;
     height: 36px;
-    background: #10B981;
+    background: #163A63;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -335,7 +338,7 @@ body {
     vertical-align: middle;
 }
 .btn-pdf svg { width: 18px; height: 18px; }
-.btn-pdf:hover { background: #10B981; }
+.btn-pdf:hover { background: #0D2540; }
 .btn-back {
     display: inline-block;
     margin-bottom: 15px;
@@ -357,45 +360,46 @@ body {
     padding-bottom: 8px;
     margin-bottom: 8px;
 }
-.kop img { width: 55px; height: 55px; object-fit: contain; }
-.kop .logo-kiri  { margin-right: 10px; }
+.kop img { width: 86px; height: 86px; object-fit: contain; }
+.kop .logo-kiri  { margin-right: 16px; }
 .kop .logo-kanan { margin-left: 10px; }
-.kop-text { text-align: center; flex: 1; line-height: 1.25; }
-.kop-text .instansi { font-size: 10px; }
-.kop-text .sekolah  { font-size: 14px; font-weight: bold; text-transform: uppercase; }
-.kop-text .alamat   { font-size: 9px; }
+.kop-text { text-align: center; flex: 1; line-height: 1.25; padding-right: 102px; }
+.kop-text .instansi { font-size: 13px; }
+.kop-text .sekolah  { font-size: 21px; font-weight: bold; text-transform: uppercase; }
+.kop-text .alamat   { font-size: 12px; }
 
 .judul {
     text-align: center;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: bold;
     text-decoration: underline;
-    margin: 10px 0 10px;
+    margin: 12px 0 12px;
+    letter-spacing: 0.5px;
 }
 
-.identitas { width: 100%; margin-bottom: 10px; border-collapse: collapse; }
-.identitas td { padding: 1px 3px; font-size: 11px; vertical-align: top; }
+.identitas { width: 100%; margin-bottom: 12px; border-collapse: collapse; }
+.identitas td { padding: 2px 4px; font-size: 11px; vertical-align: top; }
 .identitas .label { width: 135px; }
 .identitas .titik { width: 8px; }
 
-table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-.rapor-table th, .rapor-table td { border: 1px solid #000; padding: 2px 5px; font-size: 10.5px; }
+table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.rapor-table th, .rapor-table td { border: 1px solid #000; padding: 3px 6px; font-size: 10.5px; }
 .rapor-table th { text-align: center; font-weight: bold; background: #F5F7FB; }
 .text-center { text-align: center; }
 .grup-row td { font-weight: bold; background: #F5F7FB; }
 .merah { color: #E11D48; font-weight: bold; }
 
-.seksi-judul { font-weight: bold; margin: 12px 0 4px; font-size: 11.5px; }
+.seksi-judul { font-weight: bold; margin: 14px 0 5px; font-size: 12px; }
 
 .catatan-box {
     border: 1px solid #000;
     min-height: 40px;
-    padding: 6px;
-    margin-bottom: 10px;
+    padding: 8px;
+    margin-bottom: 12px;
     font-size: 11px;
 }
 
-.footer-ttd { margin-top: 18px; width: 100%; }
+.footer-ttd { margin-top: 20px; width: 100%; }
 .footer-ttd .tgl { text-align: right; margin-bottom: 3px; font-size: 11px; }
 .footer-ttd table { width: 100%; border-collapse: collapse; margin-top: 22px; }
 .footer-ttd td { text-align: center; font-size: 11px; vertical-align: top; padding: 0 8px; }
@@ -407,6 +411,11 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; 
 .footer-ttd .tgl-table .tgl-titik { width: 12px; text-align: center; white-space: nowrap; }
 
 @media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
     .btn-print, .btn-back, .btn-pdf, .no-print { display: none !important; }
     body { padding: 5px 10px; }
     .rapor-page { page-break-after: always; }
@@ -420,13 +429,13 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; 
 <div class="no-print" style="margin-bottom:15px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
     <a href="cetak_kelas.php?action=form" class="btn-back" style="margin-bottom:0;">&larr; Kembali</a>
     <button class="btn-print" style="margin-bottom:0;" onclick="window.print()">Cetak</button>
-    <a class="btn-pdf" style="margin-bottom:0;" href="cetak_pdf.php?nama_kelas=<?= urlencode($nama_kelas) ?>&nama=<?= urlencode($nama) ?>&semester=<?= urlencode($semester) ?>&ta=<?= urlencode($ta) ?>&download=1" title="Simpan sebagai PDF">
+    <a class="btn-pdf" style="margin-bottom:0;" href="cetak_pdf.php?nama_kelas=<?= urlencode($nama_kelas) ?>&nama=<?= urlencode($nama) ?>&semester=<?= urlencode($semester) ?>&ta=<?= urlencode($ta) ?>&download=1&v=2" title="Simpan sebagai PDF">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
     </a>
     <span style="font-size:13px;color:#4A5568;">
-        Rapor siswa <strong><?= htmlspecialchars($nama) ?></strong>
-        Kelas <strong><?= htmlspecialchars($info_kelas['nama_kelas']) ?></strong>
-        Semester <?= format_semester($semester) ?> TA <?= htmlspecialchars($ta) ?>
+        Rapor siswa <strong><?= e($nama) ?></strong>
+        Kelas <strong><?= e($info_kelas['nama_kelas']) ?></strong>
+        Semester <?= format_semester($semester) ?> TA <?= e($ta) ?>
     </span>
 </div>
 
@@ -477,39 +486,37 @@ while ($rapor = mysqli_fetch_assoc($siswa_list)):
     <div class="kop-text">
         <div class="instansi">PEMERINTAH KOTA PALOPO<br>DINAS PENDIDIKAN</div>
         <div class="sekolah">SMA NEGERI 4 PALOPO</div>
-        <div class="alamat"><?= htmlspecialchars($setting['alamat_sekolah'] ?? '-') ?></div>
-    </div>
-    <img class="logo-kanan" src="../../assets/img/logo-sekolah.png"
-         onerror="this.style.display='none'" alt="Logo">
-</div>
+        <div class="alamat"><?= e($setting['alamat_sekolah'] ?? '-') ?></div>
+        <div class="alamat"><?= e($setting['alamat_sekolah'] ?? '-') ?></div><div class="alamat"><?= e(trim((!empty($setting['telepon']) ? 'Telp. ' . $setting['telepon'] : '') . (!empty($setting['email']) ? ' | Email: ' . $setting['email'] : ''))) ?></div>
+    </div></div>
 
 <div class="judul">LAPORAN HASIL BELAJAR</div>
 
 <table class="identitas">
     <tr>
         <td class="label">NAMA</td><td class="titik">:</td>
-        <td style="font-weight:bold"><?= htmlspecialchars($rapor['nama'] ?? '-') ?></td>
+        <td style="font-weight:bold"><?= e($rapor['nama'] ?? '-') ?></td>
         <td class="label" style="width:100px">Kelas</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($info_kelas['nama_kelas'] ?? '-') ?></td>
+        <td><?= e($info_kelas['nama_kelas'] ?? '-') ?></td>
     </tr>
     <tr>
         <td class="label">NIS</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['nis'] ?? '-') ?></td>
+        <td><?= e($rapor['nis'] ?? '-') ?></td>
         <td class="label">Semester</td><td class="titik">:</td>
         <td><?= format_semester($rapor['semester'] ?? $semester) ?></td>
     </tr>
     <tr>
         <td class="label">TEMPAT, TANGGAL LAHIR</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($rapor['tempat_lahir'] ?? '-') ?>,
+        <td><?= e($rapor['tempat_lahir'] ?? '-') ?>,
             <?= isset($rapor['tanggal_lahir']) ? tanggal_indo($rapor['tanggal_lahir']) : '-' ?></td>
         <td class="label">Tahun Pelajaran</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($taEfektifNama) ?></td>
+        <td><?= e($taEfektifNama) ?></td>
     </tr>
     <tr>
         <td class="label">JENIS KELAMIN</td><td class="titik">:</td>
         <td><?= (isset($rapor['jenis_kelamin']) && $rapor['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan' ?></td>
         <td class="label">Wali Kelas</td><td class="titik">:</td>
-        <td><?= htmlspecialchars($info_kelas['wali_kelas'] ?? '-') ?></td>
+        <td><?= e($info_kelas['wali_kelas'] ?? '-') ?></td>
     </tr>
 </table>
 
@@ -543,7 +550,7 @@ while ($rapor = mysqli_fetch_assoc($siswa_list)):
                 $urutan_grup++;
     ?>
         <tr class="grup-row">
-            <td colspan="5"><?= romawi($urutan_grup) ?>. <?= strtoupper(htmlspecialchars($kel)) ?></td>
+            <td colspan="5"><?= romawi($urutan_grup) ?>. <?= strtoupper(e($kel)) ?></td>
         </tr>
     <?php endif; ?>
     <?php
@@ -559,7 +566,7 @@ while ($rapor = mysqli_fetch_assoc($siswa_list)):
     ?>
         <tr>
             <td class="text-center"><?= $no++ ?></td>
-            <td><?= htmlspecialchars($n['nama_mapel']) ?></td>
+            <td><?= e($n['nama_mapel']) ?></td>
             <td class="text-center"><?= $kkm ?></td>
             <td class="text-center <?= $dibawah_kkm ? 'merah' : '' ?>"><?= number_format((float)$na, 0) ?></td>
             <td class="text-center <?= $dibawah_kkm ? 'merah' : '' ?>"><?= $predikat ?></td>
@@ -587,16 +594,16 @@ while ($rapor = mysqli_fetch_assoc($siswa_list)):
     <tbody>
         <tr>
             <td style="width:155px">Kegiatan Pengembangan Diri</td>
-            <td>1. <?= !empty($eskul) ? htmlspecialchars($eskul) : '-' ?></td>
+            <td>1. <?= !empty($eskul) ? e($eskul) : '-' ?></td>
             <td class="text-center"><?= !empty($eskul) ? 'Baik' : '-' ?></td>
         </tr>
         <tr>
             <td rowspan="3">Kepribadian</td>
             <td>1. Kerajinan</td>
-            <td class="text-center"><?= htmlspecialchars($kerajinan) ?></td>
+            <td class="text-center"><?= e($kerajinan) ?></td>
         </tr>
-        <tr><td>2. Kelakuan</td><td class="text-center"><?= htmlspecialchars($kelakuan) ?></td></tr>
-        <tr><td>3. Kerapihan</td><td class="text-center"><?= htmlspecialchars($kerapihan) ?></td></tr>
+        <tr><td>2. Kelakuan</td><td class="text-center"><?= e($kelakuan) ?></td></tr>
+        <tr><td>3. Kerapihan</td><td class="text-center"><?= e($kerapihan) ?></td></tr>
         <tr>
             <td rowspan="3">Ketidakhadiran</td>
             <td>1. Sakit</td><td class="text-center"><?= $sakit ?> hari</td>
@@ -608,7 +615,7 @@ while ($rapor = mysqli_fetch_assoc($siswa_list)):
 
 <div class="seksi-judul">III. Catatan Untuk Orang Tua / Wali</div>
 <div class="catatan-box">
-    <?= !empty($rapor['catatan']) ? nl2br(htmlspecialchars($rapor['catatan'])) : 'Tingkatkan terus prestasimu dan pertahankan semangat belajarmu.' ?>
+    <?= !empty($rapor['catatan']) ? nl2br(e($rapor['catatan'])) : 'Tingkatkan terus prestasimu dan pertahankan semangat belajarmu.' ?>
 </div>
 
 <?php
@@ -649,16 +656,17 @@ if ($status_rapor === 'naik' || $status_rapor === 'tinggal'):
         <tr>
             <td>
                 <div class="garis"></div>
-                <div class="nama"><?= htmlspecialchars($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
-                <div>NIP. <?= htmlspecialchars($setting['nip_kepsek'] ?? '-') ?></div>
+                <div class="nama"><?= e($setting['nama_kepsek'] ?? 'Nama Belum Diatur') ?></div>
+                <div>NIP. <?= e($setting['nip_kepsek'] ?? '-') ?></div>
             </td>
             <td>
                 <div class="garis"></div>
-                <div class="nama">&nbsp;</div>
+                <div class="nama"><?= e($rapor['nama_ortu'] ?? '') ?></div>
+                <?php if (!empty($rapor['no_hp_ortu'])): ?><div><?= e($rapor['no_hp_ortu']) ?></div><?php endif; ?>
             </td>
             <td>
                 <div class="garis"></div>
-                <div class="nama"><?= htmlspecialchars($info_kelas['wali_kelas'] ?? '____________________') ?></div>
+                <div class="nama"><?= e($info_kelas['wali_kelas'] ?? '____________________') ?></div>
             </td>
         </tr>
     </table>
@@ -670,9 +678,9 @@ if ($status_rapor === 'naik' || $status_rapor === 'tinggal'):
 
 <?php else: ?>
 <div class="no-print" style="padding:30px;font-family:Arial;">
-    <p>Belum ada data rapor untuk siswa <strong><?= htmlspecialchars($nama) ?></strong>
-    di kelas <strong><?= htmlspecialchars($info_kelas['nama_kelas']) ?></strong>
-    semester <?= format_semester($semester) ?> tahun ajaran <?= htmlspecialchars($ta) ?>.</p>
+    <p>Belum ada data rapor untuk siswa <strong><?= e($nama) ?></strong>
+    di kelas <strong><?= e($info_kelas['nama_kelas']) ?></strong>
+    semester <?= format_semester($semester) ?> tahun ajaran <?= e($ta) ?>.</p>
     <p><a href="cetak_kelas.php?action=form">&larr; Kembali ke pencarian</a></p>
 </div>
 <?php endif; ?>

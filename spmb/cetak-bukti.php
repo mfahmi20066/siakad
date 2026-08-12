@@ -33,10 +33,11 @@ $html = "
 <head>
     <meta charset='UTF-8'>
     <style>
+        @page { margin: 1.6cm; }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background: white;
             color: #1A202C;
         }
@@ -44,7 +45,7 @@ $html = "
             max-width: 800px;
             margin: 0 auto;
             border: 2px solid #163A63;
-            padding: 30px;
+            padding: 24px;
             background: white;
         }
         .header {
@@ -174,23 +175,23 @@ $html = "
             <table class='detail-table'>
                 <tr>
                     <td class='detail-label'>Nomor Pendaftaran</td>
-                    <td class='detail-value'><strong>" . htmlspecialchars($pendaftar['no_pendaftaran']) . "</strong></td>
+                    <td class='detail-value'><strong>" . e($pendaftar['no_pendaftaran']) . "</strong></td>
                 </tr>
                 <tr>
                     <td class='detail-label'>Nama Lengkap</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['nama_lengkap']) . "</td>
+                    <td class='detail-value'>" . e($pendaftar['nama_lengkap']) . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>NIK</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['nik']) . "</td>
+                    <td class='detail-value'>" . e($pendaftar['nik']) . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>NISN</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['nisn'] ?? '-') . "</td>
+                    <td class='detail-value'>" . e($pendaftar['nisn'] ?? '-') . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>Tempat / Tanggal Lahir</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['tempat_lahir']) . " / " . date('d-m-Y', strtotime($pendaftar['tanggal_lahir'])) . "</td>
+                    <td class='detail-value'>" . e($pendaftar['tempat_lahir']) . " / " . date('d-m-Y', strtotime($pendaftar['tanggal_lahir'])) . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>Jenis Kelamin</td>
@@ -198,11 +199,11 @@ $html = "
                 </tr>
                 <tr>
                     <td class='detail-label'>Email</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['email']) . "</td>
+                    <td class='detail-value'>" . e($pendaftar['email']) . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>No. HP Orang Tua</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['no_hp_ortu']) . "</td>
+                    <td class='detail-value'>" . e($pendaftar['no_hp_ortu']) . "</td>
                 </tr>
             </table>
         </div>
@@ -213,11 +214,11 @@ $html = "
             <table class='detail-table'>
                 <tr>
                     <td class='detail-label'>Jalur Pendaftaran</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['nama_jalur'] ?? 'N/A') . "</td>
+                    <td class='detail-value'>" . e($pendaftar['nama_jalur'] ?? 'N/A') . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>Gelombang</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['nama_gelombang'] ?? 'N/A') . "</td>
+                    <td class='detail-value'>" . e($pendaftar['nama_gelombang'] ?? 'N/A') . "</td>
                 </tr>
                 <tr>
                     <td class='detail-label'>Tanggal Pendaftaran</td>
@@ -225,7 +226,7 @@ $html = "
                 </tr>
                 <tr>
                     <td class='detail-label'>Asal Sekolah</td>
-                    <td class='detail-value'>" . htmlspecialchars($pendaftar['asal_sekolah']) . "</td>
+                    <td class='detail-value'>" . e($pendaftar['asal_sekolah']) . "</td>
                 </tr>
             </table>
         </div>
@@ -249,7 +250,7 @@ $html = "
 
         <!-- CATATAN PENTING -->
         <div class='warning-box'>
-            <strong>⚠️ CATATAN PENTING:</strong><br>
+            <span class='badge badge-danger mb-2'><i class='fas fa-exclamation-triangle'></i> CATATAN PENTING:</span><br>
             1. Bukti pendaftaran ini adalah dokumen sementara yang dicetak dari sistem online.<br>
             2. Calon siswa yang diterima akan menerima surat penerimaan resmi dari sekolah.<br>
             3. Silakan cek status pendaftaran secara berkala di halaman cek status online kami.<br>
@@ -258,7 +259,7 @@ $html = "
 
         <!-- BARCODE -->
         <div class='barcode-container'>
-            <div class='no-pendaftaran-large'>" . htmlspecialchars($pendaftar['no_pendaftaran']) . "</div>
+            <div class='no-pendaftaran-large'>" . e($pendaftar['no_pendaftaran']) . "</div>
             <p style='margin: 0; color: #94A3B8; font-size: 10px;'>Simpan nomor ini dengan baik untuk referensi</p>
         </div>
 

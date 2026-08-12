@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -13,12 +13,12 @@ $data = mysqli_query($koneksi,
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-futbol text-gold me-2"></i>Ekstrakurikuler</h4>
+        <div class="page-header d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-futbol text-icon me-2"></i>Ekstrakurikuler</h4>
         <a href="tambah.php" class="btn btn-primary btn-sm">
             <i class="fas fa-plus"></i> Tambah Ekskul
         </a>
@@ -26,7 +26,7 @@ $data = mysqli_query($koneksi,
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -56,10 +56,10 @@ $data = mysqli_query($koneksi,
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><strong><?= htmlspecialchars($r['nama_ekskul']) ?></strong></td>
-                        <td><?= htmlspecialchars($r['pembina'] ?: '-') ?></td>
-                        <td><?= htmlspecialchars($r['hari'] ?: '-') ?></td>
-                        <td><?= htmlspecialchars($r['pukul'] ?: '-') ?></td>
+                        <td><strong><?= e($r['nama_ekskul']) ?></strong></td>
+                        <td><?= e($r['pembina'] ?: '-') ?></td>
+                        <td><?= e($r['hari'] ?: '-') ?></td>
+                        <td><?= e($r['pukul'] ?: '-') ?></td>
                         <td>
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">
                                 <?= (int) $r['jml_anggota'] ?> Anggota
@@ -73,7 +73,7 @@ $data = mysqli_query($koneksi,
                                 <a href="edit.php?id=<?= $r['id'] ?>" class="btn btn-warning btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= htmlspecialchars($r['nama_ekskul']) ?>')"
+                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= e($r['nama_ekskul']) ?>')"
                                         class="btn btn-danger btn-sm" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>

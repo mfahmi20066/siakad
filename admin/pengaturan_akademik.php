@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_tahun_ajaran.php';
@@ -29,12 +29,12 @@ $data_akademik = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM akadem
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_admin.php'; ?>
+<?php include '../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-user-cog text-gold me-2"></i>Pengaturan Tahun & Semester</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-user-cog text-icon me-2"></i>Pengaturan Tahun & Semester</h4>
     </div>
 
     <?php if (isset($success)): ?>
@@ -50,7 +50,7 @@ $data_akademik = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM akadem
             <form method="POST">
                 <div class="mb-3">
                     <label class="form-label">Tahun Pelajaran</label>
-                    <input type="text" name="tahun_pelajaran" class="form-control" value="<?= htmlspecialchars($taTahun) ?>" readonly>
+                    <input type="text" name="tahun_pelajaran" class="form-control" value="<?= e($taTahun) ?>" readonly>
                             <small class="text-muted">Mengikuti tahun ajaran aktif (master). Tidak dapat diubah manual.</small>
                 </div>
                 <div class="mb-3">

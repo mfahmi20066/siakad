@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -9,22 +9,22 @@ $data = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas
         LEFT JOIN kelas k ON s.kelas_id = k.id 
         ORDER BY s.nama");
 
-$kelas_list = mysqli_query($koneksi, "SELECT DISTINCT nama_kelas FROM kelas ORDER BY nama_kelas");
+$kelas_list = mysqli_query($koneksi, "SELECT DISTINCT nama_kelas FROM kelas WHERE status='aktif' ORDER BY nama_kelas");
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-user-graduate text-gold me-2"></i>Data Siswa</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-user-graduate text-icon me-2"></i>Data Siswa</h4>
     </div>
 
     <!-- Notifikasi sukses -->
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -44,8 +44,8 @@ $kelas_list = mysqli_query($koneksi, "SELECT DISTINCT nama_kelas FROM kelas ORDE
                             data-table="#tabelSiswa" data-column="3">
                         <option value="">-- Semua Kelas --</option>
                         <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
-                        <option value="<?= htmlspecialchars($k['nama_kelas']) ?>">
-                            <?= htmlspecialchars($k['nama_kelas']) ?>
+                        <option value="<?= e($k['nama_kelas']) ?>">
+                            <?= e($k['nama_kelas']) ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -74,6 +74,8 @@ $kelas_list = mysqli_query($koneksi, "SELECT DISTINCT nama_kelas FROM kelas ORDE
                             <th>Kelas</th>
                             <th>Jenis Kelamin</th>
                             <th>No HP</th>
+                            <th>Orang Tua / Wali</th>
+                            <th>No. HP Ortu</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -82,7 +84,7 @@ $kelas_list = mysqli_query($koneksi, "SELECT DISTINCT nama_kelas FROM kelas ORDE
                     <tr>
                         <td><?= $no++ ?></td>
                         <td><?= $r['nis'] ?></td>
-                        <td><?= htmlspecialchars($r['nama']) ?></td>
+                        <td><?= e($r['nama']) ?></td>
                         <td>
                             <span class="badge bg-info"><?= $r['nama_kelas'] ?></span>
                         </td>
@@ -94,6 +96,8 @@ $kelas_list = mysqli_query($koneksi, "SELECT DISTINCT nama_kelas FROM kelas ORDE
                             <?php endif; ?>
                         </td>
                         <td><?= $r['no_hp'] ?></td>
+                        <td><?= e($r['nama_ortu'] ?? '-') ?></td>
+                        <td><?= e($r['no_hp_ortu'] ?? '-') ?></td>
                         <td>
                             <div class="table-actions">
                                 <a href="detail.php?id=<?= $r['id'] ?>"

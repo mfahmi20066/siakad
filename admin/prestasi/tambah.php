@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -22,7 +22,7 @@ while ($s = mysqli_fetch_assoc($daftar_siswa)) {
 }
 $json_siswa = json_encode($data_siswa, JSON_UNESCAPED_UNICODE);
 
-// ── Proses simpan ─────────────────────────────────────────────
+// â”€â”€ Proses simpan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $siswa_id      = (int) $_POST['siswa_id'];
     $nama_prestasi = mysqli_real_escape_string($koneksi, $_POST['nama_prestasi']);
@@ -45,12 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-trophy text-gold me-2"></i>Tambah Prestasi Siswa</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-trophy text-icon me-2"></i>Tambah Prestasi Siswa</h4>
     </div>
 
     <?php if (isset($error)): ?>

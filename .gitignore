@@ -1,13 +1,9 @@
-config/secrets.php
-
-config/koneksi.php
-config/database.php
-
+config/
 database/*.sql
 database/backup_*.sql
 database/arsip_2026/
 migrations/
-
+auth/
 uploads/
 TODO.md
 
@@ -16,10 +12,12 @@ phinx.php
 laporan.md
 OPENCODE.md
 database/
-config/
 cli/
 assets/img
-auth/
 vendor/
 composer.lock
 CLAUDE.MD
+chat/
+BUG.md
+DUMMY_REPORT.md
+.htaccess

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -30,17 +30,17 @@ $data = mysqli_query($koneksi, $query_text);
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-bullhorn text-gold me-2"></i>Pengumuman</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-bullhorn text-icon me-2"></i>Pengumuman</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -73,10 +73,10 @@ $data = mysqli_query($koneksi, $query_text);
                 <tr>
                     <td><?= $no++ ?></td>
                     <td>
-                        <strong><?= htmlspecialchars($r['judul']) ?></strong>
+                        <strong><?= e($r['judul']) ?></strong>
                         <br>
                         <small class="text-muted">
-                            <?= substr(htmlspecialchars($r['isi']), 0, 100) ?>...
+                            <?= substr(e($r['isi']), 0, 100) ?>...
                         </small>
                     </td>
                     <td>
@@ -85,7 +85,7 @@ $data = mysqli_query($koneksi, $query_text);
                     </td>
                     <td>
                         <i class="fas fa-user-shield text-danger"></i>
-                        <?= htmlspecialchars($pembuat) ?>
+                        <?= e($pembuat) ?>
                     </td>
                     <td>
                         <div class="table-actions">

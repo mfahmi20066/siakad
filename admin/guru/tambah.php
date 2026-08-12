@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uname  = mysqli_real_escape_string($koneksi, $_POST['username']);
     $pass   = hashPassword($_POST['password']);
 
-    // ── Upload Foto ───────────────────────────────────────
+    // â”€â”€ Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     $foto_nama = '';
     if (!empty($_FILES['foto']['name'])) {
         $file      = $_FILES['foto'];
@@ -97,12 +97,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-user-plus text-gold me-2"></i>Tambah Guru</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user-plus text-icon me-2"></i>Tambah Guru</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <div class="mapel-checkbox-grid">
                                 <?php
-                                $mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
+                                $mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
                                 while ($m = mysqli_fetch_assoc($mapel_list)):
                                 ?>
                                 <label class="mapel-checkbox">
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <span class="mapel-check">
                                         <i class="fas fa-check"></i>
                                     </span>
-                                    <span class="mapel-name"><?= htmlspecialchars($m['nama_mapel']) ?></span>
+                                    <span class="mapel-name"><?= e($m['nama_mapel']) ?></span>
                                 </label>
                                 <?php endwhile; ?>
                             </div>

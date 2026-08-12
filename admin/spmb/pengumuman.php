@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
-include '../config/mailer.php';
+include '../../config/mailer.php';
 
 cekAdmin();
 
@@ -69,13 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                         mysqli_query($koneksi, "UPDATE spmb_pendaftar SET user_id_hasil=$user_id WHERE id=$id");
                         
                         // Insert ke siswa.
-                        // Kelas belum ditentukan di proses pengumuman → kelas_id tetap NULL.
+                        // Kelas belum ditentukan di proses pengumuman â†’ kelas_id tetap NULL.
                         // tahun_ajaran_id = tahun aktif (source of truth); teks = mirror legacy.
                         // NIS dibangkitkan otomatis (NisGeneratorService).
                         $tahunMasuk = ($ta_spmb !== '') ? (int) explode('/', $ta_spmb)[0] : (int) date('Y');
                         $nis_spmb = app_generate_nis_sementara($tahunMasuk);
                         $insert_siswa = mysqli_query($koneksi, "INSERT INTO siswa 
-                            (nis, nama, nama_lengkap, nisn, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, email, no_hp, tahun_ajaran, tahun_ajaran_id, foto, created_at)
+                            (nis, nama, nama_lengkap, nisn, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, email, no_hp, nama_ortu, no_hp_ortu, tahun_ajaran, tahun_ajaran_id, tahun_masuk, foto, created_at)
                             VALUES (
                                 '$nis_spmb',
                                 '{$pendaftar['nama_lengkap']}', 
@@ -87,8 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                                 '{$pendaftar['alamat']}', 
                                 '{$pendaftar['email']}', 
                                 '{$pendaftar['no_hp_ortu']}', 
+                                " . (!empty($pendaftar['nama_ortu']) ? "'" . mysqli_real_escape_string($koneksi, $pendaftar['nama_ortu']) . "'" : "NULL") . ",
+                                " . (!empty($pendaftar['no_hp_ortu']) ? "'" . mysqli_real_escape_string($koneksi, $pendaftar['no_hp_ortu']) . "'" : "NULL") . ",
                                 '$ta_spmb',
                                 '$taId_spmb',
+                                $tahunMasuk,
                                 NULL, 
                                 NOW()
                             )");
@@ -117,7 +120,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                     Tim SPMB SMA Negeri 4 Palopo
                     ";
                     
-                    kirimEmail($pendaftar['email'], $subject, $body);
+                    try {
+                        kirimEmail($pendaftar['email'], $subject, $body);
+                    } catch (\RuntimeException $e) {
+                        error_log("[SPMB Pengumuman] Gagal kirim email lolos ke {$pendaftar['email']}: " . $e->getMessage());
+                    }
                 } elseif ($action == 'ditolak' && $pendaftar['email']) {
                     // Kirim email ditolak
                     $subject = "Hasil Seleksi SPMB - SMA Negeri 4 Palopo";
@@ -134,7 +141,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                     Tim SPMB SMA Negeri 4 Palopo
                     ";
                     
-                    kirimEmail($pendaftar['email'], $subject, $body);
+                    try {
+                        kirimEmail($pendaftar['email'], $subject, $body);
+                    } catch (\RuntimeException $e) {
+                        error_log("[SPMB Pengumuman] Gagal kirim email ditolak ke {$pendaftar['email']}: " . $e->getMessage());
+                    }
                 }
             }
         }
@@ -155,12 +166,12 @@ $data = mysqli_query($koneksi, $query);
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-bullhorn text-gold me-2"></i>Pengumuman SPMB</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-bullhorn text-icon me-2"></i>Pengumuman SPMB</h4>
     </div>
 
     <?php if ($pengumuman_aktif != 1): ?>
@@ -172,13 +183,13 @@ $data = mysqli_query($koneksi, $query);
 
     <?php if (isset($success)): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?>
+        <i class="fas fa-check-circle"></i> <?php echo e($success); ?>
     </div>
     <?php endif; ?>
 
     <?php if (isset($error)): ?>
     <div class="alert alert-danger alert-auto">
-        <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
+        <i class="fas fa-exclamation-circle"></i> <?php echo e($error); ?>
     </div>
     <?php endif; ?>
 
@@ -218,9 +229,9 @@ $data = mysqli_query($koneksi, $query);
                                 <input type="checkbox" name="pendaftar_id[]" value="<?php echo $row['id']; ?>" class="pendaftar_checkbox">
                             </td>
                             <td><?php echo $no++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($row['no_pendaftaran']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td>
-                            <td><?php echo htmlspecialchars($row['nama_jalur']); ?></td>
+                            <td><strong><?php echo e($row['no_pendaftaran']); ?></strong></td>
+                            <td><?php echo e($row['nama_lengkap']); ?></td>
+                            <td><?php echo e($row['nama_jalur']); ?></td>
                             <td><span class="badge bg-info">Lolos Seleksi</span></td>
                             <td>
                                 <select class="form-select form-select-sm" style="width: auto;" data-id="<?php echo $row['id']; ?>">

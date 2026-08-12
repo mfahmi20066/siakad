@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru(); // Memastikan hanya role guru yang bisa akses
@@ -8,13 +8,13 @@ $id  = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '
 // SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang sedang login
 $gid = isset($_SESSION['id_ref']) ? $_SESSION['id_ref'] : '';
 
-// QUERY FIX: Mengambil data absensi dan memvalidasi hak akses guru melalui relasi tabel jadwal
+// Mengambil data absensi dan memvalidasi hak akses guru melalui pivot kelas_mapel_guru
 $query = "SELECT a.*, s.nama_lengkap AS nama_siswa, s.nis, k.nama_kelas
           FROM absensi a
           JOIN siswa s ON a.siswa_id = s.id
           LEFT JOIN kelas k ON a.kelas_id = k.id
-          LEFT JOIN jadwal j ON a.mapel_id = j.mapel_id AND a.kelas_id = j.kelas_id
-          WHERE a.id = '$id' AND j.guru_id = '$gid'
+          LEFT JOIN kelas_mapel_guru kmg ON a.mapel_id = kmg.mapel_id AND a.kelas_id = kmg.kelas_id
+          WHERE a.id = '$id' AND kmg.guru_id = '$gid'
           LIMIT 1";
 
 $res  = mysqli_query($koneksi, $query);
@@ -43,12 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Absensi</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Absensi</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -68,15 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="row">
                     <div class="col-md-3">
                         <small class="text-muted">Siswa</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_siswa'] ?? '') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_siswa'] ?? '') ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">NIS</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nis'] ?? '-') ?></div>
+                        <div class="fw-bold"><?= e($data['nis'] ?? '-') ?></div>
                     </div>
                     <div class="col-md-3">
                         <small class="text-muted">Kelas</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama_kelas'] ?? '-') ?></div>
+                        <div class="fw-bold"><?= e($data['nama_kelas'] ?? '-') ?></div>
                     </div>
                     <div class="col-md-4">
                         <small class="text-muted">Tanggal</small>
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="mb-3">
                         <label class="form-label font-weight-bold">Keterangan</label>
-                        <textarea name="keterangan" class="form-control" rows="3" placeholder="Tambahkan alasan jika sakit/izin..."><?= htmlspecialchars($data['keterangan'] ?? '') ?></textarea>
+                        <textarea name="keterangan" class="form-control" rows="3" placeholder="Tambahkan alasan jika sakit/izin..."><?= e($data['keterangan'] ?? '') ?></textarea>
                     </div>
                     <hr>
                     <button type="submit" class="btn btn-primary">

@@ -15,6 +15,20 @@
 
     var LOGOUT_URL = '/siakad/auth/logout.php';
 
+    /* ── CSRF token (dibaca dari <meta name="csrf-token">) ── */
+    function getCsrfToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    /* Tambahkan parameter csrf_token ke URL (tidak menggandakan bila sudah ada) */
+    function appendCsrfToken(url) {
+        var token = getCsrfToken();
+        if (!token || !url) return url;
+        var sep = url.indexOf('?') === -1 ? '?' : '&';
+        return url + sep + 'csrf_token=' + encodeURIComponent(token);
+    }
+
     var ICONS = {
         success:  { cls: 'sia-icon-success',  icon: 'fa-check-circle' },
         error:    { cls: 'sia-icon-error',    icon: 'fa-exclamation-circle' },
@@ -188,6 +202,7 @@
        Mengembalikan false agar dipakai aman sebagai `return siHapus(...)`
        pada elemen <a href="..."> (mencegah navigasi default). */
     function siHapus(url, nama) {
+        var target = appendCsrfToken(url);
         modal({
             icon: 'delete',
             title: 'Yakin ingin menghapus?',
@@ -198,7 +213,7 @@
             cancelText: 'Batal',
             danger: true
         }).then(function (ok) {
-            if (ok) window.location.href = url;
+            if (ok) window.location.href = target;
         });
         return false;
     }
@@ -206,6 +221,7 @@
     /* Confirm logout lalu redirect ke auth/logout.php.
        Mengembalikan false agar aman dipakai pada elemen <a>. */
     function siLogout() {
+        var target = appendCsrfToken(LOGOUT_URL);
         modal({
             icon: 'logout',
             title: 'Yakin ingin logout?',
@@ -214,7 +230,7 @@
             cancelText: 'Batal',
             danger: false
         }).then(function (ok) {
-            if (ok) window.location.href = LOGOUT_URL;
+            if (ok) window.location.href = target;
         });
         return false;
     }

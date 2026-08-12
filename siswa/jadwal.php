@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 cekSiswa();
@@ -50,12 +50,12 @@ foreach ($rows as $r) {
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_siswa.php'; ?>
+<?php include '../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_siswa.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-calendar-alt text-gold me-2"></i>Jadwal Pelajaran</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-calendar-alt text-icon me-2"></i>Jadwal Pelajaran</h4>
     </div>
 
     <div class="alert alert-info">
@@ -98,14 +98,14 @@ foreach ($rows as $r) {
                                 <?= $r['hari'] ?>
                             </span>
                         </td>
-                        <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                        <td><?= e($r['nama_mapel']) ?></td>
                         <td>
                             <i class="fas fa-user-tie text-success"></i>
-                            <?= htmlspecialchars($r['nama_guru']) ?>
+                            <?= e($r['nama_guru']) ?>
                         </td>
                         <td>
                             <i class="fas fa-user-shield text-primary"></i>
-                            <?= htmlspecialchars($wali_kelas) ?>
+                            <?= e($wali_kelas) ?>
                         </td>
                         <td><?= substr($r['jam_mulai'], 0, 5) ?></td>
                         <td><?= substr($r['jam_selesai'], 0, 5) ?></td>

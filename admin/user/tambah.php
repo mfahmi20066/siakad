@@ -1,6 +1,7 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
+include '../../config/helper_auth.php';
 cekAdmin();
 $title = "Tambah User";
 $icon  = "fa-user-plus";
@@ -8,7 +9,7 @@ $icon  = "fa-user-plus";
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama     = mysqli_real_escape_string($koneksi, $_POST['nama']);
     $username = mysqli_real_escape_string($koneksi, $_POST['username']);
-    $password = md5($_POST['password']);
+    $password = hashPassword($_POST['password']);
     $role     = mysqli_real_escape_string($koneksi, $_POST['role']);
 
     // Cek username sudah ada
@@ -27,12 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-user-plus text-gold me-2"></i>Tambah User</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-user-plus text-icon me-2"></i>Tambah User</h4>
     </div>
 
     <div class="card">

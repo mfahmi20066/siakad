@@ -29,14 +29,14 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/siakad/assets/css/landing.css?v=1.0">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Roboto', sans-serif; }
     </style>
 </head>
 <body>
@@ -133,7 +133,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
     <div class="landing-profil-grid">
         <?php 
         if ($query_jalur && mysqli_num_rows($query_jalur) > 0):
-            $icons = ['🗺️', '🏆', '❤️', '📚'];
+            $icons = ['<i class="fas fa-map-marker-alt"></i>', '<i class="fas fa-trophy"></i>', '<i class="fas fa-heart"></i>', '<i class="fas fa-book"></i>'];
             $idx = 0;
             while ($jalur = mysqli_fetch_assoc($query_jalur)): 
                 $icon = $icons[$idx % count($icons)];
@@ -143,11 +143,11 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
             <div style="font-size: 48px; margin-bottom: 16px;">
                 <?php echo $icon; ?>
             </div>
-            <h3><?php echo htmlspecialchars($jalur['nama_jalur']); ?></h3>
+            <h3><?php echo e($jalur['nama_jalur']); ?></h3>
             <p>
                 <strong>Kuota:</strong> <?php echo $jalur['kuota']; ?> orang
                 <?php if ($jalur['keterangan']): ?>
-                    <br><br><?php echo htmlspecialchars($jalur['keterangan']); ?>
+                    <br><br><?php echo e($jalur['keterangan']); ?>
                 <?php endif; ?>
             </p>
         </div>
@@ -170,7 +170,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
     <div style="max-width: 800px; margin: 0 auto; background: #F5F7FB; padding: 32px; border-radius: 18px; border-left: 4px solid #F09000;">
         <?php if ($setting['spmb_syarat']): ?>
             <div style="color: #4A5568; line-height: 1.8; font-size: 14px;">
-                <?php echo nl2br(htmlspecialchars($setting['spmb_syarat'])); ?>
+                <?php echo nl2br(e($setting['spmb_syarat'])); ?>
             </div>
         <?php else: ?>
             <p style="color: #94A3B8; text-align: center;">

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -8,12 +8,12 @@ $data = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role, nama");
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-users text-gold me-2"></i>Data Pengguna</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-users text-icon me-2"></i>Data Pengguna</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
@@ -24,14 +24,22 @@ $data = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role, nama");
         if ($msg == 'tambah') echo 'User berhasil ditambahkan!';
         elseif ($msg == 'edit') echo 'User berhasil diedit!';
         elseif ($msg == 'hapus') echo 'User berhasil dihapus!';
-        else echo htmlspecialchars($msg);
+        else echo e($msg);
         ?>
     </div>
     <?php endif; ?>
 
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-users"></i> Daftar Pengguna</span>
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span><i class="fas fa-users"></i> Daftar Pengguna</span>
+                <select class="table-filter-select form-select form-select-sm ms-2" style="width:auto" data-table="#tabelUsers" data-column="3">
+                    <option value="">Semua Role</option>
+                    <option value="Guru">Guru</option>
+                    <option value="Siswa">Siswa</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
             <a href="tambah.php" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus"></i> Tambah User
             </a>
@@ -51,11 +59,16 @@ $data = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role, nama");
                         </tr>
                     </thead>
                     <tbody>
+                    <?php if (mysqli_num_rows($data) == 0): ?>
+                    <tr><td colspan="7" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox me-1"></i> Belum ada data pengguna.
+                    </td></tr>
+                    <?php endif; ?>
                     <?php $no = 1; while ($r = mysqli_fetch_assoc($data)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><strong><?= htmlspecialchars($r['username']) ?></strong></td>
-                        <td><?= htmlspecialchars($r['nama']) ?></td>
+                        <td><strong><?= e($r['username']) ?></strong></td>
+                        <td><?= e($r['nama']) ?></td>
                         <td>
                             <?php if ($r['role'] == 'admin'): ?>
                                 <span class="badge bg-danger">Admin</span>
@@ -88,7 +101,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role, nama");
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <?php if ($r['id'] != 1): ?>
-                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= htmlspecialchars($r['nama']) ?>')"
+                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= e($r['nama']) ?>')"
                                         class="btn btn-danger btn-sm" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../config/koneksi.php';
 include '../config/session.php';
 include '../config/helper_auth.php';
@@ -67,13 +67,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar_admin.php'; ?>
+<?php include '../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../includes/topbar_admin.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header mb-4">
-            <h4><i class="fas fa-cog text-gold me-2"></i>Pengaturan Akun</h4>
+            <h4><i class="fas fa-cog text-icon me-2"></i>Pengaturan Akun</h4>
         </div>
 
         <?php if ($success): ?>
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
                 <form method="POST">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required>
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo e($user['email'] ?? ''); ?>" required>
                         <small class="text-muted">Email digunakan untuk notifikasi dan reset password</small>
                     </div>
 
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
                 <div class="row">
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Username:</strong></p>
-                        <p class="text-muted"><?php echo htmlspecialchars($user['username'] ?? '-'); ?></p>
+                        <p class="text-muted"><?php echo e($user['username'] ?? '-'); ?></p>
                     </div>
                     <div class="col-md-6">
                         <p class="mb-2"><strong>Status Akun:</strong></p>

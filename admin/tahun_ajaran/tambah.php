@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -62,16 +62,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-calendar-plus text-gold me-2"></i>Tambah Tahun Ajaran</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-calendar-plus text-icon me-2"></i>Tambah Tahun Ajaran</h4>
     </div>
 
     <?php if (isset($error)): ?>
-    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?></div>
+    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <?= e($error) ?></div>
     <?php endif; ?>
 
     <div class="card" style="max-width: 640px;">
@@ -83,19 +83,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-3">
                     <label class="form-label">Nama Tahun Ajaran</label>
                     <input type="text" name="nama_tahun_ajaran" class="form-control"
-                           placeholder="Contoh: 2027/2028" value="<?= htmlspecialchars($_POST['nama_tahun_ajaran'] ?? '') ?>" required>
+                           placeholder="Contoh: 2027/2028" value="<?= e($_POST['nama_tahun_ajaran'] ?? '') ?>" required>
                     <div class="form-text">Format <code>YYYY/YYYY</code>. Status default <strong>nonaktif</strong>. Semester Ganjil &amp; Genap dibuat otomatis.</div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Tanggal Mulai</label>
                         <input type="date" name="tanggal_mulai" class="form-control"
-                               value="<?= htmlspecialchars($_POST['tanggal_mulai'] ?? '') ?>">
+                               value="<?= e($_POST['tanggal_mulai'] ?? '') ?>">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Tanggal Selesai</label>
                         <input type="date" name="tanggal_selesai" class="form-control"
-                               value="<?= htmlspecialchars($_POST['tanggal_selesai'] ?? '') ?>">
+                               value="<?= e($_POST['tanggal_selesai'] ?? '') ?>">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">

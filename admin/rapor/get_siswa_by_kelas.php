@@ -28,8 +28,8 @@ if (!empty($nama_kelas)) {
                 $nama_tampil = $s['nama'] ?? '';
                 if (empty($nama_tampil)) $nama_tampil = "Siswa ID: " . $s['id'];
                 $label = $nama_tampil . (!empty($s['nis']) ? ' (' . $s['nis'] . ')' : '');
-                echo '<option value="' . htmlspecialchars($nama_tampil) . '">'
-                   . htmlspecialchars($label) . '</option>';
+                echo '<option value="' . e($nama_tampil) . '">'
+                   . e($label) . '</option>';
             }
         } else {
             echo '<option value="">Tidak ada siswa terdaftar di kelas ini</option>';

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
@@ -11,20 +11,20 @@ $filter_kelas = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 $filter_tgl   = isset($_GET['tanggal'])  ? $_GET['tanggal']  : '';
 
 // Perbaikan pembentukan klausa WHERE tanpa menembak langsung kolom a.guru_id
-$where = "WHERE j.guru_id = '$gid'";
+$where = "WHERE kmg.guru_id = '$gid'";
 if ($filter_kelas) $where .= " AND a.kelas_id = '$filter_kelas'";
 if ($filter_tgl)   $where .= " AND a.tanggal   = '$filter_tgl'";
 
-// PERBAIKAN QUERY UTAMA: Join ke tabel jadwal agar bisa menyaring data berdasarkan guru yang mengajar.
+// Join ke pivot kelas_mapel_guru agar menyaring data berdasarkan guru yang mengajar.
 // Data lama yang mapel_id-nya NULL (hasil input admin) juga tetap tampil selama kelasnya diajar guru ini.
 $data = mysqli_query($koneksi,
         "SELECT a.*, s.nama, s.nis, k.nama_kelas
          FROM absensi a
          JOIN siswa s ON a.siswa_id = s.id
          JOIN kelas k ON a.kelas_id = k.id
-         JOIN jadwal j ON a.kelas_id = j.kelas_id
-                       AND j.guru_id = '$gid'
-                       AND (a.mapel_id IS NULL OR a.mapel_id = j.mapel_id)
+         JOIN kelas_mapel_guru kmg ON a.kelas_id = kmg.kelas_id
+                       AND kmg.guru_id = '$gid'
+                       AND (a.mapel_id IS NULL OR a.mapel_id = kmg.mapel_id)
          $where
          ORDER BY a.tanggal DESC, s.nama");
 
@@ -40,7 +40,7 @@ while ($r = mysqli_fetch_assoc($data)) {
 
 // Tampilkan semua kelas untuk filter (tidak dibatasi jadwal)
 $kelas_list = mysqli_query($koneksi,
-    "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+    "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
 // Helper untuk mengubah status singkat (H/S/I/A) menjadi teks panjang
 function normalStatus($st) {
@@ -54,17 +54,17 @@ function normalStatus($st) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_guru.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-clipboard-check text-gold me-2"></i>Absensi Siswa</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-clipboard-check text-icon me-2"></i>Absensi Siswa</h4>
     </div>
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
@@ -78,7 +78,7 @@ function normalStatus($st) {
                         <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                         <option value="<?= $k['id'] ?>"
                             <?= $filter_kelas == $k['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($k['nama_kelas']) ?>
+                            <?= e($k['nama_kelas']) ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -152,7 +152,7 @@ function normalStatus($st) {
                                     elseif ($st == 'Izin') $i++;
                                     elseif ($st == 'Alpa') $a++;
                                 }
-                                $nama_kelas = htmlspecialchars($rows[0]['nama_kelas']);
+                                $nama_kelas = e($rows[0]['nama_kelas']);
                     ?>
                     <tr>
                         <td><?= $no_group ?></td>

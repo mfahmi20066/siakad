@@ -20,7 +20,7 @@ if (!empty($nama_kelas)) {
              JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id
              WHERE r.kelas_id = '{$kelas['id']}'
                AND (r.semester = '$semester' OR r.semester = '0')
-             ORDER BY ta.id DESC");
+             ORDER BY ta_id DESC");
 
         if ($q) {
             while ($row = mysqli_fetch_assoc($q)) {
@@ -37,7 +37,7 @@ if (!empty($nama_kelas)) {
                  JOIN tahun_ajaran ta ON ta.id = n.tahun_ajaran_id
                  WHERE s.kelas_id = '{$kelas['id']}'
                    AND (n.semester = '$semester' OR n.semester = '0')
-                 ORDER BY ta.id DESC");
+                 ORDER BY ta_id DESC");
 
             if ($qn) {
                 while ($row = mysqli_fetch_assoc($qn)) {

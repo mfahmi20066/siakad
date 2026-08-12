@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once '../../config/session.php';
 require_once '../../config/koneksi.php';
 cekGuru();
@@ -14,10 +14,10 @@ $bulan_nama = ['','Januari','Februari','Maret','April','Mei','Juni',
 $q_jadwal = mysqli_query($koneksi,
     "SELECT k.id AS id_kelas, k.nama_kelas,
             GROUP_CONCAT(DISTINCT mp.nama_mapel ORDER BY mp.nama_mapel SEPARATOR ', ') AS nama_mapel
-     FROM jadwal j
-     JOIN kelas k ON j.kelas_id = k.id
-     JOIN mata_pelajaran mp ON j.mapel_id = mp.id
-     WHERE j.guru_id = '$id_guru'
+     FROM kelas_mapel_guru kmg
+     JOIN kelas k ON kmg.kelas_id = k.id
+     JOIN mata_pelajaran mp ON kmg.mapel_id = mp.id
+     WHERE kmg.guru_id = '$id_guru'
      GROUP BY k.id, k.nama_kelas
      ORDER BY k.nama_kelas");
 $jadwal_list = [];
@@ -44,9 +44,9 @@ if ($id_kelas) {
            AND a.kelas_id = '$id_kelas'
            AND MONTH(a.tanggal) = '$bulan' AND YEAR(a.tanggal) = '$tahun'
            AND EXISTS (
-               SELECT 1 FROM jadwal j
-               WHERE j.kelas_id = a.kelas_id AND j.guru_id = '$id_guru'
-                 AND (a.mapel_id IS NULL OR a.mapel_id = j.mapel_id)
+               SELECT 1 FROM kelas_mapel_guru kmg
+               WHERE kmg.kelas_id = a.kelas_id AND kmg.guru_id = '$id_guru'
+                 AND (a.mapel_id IS NULL OR a.mapel_id = kmg.mapel_id)
            )
          ORDER BY a.tanggal, s.nama_lengkap");
     while ($a = mysqli_fetch_assoc($ra)) {
@@ -59,10 +59,11 @@ $title = "Cetak Absensi"; $icon = "fa-print";
 require_once '../../includes/header.php';
 ?>
 <?php require_once '../../includes/sidebar_guru.php'; ?>
+<?php include '../../includes/topbar_guru.php'; ?>
+
 <div class="main-content">
-<?php require_once '../../includes/topbar_guru.php'; ?>
 <div class="page-header">
-    <h4><i class="fas fa-print text-gold me-2"></i>Cetak Absensi</h4>
+    <h4><i class="fas fa-print text-icon me-2"></i>Cetak Absensi</h4>
 </div>
 <div class="container-fluid">
 
@@ -76,7 +77,7 @@ require_once '../../includes/header.php';
           <option value="">-- Pilih Kelas --</option>
           <?php foreach ($jadwal_list as $j): ?>
           <option value="<?=$j['id_kelas']?>" <?=$id_kelas == $j['id_kelas'] ? 'selected' : ''?>>
-            <?=htmlspecialchars($j['nama_kelas'])?> — <?=htmlspecialchars($j['nama_mapel'])?>
+            <?=e($j['nama_kelas'])?> — <?=e($j['nama_mapel'])?>
           </option>
           <?php endforeach; ?>
         </select>
@@ -147,8 +148,8 @@ require_once '../../includes/header.php';
           ?>
           <tr>
             <td class="text-center"><?=$no++?></td>
-            <td><?=htmlspecialchars($siswa['nama_lengkap'] ?? $siswa['nama'] ?? '-')?></td>
-            <td class="text-center"><?=htmlspecialchars($siswa['nis'] ?? '-')?></td>
+            <td><?=e($siswa['nama_lengkap'] ?? $siswa['nama'] ?? '-')?></td>
+            <td class="text-center"><?=e($siswa['nis'] ?? '-')?></td>
             <?php for ($d = 1; $d <= $jumlah_hari; $d++):
               $st = $data_absen[$id_s][$d] ?? '';
               $tf = "$tahun-".str_pad($bulan, 2, '0', STR_PAD_LEFT)."-".str_pad($d, 2, '0', STR_PAD_LEFT);
@@ -203,7 +204,7 @@ function cetakPDF(){
   doc.text('Kelas : <?=$nama_kelas?>',14,40);
   doc.text('Mapel : <?=$nama_mapel?>',14,46);
   doc.text('Bulan : <?=$bulan_nama[$bulan]." ".$tahun?>',14,52);
-  doc.text('Guru  : <?=htmlspecialchars($_SESSION["nama"] ?? "")?>',14,58);
+  doc.text('Guru  : <?=e($_SESSION["nama"] ?? "")?>',14,58);
   const tabel=document.querySelector('#tabelAbsen table');
   const headers=[],rows=[];
   tabel.querySelectorAll('thead tr th').forEach(th=>headers.push(th.innerText.trim()));
@@ -228,7 +229,7 @@ function cetakPDF(){
   doc.text('Palopo, <?=date("d")." ".$bulan_nama[$bulan]." ".$tahun?>',230,fy,{align:'right'});
   doc.text('Guru Mata Pelajaran',230,fy+7,{align:'right'});
   doc.text('(________________________)',230,fy+26,{align:'right'});
-  doc.text('<?=htmlspecialchars($_SESSION["nama"] ?? "")?>',230,fy+32,{align:'right'});
+  doc.text('<?=e($_SESSION["nama"] ?? "")?>',230,fy+32,{align:'right'});
   doc.save('Absensi_<?=str_replace(" ","_",$nama_kelas)?>_<?=$bulan_nama[$bulan]?>_<?=$tahun?>.pdf');
 }
 </script>

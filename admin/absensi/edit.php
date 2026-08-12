@@ -1,16 +1,21 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
 $title = "Edit Absensi";
 
-$id   = $_GET['id'];
+$id   = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $data = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT a.*, s.nama, s.nis, k.nama_kelas
          FROM absensi a
          JOIN siswa s ON a.siswa_id = s.id
          JOIN kelas k ON a.kelas_id = k.id
          WHERE a.id = '$id'"));
+
+if (!$data) {
+    header("Location: index.php?error=Data absensi tidak ditemukan");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $st  = $_POST['status'];
@@ -25,12 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Absensi</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Absensi</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -45,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="row">
                     <div class="col-md-3">
                         <small class="text-muted">Siswa</small>
-                        <div class="fw-bold"><?= htmlspecialchars($data['nama']) ?></div>
+                        <div class="fw-bold"><?= e($data['nama']) ?></div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">NIS</small>
@@ -83,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label class="form-label">Keterangan</label>
                             <textarea name="keterangan" class="form-control" rows="3"
                                       placeholder="Keterangan tambahan (opsional)">
-                                <?= htmlspecialchars($data['keterangan']) ?>
+                                <?= e($data['keterangan'] ?? '') ?>
                             </textarea>
                         </div>
 

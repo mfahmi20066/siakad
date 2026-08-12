@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -58,6 +58,7 @@ if (isset($_POST['edit_jalur'])) {
 }
 
 if (isset($_GET['hapus_jalur'])) {
+    verifyCsrf();
     $id = (int)$_GET['hapus_jalur'];
     $delete = mysqli_query($koneksi, "DELETE FROM spmb_jalur WHERE id=$id");
     
@@ -103,6 +104,7 @@ if (isset($_POST['edit_gelombang'])) {
 }
 
 if (isset($_GET['hapus_gelombang'])) {
+    verifyCsrf();
     $id = (int)$_GET['hapus_gelombang'];
     $delete = mysqli_query($koneksi, "DELETE FROM spmb_gelombang WHERE id=$id");
     
@@ -225,24 +227,24 @@ if (isset($_POST['update_status_pendaftar'])) {
 
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header">
-            <h4><i class="fas fa-graduation-cap text-gold me-2"></i>Pengaturan SPMB Online</h4>
+            <h4><i class="fas fa-graduation-cap text-icon me-2"></i>Pengaturan SPMB Online</h4>
         </div>
 
         <?php if (isset($success)): ?>
         <div class="alert alert-success alert-auto">
-            <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?>
+            <i class="fas fa-check-circle"></i> <?php echo e($success); ?>
         </div>
         <?php endif; ?>
 
         <?php if (isset($error)): ?>
         <div class="alert alert-danger alert-auto">
-            <i class="fas fa-times-circle"></i> <?php echo htmlspecialchars($error); ?>
+            <i class="fas fa-times-circle"></i> <?php echo e($error); ?>
         </div>
         <?php endif; ?>
 
@@ -273,21 +275,21 @@ if (isset($_POST['update_status_pendaftar'])) {
                 <div class="form-group mb-3">
                     <label for="spmb_tanggal_buka" class="form-label"><strong>Tanggal Buka SPMB</strong></label>
                     <input type="date" class="form-control" id="spmb_tanggal_buka" name="spmb_tanggal_buka" 
-                        value="<?php echo htmlspecialchars($settings['spmb_tanggal_buka'] ?? ''); ?>">
+                        value="<?php echo e($settings['spmb_tanggal_buka'] ?? ''); ?>">
                 </div>
 
                 <!-- Tanggal Tutup -->
                 <div class="form-group mb-3">
                     <label for="spmb_tanggal_tutup" class="form-label"><strong>Tanggal Tutup SPMB</strong></label>
                     <input type="date" class="form-control" id="spmb_tanggal_tutup" name="spmb_tanggal_tutup" 
-                        value="<?php echo htmlspecialchars($settings['spmb_tanggal_tutup'] ?? ''); ?>">
+                        value="<?php echo e($settings['spmb_tanggal_tutup'] ?? ''); ?>">
                 </div>
 
                 <!-- Link Form -->
                 <div class="form-group mb-4">
                     <label for="spmb_link_daftar" class="form-label"><strong>Link Form Pendaftaran (Optional)</strong></label>
                     <input type="url" class="form-control" id="spmb_link_daftar" name="spmb_link_daftar" 
-                        placeholder="https://..." value="<?php echo htmlspecialchars($settings['spmb_link_daftar'] ?? ''); ?>">
+                        placeholder="https://..." value="<?php echo e($settings['spmb_link_daftar'] ?? ''); ?>">
                 </div>
 
                 <!-- Pengumuman -->
@@ -367,14 +369,14 @@ if (isset($_POST['update_status_pendaftar'])) {
                         ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo htmlspecialchars($jalur['nama_jalur']); ?></td>
+                            <td><?php echo e($jalur['nama_jalur']); ?></td>
                             <td><span class="badge bg-primary"><?php echo $jalur['kuota']; ?> orang</span></td>
-                            <td><?php echo htmlspecialchars($jalur['keterangan']); ?></td>
+                            <td><?php echo e($jalur['keterangan']); ?></td>
                             <td>
                                 <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $jalur['id']; ?>">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <a href="?hapus_jalur=<?php echo $jalur['id']; ?>" class="btn btn-danger btn-sm" onclick="return siHapus('?hapus_jalur=<?php echo $jalur['id']; ?>', '<?php echo addslashes(htmlspecialchars($jalur['nama_jalur'])); ?>')">
+                                <a href="?hapus_jalur=<?php echo $jalur['id']; ?>" class="btn btn-danger btn-sm" onclick="return siHapus('?hapus_jalur=<?php echo $jalur['id']; ?>', '<?php echo addslashes(e($jalur['nama_jalur'])); ?>')">
                                     <i class="fas fa-trash"></i>
                                 </a>
                             </td>
@@ -395,7 +397,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                                             <div class="form-group mb-3">
                                                 <label for="edit_nama_jalur<?php echo $jalur['id']; ?>" class="form-label">Nama Jalur</label>
                                                 <input type="text" class="form-control" id="edit_nama_jalur<?php echo $jalur['id']; ?>" name="nama_jalur" 
-                                                    value="<?php echo htmlspecialchars($jalur['nama_jalur']); ?>" required>
+                                                    value="<?php echo e($jalur['nama_jalur']); ?>" required>
                                             </div>
                                             <div class="form-group mb-3">
                                                 <label for="edit_kuota<?php echo $jalur['id']; ?>" class="form-label">Kuota</label>
@@ -405,7 +407,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                                             <div class="form-group mb-3">
                                                 <label for="edit_keterangan<?php echo $jalur['id']; ?>" class="form-label">Keterangan</label>
                                                 <input type="text" class="form-control" id="edit_keterangan<?php echo $jalur['id']; ?>" name="keterangan" 
-                                                    value="<?php echo htmlspecialchars($jalur['keterangan']); ?>">
+                                                    value="<?php echo e($jalur['keterangan']); ?>">
                                             </div>
                                         </div>
                                         <div class="modal-footer">
@@ -500,7 +502,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                         ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($gel['nama_gelombang']); ?></strong></td>
+                            <td><strong><?php echo e($gel['nama_gelombang']); ?></strong></td>
                             <td><?php echo date('d-m-Y', strtotime($gel['tanggal_mulai'])); ?></td>
                             <td><?php echo date('d-m-Y', strtotime($gel['tanggal_selesai'])); ?></td>
                             <td>
@@ -515,7 +517,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                                 <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editGelombangModal<?php echo $gel['id']; ?>">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <a href="?hapus_gelombang=<?php echo $gel['id']; ?>" class="btn btn-danger btn-sm" onclick="return siHapus('?hapus_gelombang=<?php echo $gel['id']; ?>', '<?php echo addslashes(htmlspecialchars($gel['nama_gelombang'])); ?>')">
+                                <a href="?hapus_gelombang=<?php echo $gel['id']; ?>" class="btn btn-danger btn-sm" onclick="return siHapus('?hapus_gelombang=<?php echo $gel['id']; ?>', '<?php echo addslashes(e($gel['nama_gelombang'])); ?>')">
                                     <i class="fas fa-trash"></i>
                                 </a>
                             </td>
@@ -536,18 +538,18 @@ if (isset($_POST['update_status_pendaftar'])) {
                                             <div class="form-group mb-3">
                                                 <label class="form-label">Nama Gelombang</label>
                                                 <input type="text" class="form-control" name="nama_gelombang" 
-                                                    value="<?php echo htmlspecialchars($gel['nama_gelombang']); ?>" required>
+                                                    value="<?php echo e($gel['nama_gelombang']); ?>" required>
                                             </div>
                                             <div class="form-row">
                                                 <div class="col-md-6 mb-3">
                                                     <label class="form-label">Tanggal Mulai</label>
                                                     <input type="date" class="form-control" name="tanggal_mulai" 
-                                                        value="<?php echo htmlspecialchars($gel['tanggal_mulai']); ?>" required>
+                                                        value="<?php echo e($gel['tanggal_mulai']); ?>" required>
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <label class="form-label">Tanggal Selesai</label>
                                                     <input type="date" class="form-control" name="tanggal_selesai" 
-                                                        value="<?php echo htmlspecialchars($gel['tanggal_selesai']); ?>" required>
+                                                        value="<?php echo e($gel['tanggal_selesai']); ?>" required>
                                                 </div>
                                             </div>
                                             <div class="form-group mb-3">
@@ -601,7 +603,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                 <div class="row g-3">
                     <div class="col-md-6">
                         <input type="text" class="form-control" name="search" placeholder="Cari nama/no pendaftaran/email..." 
-                            value="<?php echo htmlspecialchars($search); ?>">
+                            value="<?php echo e($search); ?>">
                     </div>
                     <div class="col-md-3">
                         <select class="form-select" name="filter_status">
@@ -723,13 +725,13 @@ if (isset($_POST['update_status_pendaftar'])) {
                         ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($pendaftar['no_pendaftaran']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></td>
-                            <td><?php echo htmlspecialchars($pendaftar['email']); ?></td>
-                            <td><span class="badge bg-secondary"><?php echo htmlspecialchars($pendaftar['nama_jalur'] ?? '-'); ?></span></td>
+                            <td><strong><?php echo e($pendaftar['no_pendaftaran']); ?></strong></td>
+                            <td><?php echo e($pendaftar['nama_lengkap']); ?></td>
+                            <td><?php echo e($pendaftar['email']); ?></td>
+                            <td><span class="badge bg-secondary"><?php echo e($pendaftar['nama_jalur'] ?? '-'); ?></span></td>
                             <td>
                                 <?php if ($total_docs > 0): ?>
-                                    <span class="badge bg-info"><?php echo "$valid_docs/$total_docs"; ?> ✓</span>
+                                    <span class="badge bg-info"><?php echo "$valid_docs/$total_docs"; ?> âœ“</span>
                                 <?php else: ?>
                                     <span class="badge bg-secondary">Belum Upload</span>
                                 <?php endif; ?>
@@ -775,28 +777,28 @@ if (isset($_POST['update_status_pendaftar'])) {
                             <div class="modal-dialog modal-lg">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title">Detail Pendaftar - <?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></h5>
+                                        <h5 class="modal-title">Detail Pendaftar - <?php echo e($pendaftar['nama_lengkap']); ?></h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="row mb-3">
                                             <div class="col-md-6">
                                                 <label class="form-label"><strong>No. Pendaftaran</strong></label>
-                                                <p><?php echo htmlspecialchars($pendaftar['no_pendaftaran']); ?></p>
+                                                <p><?php echo e($pendaftar['no_pendaftaran']); ?></p>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label"><strong>Nama Lengkap</strong></label>
-                                                <p><?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></p>
+                                                <p><?php echo e($pendaftar['nama_lengkap']); ?></p>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
                                             <div class="col-md-6">
                                                 <label class="form-label"><strong>Email</strong></label>
-                                                <p><?php echo htmlspecialchars($pendaftar['email']); ?></p>
+                                                <p><?php echo e($pendaftar['email']); ?></p>
                                             </div>
                                             <div class="col-md-6">
-                                                <label class="form-label"><strong>No. HP</strong></label>
-                                                <p><?php echo htmlspecialchars($pendaftar['no_hp']); ?></p>
+                                                <label class="form-label"><strong>No. HP Orang Tua</strong></label>
+                                                <p><?php echo e($pendaftar['no_hp_ortu'] ?? '-'); ?></p>
                                             </div>
                                         </div>
                                         <div class="row mb-3">
@@ -806,12 +808,12 @@ if (isset($_POST['update_status_pendaftar'])) {
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label"><strong>Jalur Pendaftaran</strong></label>
-                                                <p><?php echo htmlspecialchars($pendaftar['nama_jalur'] ?? '-'); ?></p>
+                                                <p><?php echo e($pendaftar['nama_jalur'] ?? '-'); ?></p>
                                             </div>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label"><strong>Alamat</strong></label>
-                                            <p><?php echo htmlspecialchars($pendaftar['alamat']); ?></p>
+                                            <p><?php echo e($pendaftar['alamat'] ?? '-'); ?></p>
                                         </div>
                                         <hr>
                                         <h6><strong>Status Dokumen:</strong></h6>
@@ -829,7 +831,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                                             <div>
                                                 <strong><?php echo ucfirst($doc['jenis_dokumen']); ?></strong>
                                                 <br>
-                                                <small class="text-muted"><?php echo htmlspecialchars($doc['path_file']); ?></small>
+                                                <small class="text-muted"><?php echo e($doc['path_file']); ?></small>
                                             </div>
                                             <span class="badge bg-<?php echo $doc['status_verifikasi'] === 'valid' ? 'success' : ($doc['status_verifikasi'] === 'tidak_valid' ? 'danger' : 'warning'); ?>">
                                                 <?php echo ucfirst(str_replace('_', ' ', $doc['status_verifikasi'])); ?>
@@ -961,8 +963,8 @@ if (isset($_POST['update_status_pendaftar'])) {
                             <li class="mb-2"><span class="badge bg-warning text-dark px-2 py-1">Menunggu Dokumen</span> Belum upload</li>
                             <li class="mb-2"><span class="badge bg-warning text-dark px-2 py-1">Menunggu Verifikasi</span> Belum periksa</li>
                             <li class="mb-2"><span class="badge bg-info px-2 py-1">Verifikasi Selesai</span> Siap seleksi</li>
-                            <li class="mb-2"><span class="badge bg-success px-2 py-1">✓ Diterima</span> Lolos seleksi</li>
-                            <li><span class="badge bg-danger px-2 py-1">✗ Ditolak</span> Tidak diterima</li>
+                            <li class="mb-2"><span class="badge bg-success px-2 py-1">âœ“ Diterima</span> Lolos seleksi</li>
+                            <li><span class="badge bg-danger px-2 py-1">âœ— Ditolak</span> Tidak diterima</li>
                         </ul>
                     </div>
                 </div>

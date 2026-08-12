@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -6,8 +6,8 @@ cekAdmin();
 $title = "Tambah Jadwal";
 
 // Ambil dropdown kelas, mapel, dan guru
-$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
-$mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
+$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
+$mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
 $guru_list  = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
 // Optional: set default dari request (kalau dibuka dari halaman lain)
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($selesai <= $mulai) {
         $error = "Jam selesai harus lebih dari jam mulai.";
     } else {
-        // Cek bentrok jadwal
+        // Cek bentrok jadwal — KELAS yang sama di hari & jam yang sama
         $cek_bentrok = mysqli_query($koneksi, "SELECT id FROM jadwal WHERE kelas_id='$kid' AND hari='$hari' AND (
             ('$mulai' < jam_selesai AND '$selesai' > jam_mulai)
         )");
@@ -48,6 +48,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($cek_bentrok && mysqli_num_rows($cek_bentrok) > 0) {
             $error = "Jadwal bentrok! Kelas tersebut sudah memiliki jadwal di hari dan jam yang sama.";
         } else {
+            // Cek bentrok jadwal — GURU yang sama mengajar di kelas lain di hari & jam yang sama
+            if (!empty($gid)) {
+                $cek_guru = mysqli_query($koneksi,
+                    "SELECT j.id, k.nama_kelas FROM jadwal j
+                     LEFT JOIN kelas k ON k.id = j.kelas_id
+                     WHERE j.guru_id='$gid' AND j.hari='$hari' AND j.tahun_ajaran_id='$taId' AND (
+                         ('$mulai' < j.jam_selesai AND '$selesai' > j.jam_mulai)
+                     )");
+                if ($cek_guru && mysqli_num_rows($cek_guru) > 0) {
+                    $rg = mysqli_fetch_assoc($cek_guru);
+                    $error = "Jadwal bentrok! Guru tersebut sudah mengajar di kelas " . e($rg['nama_kelas'] ?? '-') . " pada hari dan jam yang sama.";
+                }
+            }
+            if ($error === null) {
             // Validasi relasional: kelas harus berada pada tahun ajaran aktif.
             $kelasTa = mysqli_fetch_assoc(mysqli_query($koneksi,
                 "SELECT tahun_ajaran_id FROM kelas WHERE id=".(int)$kid));
@@ -65,6 +79,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
 
                 if ($ins) {
+                    // Auto-sinkron ke pivot kelas_mapel_guru (jadwal => penugasan)
+                    $cek_pivot = mysqli_query($koneksi,
+                        "SELECT id FROM kelas_mapel_guru WHERE kelas_id='$kid' AND mapel_id='$mid' AND guru_id='$gid' AND tahun_ajaran_id='$taId' LIMIT 1");
+                    if (mysqli_num_rows($cek_pivot) == 0) {
+                        $km = mysqli_fetch_row(mysqli_query($koneksi, "SELECT kkm FROM mata_pelajaran WHERE id='$mid'"));
+                        $kkm_pivot = $km ? (int) $km[0] : 75;
+                        mysqli_query($koneksi,
+                            "INSERT INTO kelas_mapel_guru (kelas_id, mapel_id, guru_id, tahun_ajaran_id, kkm, jam_per_minggu)
+                             VALUES ('$kid', '$mid', '$gid', '$taId', $kkm_pivot, 2)");
+                    }
                     // Notifikasi otomatis ke guru yang bersangkutan
                     if (!function_exists('notifikasi_id_user_by_ref')) {
                         include __DIR__ . '/../../includes/notifikasi_functions.php';
@@ -86,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $error = "Gagal menyimpan data: " . mysqli_error($koneksi);
             }
+            }
         }
     }
 }
@@ -93,12 +118,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-plus text-gold me-2"></i>Tambah Jadwal</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-plus text-icon me-2"></i>Tambah Jadwal</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -120,11 +145,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Kelas</label>
-                            <select name="kelas_id" class="form-select" required>
+                            <select name="kelas_id" id="kelas_id" class="form-select" required>
                                 <option value="">-- Pilih Kelas --</option>
                                 <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
                                     <option value="<?= (int)$k['id'] ?>" <?= (isset($_POST['kelas_id']) && $_POST['kelas_id'] == $k['id']) || (!isset($_POST['kelas_id']) && $default_kelas !== '' && $default_kelas == $k['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($k['nama_kelas']) ?>
+                                        <?= e($k['nama_kelas']) ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
@@ -132,11 +157,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="mb-3">
                             <label class="form-label">Mata Pelajaran</label>
-                            <select name="mapel_id" class="form-select" required>
+                            <select name="mapel_id" id="mapel_id" class="form-select" required>
                                 <option value="">-- Pilih Mapel --</option>
                                 <?php while ($m = mysqli_fetch_assoc($mapel_list)): ?>
                                     <option value="<?= (int)$m['id'] ?>" <?= (isset($_POST['mapel_id']) && $_POST['mapel_id'] == $m['id']) || (!isset($_POST['mapel_id']) && $default_mapel !== '' && $default_mapel == $m['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($m['nama_mapel']) ?> (<?= htmlspecialchars($m['kode_mapel']) ?>)
+                                        <?= e($m['nama_mapel']) ?> (<?= e($m['kode_mapel']) ?>)
                                     </option>
                                 <?php endwhile; ?>
                             </select>
@@ -148,11 +173,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="">-- Pilih Guru --</option>
                                 <?php while ($g = mysqli_fetch_assoc($guru_list)): ?>
                                     <option value="<?= (int)$g['id'] ?>" <?= (isset($_POST['guru_id']) && $_POST['guru_id'] == $g['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($g['nama']) ?>
+                                        <?= e($g['nama']) ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
-                            <small class="text-muted text-guru-otomatis">Mapel dipilih → guru otomatis terfilter.</small>
+                            <small class="text-muted text-guru-otomatis">Mapel dipilih â†’ guru otomatis terfilter.</small>
                         </div>
                     </div>
 
@@ -168,12 +193,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="mb-3">
                             <label class="form-label">Jam Mulai</label>
-                            <input type="time" name="jam_mulai" class="form-control" required value="<?= isset($_POST['jam_mulai']) ? htmlspecialchars($_POST['jam_mulai']) : '' ?>">
+                            <input type="time" name="jam_mulai" class="form-control" required value="<?= isset($_POST['jam_mulai']) ? e($_POST['jam_mulai']) : '' ?>">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Jam Selesai</label>
-                            <input type="time" name="jam_selesai" class="form-control" required value="<?= isset($_POST['jam_selesai']) ? htmlspecialchars($_POST['jam_selesai']) : '' ?>">
+                            <input type="time" name="jam_selesai" class="form-control" required value="<?= isset($_POST['jam_selesai']) ? e($_POST['jam_selesai']) : '' ?>">
                         </div>
 
                         <div class="alert alert-info mb-0">
@@ -194,27 +219,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const kelasSelect = document.querySelector('select[name="kelas_id"]');
     const mapelSelect = document.querySelector('select[name="mapel_id"]');
     const guruSelect  = document.getElementById('guru_id');
     const guruHint    = document.querySelector('.text-guru-otomatis');
 
-    // Simpan original options guru sebagai backup
-    const originalOptions = guruSelect.innerHTML;
+    function muatGuruByPivot() {
+        const kelasId = kelasSelect.value;
+        const mapelId = mapelSelect.value;
 
-    mapelSelect.addEventListener('change', function() {
-        const mapelId = this.value;
-
-        // Reset ke semua guru kalau mapel belum dipilih
         if (!mapelId) {
-            guruSelect.innerHTML = originalOptions;
-            if (guruHint) guruHint.textContent = 'Mapel dipilih → guru otomatis terfilter.';
+            guruSelect.innerHTML = '<option value="">-- Pilih Guru --</option>';
+            if (guruHint) guruHint.textContent = 'Pilih mapel terlebih dahulu.';
             return;
         }
 
-        // Tampilkan loading
         guruSelect.innerHTML = '<option value="">Memuat data guru...</option>';
 
-        fetch('get_guru_by_mapel.php?mapel_id=' + mapelId)
+        fetch('get_guru_by_mapel.php?mapel_id=' + mapelId + '&kelas_id=' + kelasId)
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (!data || data.length === 0) {
@@ -222,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (guruHint) guruHint.textContent = 'Tidak ada guru yang mengajar mapel ini.';
                     return;
                 }
-
                 var html = '<option value="">-- Pilih Guru --</option>';
                 data.forEach(function(g) {
                     html += '<option value="' + g.id + '">' + g.nama + '</option>';
@@ -232,10 +253,12 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(function(err) {
                 console.error('Gagal memuat guru:', err);
-                guruSelect.innerHTML = originalOptions;
-                if (guruHint) guruHint.textContent = 'Gagal memuat, menampilkan semua guru.';
+                if (guruHint) guruHint.textContent = 'Gagal memuat data guru.';
             });
-    });
+    }
+
+    kelasSelect.addEventListener('change', muatGuruByPivot);
+    mapelSelect.addEventListener('change', muatGuruByPivot);
 });
 </script>
 <?php include '../../includes/footer.php'; ?>

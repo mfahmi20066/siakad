@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -18,12 +18,12 @@ foreach ($data as $ta) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-calendar-alt text-gold me-2"></i>Tahun Ajaran</h4>
+        <div class="page-header d-flex justify-content-between align-items-center">
+        <h4><i class="fas fa-calendar-alt text-icon me-2"></i>Tahun Ajaran</h4>
         <a href="tambah.php" class="btn btn-primary btn-sm">
             <i class="fas fa-plus"></i> Tambah Tahun Ajaran
         </a>
@@ -31,20 +31,20 @@ foreach ($data as $ta) {
 
     <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-auto">
-        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+        <i class="fas fa-check-circle"></i> <?= e($_GET['success']) ?>
     </div>
     <?php endif; ?>
 
     <?php if (isset($_GET['error'])): ?>
     <div class="alert alert-danger alert-auto">
-        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_GET['error']) ?>
+        <i class="fas fa-exclamation-circle"></i> <?= e($_GET['error']) ?>
     </div>
     <?php endif; ?>
 
     <?php if ($aktif): ?>
     <div class="alert alert-info py-2">
         <i class="fas fa-info-circle"></i>
-        Tahun Ajaran aktif saat ini: <strong><?= htmlspecialchars($aktif['tahun']) ?></strong>
+        Tahun Ajaran aktif saat ini: <strong><?= e($aktif['tahun']) ?></strong>
     </div>
     <?php else: ?>
     <div class="alert alert-warning py-2">
@@ -78,10 +78,10 @@ foreach ($data as $ta) {
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><strong><?= htmlspecialchars($r['nama_tahun_ajaran']) ?></strong></td>
+                        <td><strong><?= e($r['nama_tahun_ajaran']) ?></strong></td>
                         <td>
                             <?php foreach ($sem as $s): ?>
-                                <span class="badge bg-<?= ($s['status'] == 'aktif') ? 'success' : 'secondary' ?>"><?= htmlspecialchars($s['nama']) ?></span>
+                                <span class="badge bg-<?= ($s['status'] == 'aktif') ? 'success' : 'secondary' ?>"><?= e($s['nama']) ?></span>
                             <?php endforeach; ?>
                             <?php if (!$sem): ?><span class="text-muted">-</span><?php endif; ?>
                         </td>
@@ -102,14 +102,14 @@ foreach ($data as $ta) {
                         <td>
                             <div class="table-actions">
                                 <?php if ($r['status'] != 'aktif'): ?>
-                                <a href="aktifkan.php?id=<?= $r['id'] ?>" class="btn btn-success btn-sm" title="Jadikan Aktif">
+                                <a href="aktifkan.php?id=<?= $r['id'] ?>&csrf_token=<?= csrf_token() ?>" class="btn btn-success btn-sm" title="Jadikan Aktif">
                                     <i class="fas fa-check"></i>
                                 </a>
                                 <?php endif; ?>
                                 <a href="edit.php?id=<?= $r['id'] ?>" class="btn btn-warning btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= htmlspecialchars($r['nama_tahun_ajaran']) ?>')"
+                                <button onclick="konfirmasiHapus('hapus.php?id=<?= $r['id'] ?>', '<?= e($r['nama_tahun_ajaran']) ?>')"
                                         class="btn btn-danger btn-sm" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>

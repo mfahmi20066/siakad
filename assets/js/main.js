@@ -12,6 +12,23 @@ function konfirmasiHapus(url, nama) {
     siHapus(url, nama);
 }
 
+/* ── CSRF: sisipkan token ke semua form agar submit aman ── */
+function initCsrfInjection() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (!meta) return;
+    var token = meta.getAttribute('content');
+    if (!token) return;
+
+    document.querySelectorAll('form').forEach(function (form) {
+        if (form.querySelector('input[name="csrf_token"]')) return;
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrf_token';
+        input.value = token;
+        form.appendChild(input);
+    });
+}
+
 
 /* ── Auto-hide alert .alert-auto setelah 3 detik ── */
 function initAlertAutohide() {
@@ -73,14 +90,43 @@ function toggleSidebarCollapse() {
    ════════════════════════════════════════════════════════════════ */
 var NOTIF_API = '/siakad/auth/notification-api.php';
 
+/* Backdrop notifikasi (mobile): dibuat saat dropdown terbuka di layar kecil,
+   diklik untuk menutup; dihapus otomatis saat dropdown ditutup. */
+function isMobileLayout() {
+    return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+}
+
+function buatNotifBackdrop(dropdown) {
+    if (!isMobileLayout()) return;
+    if (document.querySelector('.notif-backdrop')) return; // sudah ada
+    var bd = document.createElement('div');
+    bd.className = 'notif-backdrop';
+    bd.addEventListener('click', function () {
+        dropdown.classList.remove('show');
+        hapusNotifBackdrop();
+    });
+    document.body.appendChild(bd);
+}
+
+function hapusNotifBackdrop() {
+    var bd = document.querySelector('.notif-backdrop');
+    if (bd) bd.parentNode.removeChild(bd);
+}
+
 function initNotifikasi() {
     var toggle  = document.getElementById('notificationToggle');
     var dropdown = document.getElementById('notificationDropdown');
     if (!toggle || !dropdown) return;
 
-    /* Toggle dropdown */
+    /* Toggle dropdown (+ backdrop semi-transparan di mobile) */
     toggle.addEventListener('click', function (e) {
         e.stopPropagation();
+        var akanBuka = !dropdown.classList.contains('show');
+        if (akanBuka) {
+            buatNotifBackdrop(dropdown);
+        } else {
+            hapusNotifBackdrop();
+        }
         dropdown.classList.toggle('show');
     });
 
@@ -93,7 +139,7 @@ function initNotifikasi() {
             item.classList.remove('unread');
             var dot = item.querySelector('.notif-dot');
             if (dot) dot.remove();
-            fetch(NOTIF_API + '?aksi=read&id=' + id)
+            fetch(appendCsrfToUrl(NOTIF_API + '?aksi=read&id=' + id))
                 .then(function (r) { return r.json(); })
                 .then(function (d) { updateNotifBadge(d.count); })
                 .catch(function () {});
@@ -105,7 +151,7 @@ function initNotifikasi() {
     if (readAll) {
         readAll.addEventListener('click', function (e) {
             e.stopPropagation();
-            fetch(NOTIF_API + '?aksi=read_all')
+            fetch(appendCsrfToUrl(NOTIF_API + '?aksi=read_all'))
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     updateNotifBadge(0);
@@ -119,6 +165,16 @@ function initNotifikasi() {
                 .catch(function () {});
         });
     }
+}
+
+/* Tambahkan param csrf_token ke URL (dipakai panggilan AJAX yang mengubah data) */
+function appendCsrfToUrl(url) {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (!meta) return url;
+    var token = meta.getAttribute('content');
+    if (!token) return url;
+    var sep = url.indexOf('?') === -1 ? '?' : '&';
+    return url + sep + 'csrf_token=' + encodeURIComponent(token);
 }
 
 function updateNotifBadge(count) {
@@ -136,6 +192,9 @@ function updateNotifBadge(count) {
 /* ── jQuery ready ── */
 $(document).ready(function () {
 
+    /* CSRF: sisipkan token ke semua form */
+    initCsrfInjection();
+
     /* Init DataTables — cek dulu supaya tidak reinitialise */
     if ($.fn.DataTable && $('.dataTable').length) {
         $('.dataTable').each(function () {
@@ -144,14 +203,37 @@ $(document).ready(function () {
 
                 var $tableEl = $(this);
 
-                $(this).DataTable({
+                /* Empty-state: baris "<td colspan=N>" tunggal di tbody membuat
+                   DataTables error TN/18 "Incorrect column count". Pindahkan
+                   isinya ke language.emptyTable supaya DataTables merender
+                   pesan kosong dengan colspan yang benar. */
+                var emptyHtml = null;
+                $tableEl.find('tbody > tr').each(function () {
+                    var $td = $(this).children('td[colspan]');
+                    var $headTh = $tableEl.find('thead th');
+                    if ($td.length === 1 && $headTh.length &&
+                        parseInt($td.attr('colspan'), 10) === $headTh.length) {
+                        emptyHtml = $td.html();
+                        $(this).remove();
+                    }
+                });
+
+                var dtOptions = {
                     retrieve: true,
                     language: {
                         url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
                     },
                     pageLength: 25,
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                     order: [],
                     dom: exportExcel ? 'Bfrtip' : 'lfrtip',
+                    /* Rapikan kontrol DataTables (dropdown "Tampilkan X entri"
+                       dan kotak pencarian) dengan class Bootstrap */
+                    initComplete: function () {
+                        var $container = $(this.api().table().container());
+                        $container.find('.dataTables_length select').addClass('form-select form-select-sm');
+                        $container.find('.dataTables_filter input').addClass('form-control form-control-sm');
+                    },
                     buttons: exportExcel ? [{
                         extend: 'excelHtml5',
                         text: '<i class="fas fa-file-excel"></i> Export Excel',
@@ -169,10 +251,41 @@ $(document).ready(function () {
                             order: 'applied'               // urutan hasil export ikut urutan tabel saat ini
                         }
                     }] : []
-                });
+                };
+                if (emptyHtml) {
+                    dtOptions.language.emptyTable = emptyHtml;
+                }
+
+                $(this).DataTable(dtOptions);
             }
         });
     }
+
+    /* ── Indikator tabel responsif mobile (BUG.MD) ──
+       - Class .has-overflow : tabel lebih lebar dari viewport → CSS
+         menampilkan gradien "geser ke kanan" + scrollbar tebal
+       - Class .scrolled-end : sudah discroll sampai ujung kanan →
+         gradien memudar (tidak ada kolom tersembunyi lagi) */
+    function updateTableOverflow() {
+        document.querySelectorAll('.table-responsive').forEach(function (el) {
+            var overflow = el.scrollWidth > el.clientWidth + 1;
+            var atEnd = !overflow || (el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+            el.classList.toggle('has-overflow', overflow);
+            el.classList.toggle('scrolled-end', atEnd);
+        });
+    }
+
+    document.querySelectorAll('.table-responsive').forEach(function (el) {
+        el.addEventListener('scroll', updateTableOverflow, { passive: true });
+    });
+
+    updateTableOverflow();
+    setTimeout(updateTableOverflow, 300);
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(updateTableOverflow, 150);
+    });
 
     /* ── Filter tabel berdasarkan kolom tertentu (dropdown) ── */
     $('.table-filter-select').on('change', function () {
@@ -208,7 +321,7 @@ $(document).ready(function () {
     /* Notifikasi */
     initNotifikasi();
 
-    /* Tutup dropdown notifikasi saat klik di luar */
+    /* Tutup dropdown notifikasi saat klik di luar (backdrop ikut dihapus) */
     $(document).on('click', function (e) {
         var $dropdown = $('#notificationDropdown');
         var $toggle   = $('#notificationToggle');
@@ -216,6 +329,7 @@ $(document).ready(function () {
             !$dropdown[0].contains(e.target) &&
             !$toggle[0].contains(e.target)) {
             $dropdown.removeClass('show');
+            hapusNotifBackdrop();
         }
     });
 
@@ -353,5 +467,36 @@ $(document).ready(function () {
         // Inisialisasi awal: pastikan sidebar semua terlihat
         filterSidebar(buildIndex(), '');
     })();
+
+    /* ── Zoom kontrol diagram struktur organisasi ── */
+    function initOrgZoom() {
+        var stages = document.querySelectorAll('.org-stage');
+        for (var i = 0; i < stages.length; i++) {
+            (function (stage) {
+                var wrap = stage.parentElement;
+                if (!wrap) return;
+                var val = wrap.querySelector('[data-org-zoom-val]');
+                var scale = 1;
+                function applyScale() {
+                    stage.style.transform = 'scale(' + scale + ')';
+                    if (val) val.textContent = Math.round(scale * 100) + '%';
+                }
+                var buttons = wrap.querySelectorAll('[data-org-zoom]');
+                for (var b = 0; b < buttons.length; b++) {
+                    (function (btn) {
+                        btn.addEventListener('click', function () {
+                            var act = btn.getAttribute('data-org-zoom');
+                            if (act === 'in') scale = Math.min(1.6, +(scale + 0.1).toFixed(2));
+                            else if (act === 'out') scale = Math.max(0.5, +(scale - 0.1).toFixed(2));
+                            else scale = 1;
+                            applyScale();
+                        });
+                    })(buttons[b]);
+                }
+            })(stages[i]);
+        }
+    }
+
+    initOrgZoom();
 
 });

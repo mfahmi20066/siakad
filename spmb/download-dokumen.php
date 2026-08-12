@@ -1,5 +1,12 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 include '../config/koneksi.php';
+
+// Auth check: wajib login (admin/guru/siswa) atau token valid
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
+    die('Unauthorized: Silakan login terlebih dahulu.');
+}
 
 // Security: Validate input parameters
 $pendaftar_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;

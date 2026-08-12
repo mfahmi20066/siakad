@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -10,7 +10,7 @@ try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif[
 catch (Throwable $e) { $taId = null; }
 
 // Ambil daftar kelas untuk dropdown filter utama
-$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
+$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
 // Request AJAX: Mengambil list nama siswa berdasarkan kelas yang dipilih
 if (isset($_GET['get_siswa_by_kelas'])) {
@@ -86,12 +86,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-plus text-gold me-2"></i>Buat Rapor Massal</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-plus text-icon me-2"></i>Buat Rapor Massal</h4>
     </div>
 
     <form method="POST" action="">
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <select name="kelas_id" id="filter-kelas" class="form-select" required>
                             <option value="">-- Pilih Kelas --</option>
                             <?php while ($k = mysqli_fetch_assoc($kelas_list)): ?>
-                                <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['nama_kelas']) ?></option>
+                                <option value="<?= $k['id'] ?>"><?= e($k['nama_kelas']) ?></option>
                             <?php endwhile; ?>
                         </select>
                     </div>
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="col-md-4">
                         <label class="form-label text-muted fw-bold">Tahun Ajaran</label>
-                        <input type="text" name="tahun_ajaran" class="form-control" value="<?= htmlspecialchars($taTahun) ?>" readonly>
+                        <input type="text" name="tahun_ajaran" class="form-control" value="<?= e($taTahun) ?>" readonly>
                     </div>
                 </div>
             </div>

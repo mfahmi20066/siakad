@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -37,12 +37,12 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-trophy text-gold me-2"></i>Seleksi SPMB</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-trophy text-icon me-2"></i>Seleksi SPMB</h4>
     </div>
 
     <!-- Filter -->
@@ -55,7 +55,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
                         <option value="">Semua Jalur</option>
                         <?php while ($j = mysqli_fetch_assoc($query_jalur)): ?>
                         <option value="<?php echo $j['id']; ?>" <?php echo $jalur_filter == $j['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($j['nama_jalur']); ?>
+                            <?php echo e($j['nama_jalur']); ?>
                         </option>
                         <?php endwhile; ?>
                     </select>
@@ -63,7 +63,7 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
                 
                 <div class="col-md-4">
                     <label for="search" class="form-label">Cari</label>
-                    <input type="text" class="form-control" id="search" name="search" placeholder="Nama / No. Pendaftaran" value="<?php echo htmlspecialchars($search); ?>">
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Nama / No. Pendaftaran" value="<?php echo e($search); ?>">
                 </div>
                 
                 <div class="col-md-4" style="display: flex; align-items: flex-end;">
@@ -106,10 +106,10 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
                         ?>
                         <tr>
                             <td><span class="badge bg-info text-dark" style="font-size: 14px; padding: 6px 10px;"><?php echo $rank++; ?></span></td>
-                            <td><strong><?php echo htmlspecialchars($row['no_pendaftaran']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td>
-                            <td><?php echo htmlspecialchars($row['nama_jalur']); ?></td>
-                            <td><?php echo htmlspecialchars($row['nama_gelombang']); ?></td>
+                            <td><strong><?php echo e($row['no_pendaftaran']); ?></strong></td>
+                            <td><?php echo e($row['nama_lengkap']); ?></td>
+                            <td><?php echo e($row['nama_jalur']); ?></td>
+                            <td><?php echo e($row['nama_gelombang']); ?></td>
                             <td>
                                 <input type="number" class="form-control form-control-sm" style="width: 100px;" 
                                     value="<?php echo $row['skor_seleksi'] ?? ''; ?>" 

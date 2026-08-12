@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once '../config/session.php';
 require_once '../config/koneksi.php';
 cekSiswa();
@@ -27,7 +27,7 @@ if ($id_kelas) {
     $nama_kelas = $dk['nama_kelas'] ?? $dk['nama'] ?? '-';
 }
 
-// ── Deteksi nama kolom di tabel absensi ─────────────────────
+// â”€â”€ Deteksi nama kolom di tabel absensi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $cols_res = mysqli_query($koneksi, "SHOW COLUMNS FROM absensi");
 $cols = [];
 while ($c = mysqli_fetch_assoc($cols_res)) $cols[] = $c['Field'];
@@ -62,7 +62,7 @@ foreach (['keterangan','catatan','note'] as $try) {
     if (in_array($try, $cols)) { $col_ket = $try; break; }
 }
 
-// ── Ambil absensi siswa ──────────────────────────────────────
+// â”€â”€ Ambil absensi siswa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $data_absen = [];
 $jumlah     = ['H'=>0,'I'=>0,'S'=>0,'A'=>0];
 
@@ -103,12 +103,12 @@ $title = "Absensi Saya"; $icon = "fa-clipboard-check";
 require_once '../includes/header.php';
 ?>
 <?php require_once '../includes/sidebar_siswa.php'; ?>
+<?php include '../includes/topbar_siswa.php'; ?>
+
 
 <div class="main-content">
-<?php require_once '../includes/topbar_siswa.php'; ?>
-
 <div class="page-header">
-  <h4><i class="fas fa-clipboard-check text-gold me-2"></i>Absensi Saya</h4>
+  <h4><i class="fas fa-clipboard-check text-icon me-2"></i>Absensi Saya</h4>
 </div>
 
 <div class="container-fluid">
@@ -225,11 +225,11 @@ require_once '../includes/header.php';
             <td class="text-center"><?=$no++?></td>
             <td><?=$a['tgl_fmt']?></td>
             <td><?=$a['hari']?></td>
-            <td><?=htmlspecialchars($a['nama_mapel'])?></td>
+            <td><?=e($a['nama_mapel'])?></td>
             <td class="text-center">
               <span class="badge bg-<?=$badge?> px-3 py-1"><?=$label?></span>
             </td>
-            <td><?=htmlspecialchars($a['keterangan'])?></td>
+            <td><?=e($a['keterangan'])?></td>
           </tr>
           <?php endforeach; ?>
         </tbody>

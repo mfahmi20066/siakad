@@ -2,6 +2,7 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
+verifyCsrf();
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
@@ -37,7 +38,7 @@ mysqli_query($koneksi, "DELETE FROM nilai   WHERE siswa_id = '$id'");
 
 // Hapus akun user terkait siswa ini
 mysqli_query($koneksi, "DELETE FROM users WHERE id_ref='$id' AND role='siswa'");
-mysqli_query($koneksi, "DELETE FROM users WHERE siswa_id='$id' AND role='siswa'");
+mysqli_query($koneksi, "DELETE FROM users WHERE id='$id' AND role='siswa'");
 
 // Hapus siswa
 mysqli_query($koneksi, "DELETE FROM siswa WHERE id = '$id'");

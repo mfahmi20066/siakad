@@ -1,17 +1,11 @@
-﻿/* ================================================================
-   SIA SMA NEGERI 4 PALOPO â€” style.css v2.0 (Modern UI Redesign)
-   Color Scheme: Dark Blue #163A63 | White #FFFFFF | Gold #F09000
-   ================================================================ */
-
-/* â”€â”€ CSS Variables â”€â”€ */
-:root {
-    --primary: #163A63;
-    --primary-dark: #0D2540;
-    --primary-light: #2C5A8F;
+﻿:root {
+    --primary: #004680;
+    --primary-dark: #00345F;
+    --primary-light: #075A96;
     --gold: #F09000;
     --gold-light: #FFB74D;
     --gold-dark: #C97000;
-    --gradient-blue: linear-gradient(135deg, #0D2540 0%, #163A63 55%, #2C5A8F 100%);
+    --gradient-blue: linear-gradient(135deg, #00345F 0%, #004680 55%, #075A96 100%);
     --white: #FFFFFF;
     --bg-page: #F5F7FB;
     --bg-soft: #F5F7FB;
@@ -21,11 +15,11 @@
     --text-muted: #4A5568;
     --text-light: #94A3B8;
     --border-color: #E2E8F0;
-    --success: #10B981;
-    --warning: #F59E0B;
-    --danger: #E11D48;
-    --info: #3B82F6;
-    --ring: rgba(22, 58, 99, 0.10);
+    --success: #059669;
+    --warning: #D97706;
+    --danger: #DC2626;
+    --info: #2563EB;
+    --ring: rgba(0, 70, 128, 0.10);
     --shadow-sm: 0 1px 2px rgba(13, 37, 64, 0.04), 0 4px 14px rgba(13, 37, 64, 0.05);
     --shadow-md: 0 8px 24px rgba(13, 37, 64, 0.08);
     --shadow-lg: 0 18px 44px rgba(13, 37, 64, 0.14);
@@ -41,13 +35,25 @@
     --radius-xl: 22px;
     --radius-full: 999px;
     --transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ===== SIDEBAR & TOPBAR TOKENS (UI.MD — Geometric Luxury) ===== */
+    --sidebar-navy: #004680;
+    --sidebar-navy-deep: #00335F;
+    --sidebar-navy-light: #0059A6;
+    --sidebar-bg-gradient: linear-gradient(180deg, var(--sidebar-navy) 0%, var(--sidebar-navy-deep) 100%);
+    --sidebar-border: 1px solid rgba(255, 255, 255, 0.08);
+    --sidebar-section-label: rgba(255, 255, 255, 0.45);
+    --sidebar-active-bg: rgba(255, 255, 255, 0.12);
+    --sidebar-active-border: rgba(255, 255, 255, 0.28);
+    --topbar-bg: #004680;
+    --topbar-shadow: 0 2px 6px rgba(0, 45, 87, 0.16), 0 10px 28px rgba(0, 45, 87, 0.12);
 }
 
 /* ===== GLOBAL ===== */
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: var(--bg-page);
     color: var(--text-dark);
     font-size: 14px;
@@ -106,7 +112,7 @@ a:hover { text-decoration: none; }
     padding: 36px 32px 28px;
     position: relative;
     z-index: 1;
-    border-top: 4px solid var(--gold);
+    border-top: 4px solid var(--primary);
 }
 
 .login-card .logo {
@@ -119,10 +125,10 @@ a:hover { text-decoration: none; }
     height: 76px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid rgba(240, 144, 0, 0.5);
+    border: 3px solid rgba(0, 70, 128, 0.35);
     background: var(--white);
     padding: 4px;
-    box-shadow: 0 6px 20px rgba(22, 58, 99, 0.18);
+    box-shadow: 0 6px 20px rgba(0, 70, 128, 0.18);
     margin-bottom: 12px;
 }
 
@@ -170,32 +176,32 @@ a:hover { text-decoration: none; }
 .login-card .input-group .btn-outline-secondary:hover {
     background: var(--bg-page);
     color: var(--primary);
-    border-color: var(--gold);
+    border-color: var(--primary);
 }
 
 .btn-login {
-    background: var(--gold);
+    background: var(--primary);
     border: none;
-    color: var(--primary-dark);
+    color: var(--white);
     font-weight: 600;
     font-size: 14px;
     padding: 11px 18px;
     border-radius: 10px;
     letter-spacing: 0.3px;
     transition: var(--transition);
-    box-shadow: 0 6px 16px rgba(240, 144, 0, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 70, 128, 0.3);
 }
 
 .btn-login:hover,
 .btn-login:focus {
-    background: var(--gold-light);
-    color: var(--primary-dark);
+    background: var(--primary-dark);
+    color: var(--white);
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(240, 144, 0, 0.42);
+    box-shadow: 0 8px 20px rgba(13, 37, 64, 0.4);
 }
 
 .btn-login:active {
-    background: var(--gold-dark);
+    background: var(--primary-dark);
     color: var(--white);
     transform: translateY(0);
 }
@@ -217,12 +223,14 @@ a:hover { text-decoration: none; }
 }
 
 /* ================================================================
-   SIDEBAR â€” Dark Blue Premium Design
+   SIDEBAR — Geometric Luxury (UI.MD)
+   Base: #004680, motif subtle 5–10%, text white
    ================================================================ */
 .sidebar {
     width: var(--sidebar-width);
     height: 100vh;
-    background: var(--gradient-blue);
+    background: var(--sidebar-navy);
+    background-image: linear-gradient(180deg, var(--sidebar-navy) 0%, var(--sidebar-navy-deep) 100%);
     position: fixed;
     top: 0;
     left: 0;
@@ -230,14 +238,42 @@ a:hover { text-decoration: none; }
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 4px 0 20px rgba(22, 58, 99, 0.15);
+    transition: width 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 4px 0 24px rgba(0, 45, 87, 0.22);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* â”€â”€ Sidebar Header / Logo â”€â”€ */
+/* Motif "Minimal Luxury Geometric" — subtle decorative corner (kanan bawah) */
+.sidebar::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 320px;
+    height: 320px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+    background-image:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        radial-gradient(circle at 70% 75%, rgba(255, 255, 255, 0.04) 0, transparent 42%),
+        radial-gradient(circle at 65% 82%, rgba(0, 120, 215, 0.28) 0, transparent 55%);
+    background-size: 34px 34px, 34px 34px, 100% 100%, 100% 100%;
+    border-radius: 50% 50% 50% 8px;
+    -webkit-mask-image: linear-gradient(135deg, transparent 18%, #000 58%);
+    mask-image: linear-gradient(135deg, transparent 18%, #000 58%);
+}
+
+.sidebar > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Sidebar Header / Logo ── */
 .sidebar-header {
     padding: 24px 20px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: var(--sidebar-border);
     text-align: center;
     flex-shrink: 0;
 }
@@ -255,9 +291,10 @@ a:hover { text-decoration: none; }
     height: 50px;
     border-radius: 12px;
     object-fit: cover;
-    border: 2px solid rgba(240, 144, 0, 0.3);
-    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
     padding: 4px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
 
 .sidebar-logo-text {
@@ -274,7 +311,7 @@ a:hover { text-decoration: none; }
 }
 
 .sidebar-logo-text small {
-    color: var(--gold);
+    color: rgba(255, 255, 255, 0.6);
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -282,15 +319,15 @@ a:hover { text-decoration: none; }
     margin-top: 2px;
 }
 
-/* â”€â”€ Sidebar User Profile â”€â”€ */
+/* ── Sidebar User Profile ── */
 .sidebar-user {
     padding: 16px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: var(--sidebar-border);
     display: flex;
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.14);
 }
 
 .sidebar-user-avatar {
@@ -298,8 +335,8 @@ a:hover { text-decoration: none; }
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--gold);
-    background: var(--primary-light);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: var(--sidebar-navy-light);
     flex-shrink: 0;
 }
 
@@ -307,15 +344,15 @@ a:hover { text-decoration: none; }
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--gold);
-    color: var(--primary-dark);
+    background: rgba(255, 255, 255, 0.16);
+    color: var(--white);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 15px;
     flex-shrink: 0;
-    border: 2px solid rgba(240, 144, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.28);
 }
 
 .sidebar-user-info {
@@ -334,14 +371,14 @@ a:hover { text-decoration: none; }
 }
 
 .sidebar-user-info .user-role {
-    color: var(--gold);
+    color: rgba(255, 255, 255, 0.62);
     font-size: 10px;
     font-weight: 500;
     display: block;
     margin-top: 1px;
 }
 
-/* â”€â”€ Sidebar Menu â”€â”€ */
+/* ── Sidebar Menu ── */
 .sidebar-menu {
     flex: 1;
     overflow-y: auto;
@@ -351,10 +388,10 @@ a:hover { text-decoration: none; }
 
 .sidebar-menu::-webkit-scrollbar { width: 3px; }
 .sidebar-menu::-webkit-scrollbar-track { background: transparent; }
-.sidebar-menu::-webkit-scrollbar-thumb { background: rgba(240, 144, 0, 0.3); border-radius: 3px; }
+.sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); border-radius: 3px; }
 
 .menu-label {
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.45);
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
@@ -365,7 +402,7 @@ a:hover { text-decoration: none; }
 .sidebar .nav-item { margin: 2px 8px; }
 
 .sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.72);
     padding: 10px 16px;
     font-size: 13px;
     font-weight: 400;
@@ -383,61 +420,61 @@ a:hover { text-decoration: none; }
     font-size: 16px;
     text-align: center;
     flex-shrink: 0;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.55);
     transition: var(--transition);
 }
 
 .sidebar .nav-link:hover {
-    background: rgba(240, 144, 0, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--white);
     padding-left: 20px;
 }
 
 .sidebar .nav-link:hover i,
 .sidebar .nav-link:hover .bi {
-    color: var(--gold);
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .sidebar .nav-link.active {
-    background: rgba(240, 144, 0, 0.15);
+    background: var(--sidebar-active-bg);
     color: var(--white);
     font-weight: 500;
-    box-shadow: inset 3px 0 0 var(--gold);
+    box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.75);
 }
 
 .sidebar .nav-link.active i,
 .sidebar .nav-link.active .bi {
-    color: var(--gold);
+    color: var(--white);
 }
 
-/* â”€â”€ Sidebar Logout â”€â”€ */
+/* ── Sidebar Logout ── */
 .sidebar-logout {
     flex-shrink: 0;
     padding: 8px 8px 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(0, 0, 0, 0.15);
+    border-top: var(--sidebar-border);
+    background: rgba(0, 0, 0, 0.18);
 }
 
 .sidebar-logout .nav-link {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .sidebar-logout .nav-link i,
 .sidebar-logout .nav-link .bi {
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .sidebar-logout .nav-link:hover {
-    background: rgba(225, 29, 72, 0.15);
-    color: #E11D48;
+    background: rgba(220, 38, 38, 0.16);
+    color: #FF8A8A;
 }
 
 .sidebar-logout .nav-link:hover i,
 .sidebar-logout .nav-link:hover .bi {
-    color: #E11D48;
+    color: #FF8A8A;
 }
 
-/* â”€â”€ Sidebar Collapse (Desktop) â”€â”€ */
+/* ── Sidebar Collapse (Desktop) ── */
 .sidebar-collapse-btn {
     background: transparent;
     border: none;
@@ -455,7 +492,7 @@ a:hover { text-decoration: none; }
 
 .sidebar-collapse-btn:hover {
     color: var(--primary);
-    background: rgba(22, 58, 99, 0.08);
+    background: rgba(0, 70, 128, 0.08);
 }
 
 body.sidebar-collapsed .sidebar {
@@ -502,7 +539,7 @@ body.sidebar-collapsed .main-content {
     margin-left: var(--sidebar-collapsed-width, 80px);
 }
 
-/* â”€â”€ Sidebar Toggle (Mobile) â”€â”€ */
+/* ── Sidebar Toggle (Mobile) ── */
 .sidebar-toggle {
     position: fixed;
     top: 12px;
@@ -511,7 +548,7 @@ body.sidebar-collapsed .main-content {
     background: var(--primary);
     color: var(--white);
     border: none;
-    border-radius: 10px;
+    border-radius: var(--radius-full);
     width: 38px;
     height: 38px;
     font-size: 16px;
@@ -519,7 +556,7 @@ body.sidebar-collapsed .main-content {
     display: none;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
 }
 
 .sidebar-overlay {
@@ -536,18 +573,33 @@ body.sidebar-collapsed .main-content {
    TOPBAR
    ================================================================ */
 .topbar {
-    background: var(--white);
+    background: var(--topbar-bg);
     padding: 12px 24px;
-    border-radius: var(--radius-lg);
+    border-radius: 0;
     margin-bottom: 24px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--topbar-shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
     min-height: 64px;
-    border: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    /* Posisi horizontal dikelola oleh sistem CSS variable di bagian bawah
+       (topbar fixed: left/right mengikuti --sidebar-width) — jangan pakai
+       margin-left di sini karena menumpuk dengan `left` saat sidebar collapse */
+    transition: left 0.3s ease, margin-left 0.3s ease;
+    /* Sticky fallback (System A di bawah sudah memakai position: fixed) */
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
+
+/* Catatan: offset saat sidebar-collapsed di-handle oleh
+   `body.sidebar-collapsed { --sidebar-width: ... }` + `.topbar { left: var(--sidebar-width) }`
+   pada TOPBAR REFINEMENT PASS v2 di bawah file ini. */
 
 .topbar-left {
     display: flex;
@@ -583,9 +635,9 @@ body.sidebar-collapsed .main-content {
     width: 100%;
     padding: 8px 14px 8px 40px;
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: 13px;
     font-size: 13px;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
     background: var(--bg-page);
     color: var(--text-dark);
     transition: var(--transition);
@@ -593,8 +645,8 @@ body.sidebar-collapsed .main-content {
 }
 
 .topbar-search input:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(240, 144, 0, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 70, 128, 0.12);
     background: var(--white);
 }
 
@@ -603,7 +655,7 @@ body.sidebar-collapsed .main-content {
     font-size: 12px;
 }
 
-/* â”€â”€ Hasil Pencarian Topbar â”€â”€ */
+/* ── Hasil Pencarian Topbar ── */
 .topbar-search .search-results {
     position: absolute;
     top: calc(100% + 8px);
@@ -642,7 +694,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .topbar-search .search-result-item:hover {
-    background: rgba(22, 58, 99, 0.06);
+    background: rgba(0, 70, 128, 0.06);
     color: var(--primary);
 }
 
@@ -653,7 +705,7 @@ body.sidebar-collapsed .main-content {
     font-size: 13px;
 }
 
-/* â”€â”€ Pencarian Siswa (Form) â”€â”€ */
+/* ── Pencarian Siswa (Form) ── */
 .siswa-search {
     position: relative;
 }
@@ -690,7 +742,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .siswa-search .siswa-search-item:hover {
-    background: rgba(22, 58, 99, 0.06);
+    background: rgba(0, 70, 128, 0.06);
 }
 
 .siswa-search .siswa-search-nama {
@@ -738,7 +790,7 @@ body.sidebar-collapsed .main-content {
 .topbar-icon-btn:hover {
     background: var(--bg-page);
     color: var(--primary);
-    border-color: var(--gold);
+    border-color: var(--primary);
 }
 
 .topbar-icon-btn .badge-notif {
@@ -747,7 +799,7 @@ body.sidebar-collapsed .main-content {
     right: -4px;
     width: 18px;
     height: 18px;
-    background: #E11D48;
+    background: var(--danger);
     color: white;
     font-size: 9px;
     font-weight: 700;
@@ -772,7 +824,7 @@ body.sidebar-collapsed .main-content {
 
 .topbar-profile:hover {
     background: var(--bg-page);
-    border-color: var(--gold);
+    border-color: var(--primary);
 }
 
 .topbar-profile img,
@@ -805,7 +857,7 @@ body.sidebar-collapsed .main-content {
     color: var(--text-light);
 }
 
-/* â”€â”€ Profile Dropdown â”€â”€ */
+/* ── Profile Dropdown ── */
 .topbar-dropdown {
     position: absolute;
     top: calc(100% + 8px);
@@ -853,12 +905,12 @@ body.sidebar-collapsed .main-content {
 }
 
 .topbar-dropdown .dropdown-item.text-danger {
-    color: #E11D48;
+    color: var(--danger);
 }
 
 .topbar-dropdown .dropdown-item.text-danger i,
 .topbar-dropdown .dropdown-item.text-danger .bi {
-    color: #E11D48;
+    color: var(--danger);
 }
 
 /* ================================================================
@@ -869,6 +921,10 @@ body.sidebar-collapsed .main-content {
     max-width: 360px;
     padding: 0;
     overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
 }
 
 .notif-header {
@@ -897,7 +953,7 @@ body.sidebar-collapsed .main-content {
 
 .btn-notif-readall:hover {
     text-decoration: underline;
-    color: #3B82F6;
+    color: var(--info);
 }
 
 .notif-list {
@@ -998,7 +1054,7 @@ body.sidebar-collapsed .main-content {
 
 .notif-see-all:hover {
     background: var(--bg-page);
-    color: #3B82F6;
+    color: var(--info);
 }
 
 @media (max-width: 576px) {
@@ -1006,6 +1062,18 @@ body.sidebar-collapsed .main-content {
         min-width: 0;
         width: 300px;
         max-width: calc(100vw - 40px);
+    }
+}
+
+/* Dropdown notifikasi lebih besar — KHUSUS ADMIN di desktop (>=768px);
+   mobile & role guru/siswa tidak terpengaruh */
+@media (min-width: 768px) {
+    .notif-dropdown-lg .notif-dropdown {
+        min-width: 440px;
+        max-width: 480px;
+    }
+    .notif-dropdown-lg .notif-list {
+        max-height: 480px;
     }
 }
 
@@ -1051,13 +1119,14 @@ body.sidebar-collapsed .main-content {
    WELCOME CARD
    ================================================================ */
 .welcome-card {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, #2C5A8F 100%);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--sidebar-navy-light) 100%);
     border-radius: var(--radius-lg);
     padding: 28px 32px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .welcome-card::before {
@@ -1068,7 +1137,7 @@ body.sidebar-collapsed .main-content {
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    background: rgba(240, 144, 0, 0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .welcome-card::after {
@@ -1079,7 +1148,7 @@ body.sidebar-collapsed .main-content {
     width: 250px;
     height: 250px;
     border-radius: 50%;
-    background: rgba(240, 144, 0, 0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .welcome-card .welcome-content {
@@ -1091,14 +1160,16 @@ body.sidebar-collapsed .main-content {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(240, 144, 0, 0.2);
-    color: var(--gold);
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--white);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
     margin-bottom: 12px;
-    border: 1px solid rgba(240, 144, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 }
 
 .welcome-card h2 {
@@ -1109,7 +1180,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .welcome-card .welcome-subtitle {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.75);
     font-size: 13px;
     margin-bottom: 16px;
 }
@@ -1123,19 +1194,19 @@ body.sidebar-collapsed .main-content {
     backdrop-filter: blur(8px);
     padding: 8px 16px;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     margin-right: 8px;
     margin-bottom: 8px;
 }
 
 .welcome-card .school-badge i,
 .welcome-card .school-badge .bi {
-    color: var(--gold);
+    color: rgba(255, 255, 255, 0.85);
     font-size: 14px;
 }
 
 .welcome-card .school-badge span {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.88);
     font-size: 11px;
     font-weight: 500;
 }
@@ -1146,7 +1217,7 @@ body.sidebar-collapsed .main-content {
     top: 50%;
     transform: translateY(-50%);
     font-size: 120px;
-    color: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.05);
     z-index: 0;
     line-height: 1;
 }
@@ -1189,23 +1260,23 @@ body.sidebar-collapsed .main-content {
 }
 
 .summary-card .card-icon.blue {
-    background: rgba(22, 58, 99, 0.1);
-    color: var(--primary);
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--info);
 }
 
 .summary-card .card-icon.gold {
-    background: rgba(240, 144, 0, 0.1);
-    color: var(--gold-dark);
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--success);
 }
 
 .summary-card .card-icon.green {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10B981;
+    background: rgba(0, 70, 128, 0.08);
+    color: var(--primary);
 }
 
 .summary-card .card-icon.purple {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3B82F6;
+    background: rgba(217, 119, 6, 0.1);
+    color: var(--warning);
 }
 
 .summary-card .card-trend {
@@ -1219,13 +1290,13 @@ body.sidebar-collapsed .main-content {
 }
 
 .summary-card .card-trend.up {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10B981;
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--success);
 }
 
 .summary-card .card-trend.down {
-    background: rgba(225, 29, 72, 0.1);
-    color: #E11D48;
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--danger);
 }
 
 .summary-card .card-stat {
@@ -1257,10 +1328,10 @@ body.sidebar-collapsed .main-content {
     transition: width 0.6s ease;
 }
 
-.summary-card .card-progress .progress-bar.blue { background: var(--primary); }
-.summary-card .card-progress .progress-bar.gold { background: var(--gold); }
-.summary-card .card-progress .progress-bar.green { background: #10B981; }
-.summary-card .card-progress .progress-bar.purple { background: #3B82F6; }
+.summary-card .card-progress .progress-bar.blue { background: var(--info); }
+.summary-card .card-progress .progress-bar.gold { background: var(--success); }
+.summary-card .card-progress .progress-bar.green { background: var(--primary); }
+.summary-card .card-progress .progress-bar.purple { background: var(--warning); }
 
 /* ================================================================
    CHARTS SECTION
@@ -1338,12 +1409,12 @@ body.sidebar-collapsed .main-content {
 }
 
 .panel-card .panel-header .panel-icon.gold-bg {
-    background: rgba(240, 144, 0, 0.1);
-    color: var(--gold-dark);
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--success);
 }
 
 .panel-card .panel-header .panel-icon.blue-bg {
-    background: rgba(22, 58, 99, 0.1);
+    background: rgba(0, 70, 128, 0.1);
     color: var(--primary);
 }
 
@@ -1394,7 +1465,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .panel-item .item-title .bi {
-    color: var(--gold);
+    color: var(--primary);
     font-size: 14px;
     margin-top: 2px;
     flex-shrink: 0;
@@ -1426,23 +1497,23 @@ body.sidebar-collapsed .main-content {
 }
 
 .panel-item .item-tag.info {
-    background: rgba(22, 58, 99, 0.1);
-    color: var(--primary);
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--info);
 }
 
 .panel-item .item-tag.warning {
-    background: rgba(240, 144, 0, 0.15);
-    color: var(--gold-dark);
+    background: rgba(217, 119, 6, 0.12);
+    color: var(--warning);
 }
 
 .panel-item .item-tag.success {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10B981;
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--success);
 }
 
 .panel-item .item-tag.danger {
-    background: rgba(225, 29, 72, 0.1);
-    color: #E11D48;
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--danger);
 }
 
 .panel-item .item-desc {
@@ -1497,7 +1568,7 @@ body.sidebar-collapsed .main-content {
     border-color: var(--border-color);
 }
 
-.table tbody tr:hover { background-color: rgba(22, 58, 99, 0.03); }
+.table tbody tr:hover { background-color: rgba(0, 70, 128, 0.03); }
 
 /* ================================================================
    FORMS & BUTTONS
@@ -1513,7 +1584,7 @@ body.sidebar-collapsed .main-content {
     border-radius: 10px;
     border: 1px solid var(--border-color);
     font-size: 13px;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
     padding: 8px 14px;
     transition: var(--transition);
     color: var(--text-dark);
@@ -1529,8 +1600,8 @@ body.sidebar-collapsed .main-content {
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(240, 144, 0, 0.12);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 70, 128, 0.1);
     outline: none;
 }
 
@@ -1547,7 +1618,7 @@ body.sidebar-collapsed .main-content {
     font-size: 13px;
     font-weight: 500;
     padding: 8px 18px;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
     transition: var(--transition);
 }
 
@@ -1561,7 +1632,7 @@ body.sidebar-collapsed .main-content {
 .btn-primary:hover {
     background: var(--primary-dark);
     border-color: var(--primary-dark);
-    box-shadow: 0 4px 12px rgba(22, 58, 99, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 70, 128, 0.25);
 }
 
 .btn-success {
@@ -1572,7 +1643,7 @@ body.sidebar-collapsed .main-content {
 .btn-success:hover {
     background: var(--success);
     border-color: var(--success);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
 }
 
 .btn-danger {
@@ -1583,7 +1654,7 @@ body.sidebar-collapsed .main-content {
 .btn-danger:hover {
     background: var(--danger);
     border-color: var(--danger);
-    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
 }
 
 .btn-warning {
@@ -1596,7 +1667,7 @@ body.sidebar-collapsed .main-content {
     background: var(--warning);
     border-color: var(--warning);
     color: var(--white);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
 }
 
 .btn-info {
@@ -1607,7 +1678,7 @@ body.sidebar-collapsed .main-content {
 .btn-info:hover {
     background: var(--info);
     border-color: var(--info);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .btn-gold {
@@ -1656,19 +1727,19 @@ body.sidebar-collapsed .main-content {
 .bg-info { background-color: var(--info) !important; }
 
 .alert-success {
-    background-color: rgba(16, 185, 129, 0.12);
+    background-color: rgba(5, 150, 105, 0.08);
     color: var(--success);
 }
 .alert-danger {
-    background-color: rgba(225, 29, 72, 0.12);
+    background-color: rgba(220, 38, 38, 0.08);
     color: var(--danger);
 }
 .alert-warning {
-    background-color: rgba(245, 158, 11, 0.15);
+    background-color: rgba(217, 119, 6, 0.08);
     color: var(--warning);
 }
 .alert-info {
-    background-color: rgba(59, 130, 246, 0.12);
+    background-color: rgba(37, 99, 235, 0.08);
     color: var(--info);
 }
 
@@ -1700,14 +1771,14 @@ body.sidebar-collapsed .main-content {
 /* Topbar: pastikan judul panjang tidak terpotong pada layar sedang */
 @media (max-width: 1280px) {
     .topbar {
-        flex-direction: column;
+        flex-direction: row;
         align-items: stretch;
         gap: 12px;
     }
 
     .topbar-left {
         width: 100%;
-        flex-direction: column;
+        flex-direction: row;
         align-items: stretch;
         gap: 10px;
     }
@@ -1749,9 +1820,18 @@ body.sidebar-collapsed .main-content {
         margin-left: 0;
         padding: 16px;
         padding-top: 60px;
+        /* ruang ekstra di bawah agar FAB chatbot tidak menutupi konten */
+        padding-bottom: 88px;
     }
-    
+
+    /* Di layar sangat sempit, sembunyikan teks nama di pill profil
+       (biarkan avatar + chevron) agar topbar tidak sesak / overflow */
+    .topbar-profile .profile-name {
+        display: none !important;
+    }
+
     .topbar {
+        margin-left: 0;
         flex-direction: column;
         gap: 12px;
         padding: 16px;
@@ -1841,14 +1921,14 @@ body.sidebar-collapsed .main-content {
 }
 
 /* ================================================================
-   DESIGN REFINEMENT v3 â€” Modern, rapi & elegan
+   DESIGN REFINEMENT v3 — Modern, rapi & elegan
    Hanya visual; tidak mengubah fungsi.
    ================================================================ */
 
-/* â”€â”€ Grid spacing antar elemen lebih lega (24px) â”€â”€ */
+/* ── Grid spacing antar elemen lebih lega (24px) ── */
 .row.g-3 { --bs-gutter-x: 1.5rem; --bs-gutter-y: 1.5rem; }
 
-/* â”€â”€ Card generik: radius & hover konsisten â”€â”€ */
+/* ── Card generik: radius & hover konsisten ── */
 .card {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -1862,7 +1942,7 @@ body.sidebar-collapsed .main-content {
 }
 .card-body { padding: 22px; }
 
-/* â”€â”€ Welcome card: lebih lega & elegan â”€â”€ */
+/* ── Welcome card: lebih lega & elegan ── */
 .welcome-card {
     border-radius: var(--radius-xl);
     padding: 32px 36px;
@@ -1871,7 +1951,7 @@ body.sidebar-collapsed .main-content {
 .welcome-card .school-badge { border-radius: var(--radius-full); }
 .welcome-card .welcome-badge { border-radius: var(--radius-full); }
 
-/* â”€â”€ Summary (statistik) cards: hover elevate + ikon gradient â”€â”€ */
+/* ── Summary (statistik) cards: hover elevate + ikon konsisten semantic ── */
 .summary-card {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
@@ -1880,21 +1960,17 @@ body.sidebar-collapsed .main-content {
 .summary-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
-    border-color: rgba(22, 58, 99, 0.14);
+    border-color: rgba(0, 70, 128, 0.14);
 }
 .summary-card .card-icon {
     width: 50px;
     height: 50px;
-    border-radius: 50%;
-    box-shadow: 0 6px 14px rgba(13, 37, 64, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(13, 37, 64, 0.06);
 }
-.summary-card .card-icon.blue { background: linear-gradient(135deg, #2C5A8F, #3B82F6); color: #fff; }
-.summary-card .card-icon.gold { background: linear-gradient(135deg, #FFB74D, #F09000); color: #fff; }
-.summary-card .card-icon.green { background: linear-gradient(135deg, #10B981, #10B981); color: #fff; }
-.summary-card .card-icon.purple { background: linear-gradient(135deg, #3B82F6, #3B82F6); color: #fff; }
 .summary-card .card-trend { border-radius: var(--radius-full); padding: 3px 10px; }
 
-/* â”€â”€ Chart & panel cards: konsisten â”€â”€ */
+/* ── Chart & panel cards: konsisten ── */
 .chart-card,
 .panel-card {
     border-radius: var(--radius-lg);
@@ -1912,7 +1988,7 @@ body.sidebar-collapsed .main-content {
 .panel-card .panel-header .panel-icon { border-radius: 10px; }
 .panel-card .panel-body { padding: 10px 22px 18px; }
 
-/* â”€â”€ Sidebar: hover smooth + indikator aksen kiri saat aktif â”€â”€ */
+/* ── Sidebar: hover smooth + indikator aksen kiri saat aktif ── */
 .sidebar .nav-link {
     position: relative;
     border-radius: 12px;
@@ -1928,7 +2004,7 @@ body.sidebar-collapsed .main-content {
     width: 3px;
     height: 22px;
     border-radius: 0 3px 3px 0;
-    background: var(--gold);
+    background: rgba(255, 255, 255, 0.9);
     transition: transform .22s ease;
 }
 .sidebar .nav-link:hover {
@@ -1942,11 +2018,11 @@ body.sidebar-collapsed .main-content {
 }
 .sidebar .nav-link.active::before { transform: translateY(-50%) scaleY(1); }
 .sidebar .nav-link.active i,
-.sidebar .nav-link.active .bi { color: var(--gold); }
+.sidebar .nav-link.active .bi { color: #fff; }
 .sidebar-logo-img { border-radius: 14px; }
-.sidebar-menu::-webkit-scrollbar-thumb { background: rgba(240, 144, 0, 0.25); }
+.sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); }
 
-/* â”€â”€ Topbar: search rounded-full + tombol ikon relevan â”€â”€ */
+/* ── Topbar: search rounded-full + tombol ikon relevan ── */
 .topbar-search {
     border-radius: var(--radius-full);
     box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6), 0 0 0 1px var(--border-color), var(--shadow-sm);
@@ -1962,7 +2038,7 @@ body.sidebar-collapsed .main-content {
 }
 .topbar-profile .profile-placeholder { border-radius: 50%; }
 
-/* â”€â”€ Tabel: header rounded atas mengikuti card, row hover lembut, pemisah tipis â”€â”€ */
+/* ── Tabel: header rounded atas mengikuti card, row hover lembut, pemisah tipis ── */
 .table { border-collapse: separate; border-spacing: 0; }
 .table thead th {
     background-color: var(--primary-dark);
@@ -1978,7 +2054,7 @@ body.sidebar-collapsed .main-content {
 .table tbody tr:hover { background-color: var(--surface-hover); }
 .table tbody tr:last-child td { border-bottom: none; }
 
-/* â”€â”€ Tombol aksi tabel (Lihat/Edit/Hapus): soft pastel, rounded, ikon-only â”€â”€ */
+/* ── Tombol aksi tabel (Lihat/Edit/Hapus): soft pastel, rounded, ikon-only ── */
 .table .btn {
     display: inline-flex;
     align-items: center;
@@ -2000,27 +2076,27 @@ body.sidebar-collapsed .main-content {
     font-size: 13px;
 }
 .table .btn-info {
-    background: rgba(22, 58, 99, 0.08);
-    color: var(--primary);
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--info);
 }
-.table .btn-info:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
+.table .btn-info:hover { background: var(--info); color: #fff; transform: translateY(-2px); }
 .table .btn-warning {
-    background: rgba(240, 144, 0, 0.14);
-    color: var(--gold-dark);
+    background: rgba(217, 119, 6, 0.12);
+    color: var(--warning);
 }
-.table .btn-warning:hover { background: var(--gold); color: #fff; transform: translateY(-2px); }
+.table .btn-warning:hover { background: var(--warning); color: #fff; transform: translateY(-2px); }
 .table .btn-danger {
-    background: rgba(225, 29, 72, 0.10);
-    color: #E11D48;
+    background: rgba(220, 38, 38, 0.10);
+    color: var(--danger);
 }
-.table .btn-danger:hover { background: #E11D48; color: #fff; transform: translateY(-2px); }
+.table .btn-danger:hover { background: var(--danger); color: #fff; transform: translateY(-2px); }
 .table .btn-success {
-    background: rgba(16, 185, 129, 0.12);
-    color: #10B981;
+    background: rgba(5, 150, 105, 0.12);
+    color: var(--success);
 }
-.table .btn-success:hover { background: #10B981; color: #fff; transform: translateY(-2px); }
+.table .btn-success:hover { background: var(--success); color: #fff; transform: translateY(-2px); }
 .table .btn-primary {
-    background: rgba(22, 58, 99, 0.08);
+    background: rgba(0, 70, 128, 0.08);
     color: var(--primary);
 }
 .table .btn-primary:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
@@ -2036,7 +2112,7 @@ body.sidebar-collapsed .main-content {
     white-space: nowrap;
 }
 
-/* â”€â”€ Empty State (tidak ada data) â”€â”€ */
+/* ── Empty State (tidak ada data) ── */
 .empty-state {
     text-align: center;
     color: var(--text-light, #94A3B8);
@@ -2049,20 +2125,20 @@ body.sidebar-collapsed .main-content {
     font-weight: 500;
 }
 
-/* â”€â”€ Badge status lebih lembut & membulat â”€â”€ */
+/* ── Badge status lebih lembut & membulat ── */
 .badge { font-weight: 600; border-radius: var(--radius-full); padding: 0.4em 0.85em; }
 
-/* â”€â”€ Scrollbar halus pada area panel & body â”€â”€ */
+/* ── Scrollbar halus pada area panel & body ── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
-/* â”€â”€ Foto Dropzone (edit guru / siswa) â”€â”€ */
+/* ── Foto Dropzone (edit guru / siswa) ── */
 .foto-dropzone {
     border: 2px dashed var(--primary-light, #2C5A8F);
     border-radius: var(--radius-lg);
-    background: rgba(22, 58, 99, 0.04);
+    background: rgba(0, 70, 128, 0.04);
     cursor: pointer;
     padding: 1rem;
     text-align: center;
@@ -2081,7 +2157,7 @@ body.sidebar-collapsed .main-content {
     object-fit: cover;
     border-radius: var(--radius-full);
     border: 4px solid #fff;
-    box-shadow: 0 4px 14px rgba(22, 58, 99, 0.18);
+    box-shadow: 0 4px 14px rgba(0, 70, 128, 0.18);
 }
 .foto-dropzone .dz-icon {
     position: absolute;
@@ -2090,7 +2166,7 @@ body.sidebar-collapsed .main-content {
     width: 34px;
     height: 34px;
     border-radius: var(--radius-full);
-    background: var(--primary, #163A63);
+    background: var(--primary, #004680);
     color: #fff;
     display: flex;
     align-items: center;
@@ -2101,7 +2177,7 @@ body.sidebar-collapsed .main-content {
 .foto-dropzone .dz-text {
     margin-top: 10px;
     font-weight: 600;
-    color: var(--primary, #163A63);
+    color: var(--primary, #004680);
     font-size: 0.9rem;
 }
 .foto-dropzone .dz-text span {
@@ -2110,7 +2186,7 @@ body.sidebar-collapsed .main-content {
     font-size: 0.8rem;
 }
 
-/* â”€â”€ Grid checkbox mata pelajaran â”€â”€ */
+/* ── Grid checkbox mata pelajaran ── */
 .mapel-checkbox-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -2148,15 +2224,15 @@ body.sidebar-collapsed .main-content {
 }
 .mapel-checkbox .mapel-name {
     font-weight: 600;
-    color: var(--primary, #163A63);
+    color: var(--primary, #004680);
     font-size: 0.9rem;
 }
 .mapel-checkbox input:checked + .mapel-check {
-    background: var(--primary, #163A63);
-    border-color: var(--primary, #163A63);
+    background: var(--primary, #004680);
+    border-color: var(--primary, #004680);
     color: #fff;
 }
-.mapel-checkbox input:checked ~ .mapel-name { color: var(--primary-dark, #0D2540); }
+.mapel-checkbox input:checked ~ .mapel-name { color: var(--primary-dark, #00345F); }
 .mapel-checkbox:has(input:checked) {
     border-color: var(--gold, #F09000);
     background: rgba(240, 144, 0, 0.06);
@@ -2164,7 +2240,7 @@ body.sidebar-collapsed .main-content {
 }
 
 /* ================================================================
-   DATATABLES â€” Modern Styling
+   DATATABLES — Modern Styling
    ================================================================ */
 .card-body .dataTable_wrapper .row {
     align-items: center;
@@ -2178,8 +2254,8 @@ body.sidebar-collapsed .main-content {
 }
 
 .dataTables_filter input.form-control:focus {
-    border-color: var(--gold, #F09000);
-    box-shadow: 0 0 0 0.2rem rgba(240, 144, 0, 0.12);
+    border-color: var(--primary, #004680);
+    box-shadow: 0 0 0 0.2rem rgba(0, 70, 128, 0.12);
 }
 
 .dataTables_length select.form-select {
@@ -2216,7 +2292,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .table.dataTable thead th {
-    background: var(--primary, #163A63);
+    background: var(--primary, #004680);
     color: #fff;
     font-size: 12px;
     font-weight: 600;
@@ -2248,13 +2324,13 @@ body.sidebar-collapsed .main-content {
 }
 
 .table.dataTable tbody tr:hover td {
-    background: rgba(22, 58, 99, 0.035);
+    background: rgba(0, 70, 128, 0.035);
 }
 
 .pagination .page-link {
     border-radius: 10px;
     margin: 0 3px;
-    color: var(--primary, #163A63);
+    color: var(--primary, #004680);
     border: 1px solid var(--border-color, #E2E8F0);
     font-size: 13px;
     min-width: 36px;
@@ -2262,14 +2338,14 @@ body.sidebar-collapsed .main-content {
 }
 
 .pagination .page-link:hover {
-    background: rgba(240, 144, 0, 0.1);
-    color: var(--gold, #F09000);
-    border-color: rgba(240, 144, 0, 0.3);
+    background: rgba(0, 70, 128, 0.08);
+    color: var(--primary);
+    border-color: rgba(0, 70, 128, 0.2);
 }
 
 .pagination .active > .page-link {
-    background: var(--primary, #163A63);
-    border-color: var(--primary, #163A63);
+    background: var(--primary, #004680);
+    border-color: var(--primary, #004680);
     color: #fff;
     font-weight: 600;
 }
@@ -2335,13 +2411,1900 @@ body.sidebar-collapsed .main-content {
 }
 
 /* Warna ikon per jenis stat */
-.stat-card.bg-blue   { border-left: 4px solid var(--primary, #163A63); }
-.stat-card.bg-blue .stat-icon   { background: rgba(22, 58, 99, 0.10);  color: var(--primary, #163A63); }
-.stat-card.bg-green  { border-left: 4px solid var(--success, #10B981); }
-.stat-card.bg-green .stat-icon  { background: rgba(16, 185, 129, 0.12); color: var(--success, #10B981); }
-.stat-card.bg-orange { border-left: 4px solid var(--gold, #F09000); }
-.stat-card.bg-orange .stat-icon { background: rgba(240, 144, 0, 0.12); color: var(--gold, #F09000); }
-.stat-card.bg-red    { border-left: 4px solid var(--danger, #E11D48); }
-.stat-card.bg-red .stat-icon    { background: rgba(225, 29, 72, 0.10);  color: var(--danger, #E11D48); }
+.stat-card.bg-blue   { border-left: 4px solid var(--info, #2563EB); }
+.stat-card.bg-blue .stat-icon   { background: rgba(37, 99, 235, 0.10);  color: var(--info, #2563EB); }
+.stat-card.bg-green  { border-left: 4px solid var(--success, #059669); }
+.stat-card.bg-green .stat-icon  { background: rgba(5, 150, 105, 0.12); color: var(--success, #059669); }
+.stat-card.bg-orange { border-left: 4px solid var(--warning, #D97706); }
+.stat-card.bg-orange .stat-icon { background: rgba(217, 119, 6, 0.12); color: var(--warning, #D97706); }
+.stat-card.bg-red    { border-left: 4px solid var(--danger, #DC2626); }
+.stat-card.bg-red .stat-icon    { background: rgba(220, 38, 38, 0.10);  color: var(--danger, #DC2626); }
 
+/* ================================================================
+   MODERN SIDEBAR (UI.MD) — gradient bg, active indicator, section labels
+   ================================================================ */
+.sidebar-modern {
+    background: var(--sidebar-bg-gradient);
+    border-right: var(--sidebar-border);
+}
 
+.sidebar-header-modern {
+    border-bottom: var(--sidebar-border);
+    padding-bottom: 14px;
+    margin-bottom: 0;
+}
+
+.sidebar-logo-text-modern h5 {
+    color: var(--white);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+}
+
+.sidebar-logo-text-modern small {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-user-modern {
+    border-bottom: var(--sidebar-border);
+    padding-bottom: 14px;
+    margin-bottom: 0;
+}
+
+.sidebar-user-avatar-placeholder {
+    background: rgba(255, 255, 255, 0.16);
+    color: var(--white);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.28);
+}
+
+.user-name {
+    color: var(--white);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.user-role {
+    color: rgba(255, 255, 255, 0.62);
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-section-label {
+    color: var(--sidebar-section-label);
+    font-family: 'Roboto', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 10px 16px 6px;
+}
+
+.sidebar-nav-link {
+    padding: 10px 16px 10px 20px;
+    margin: 2px 14px 2px 6px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.78);
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    position: relative;
+    transition: var(--transition);
+}
+
+.sidebar-nav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    padding-left: 24px;
+}
+
+.sidebar-nav-link.active {
+    background: var(--sidebar-active-bg);
+    color: var(--white);
+    font-weight: 600;
+    border-left: 3px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.sidebar-nav-link i {
+    width: 20px;
+    min-width: 20px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 10px;
+    text-align: center;
+}
+
+.sidebar-nav-link.active i {
+    color: var(--white);
+}
+
+.sidebar-nav-link .badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    margin-left: 6px;
+}
+
+.sidebar-logout-modern {
+    margin-top: auto;
+    border-top: var(--sidebar-border);
+    padding-top: 12px;
+    padding-bottom: 16px;
+}
+
+.sidebar-logout-modern .sidebar-nav-link {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.sidebar-logout-modern .sidebar-nav-link:hover {
+    color: #FF8A8A;
+    background: rgba(220, 38, 38, 0.16);
+}
+
+/* ================================================================
+   MODERN TOPBAR (UI.MD)
+   ================================================================ */
+.topbar {
+    background: var(--topbar-bg);
+    box-shadow: var(--topbar-shadow);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.topbar-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.topbar-search i {
+    position: absolute;
+    left: 10px;
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.topbar-search input {
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-soft);
+    padding: 6px 34px 6px 34px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    transition: var(--transition);
+    outline: none;
+}
+
+.topbar-search input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 70, 128, 0.12);
+    background: var(--white);
+}
+
+.topbar-icon-btn,
+#sidebarCollapseBtn {
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+    transition: var(--transition);
+    padding: 0;
+}
+
+.topbar-icon-btn:hover,
+#sidebarCollapseBtn:hover {
+    background: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
+#sidebarCollapseBtn {
+    background: var(--white);
+    color: var(--primary);
+    border-color: var(--border-color);
+}
+
+#sidebarCollapseBtn:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.topbar-title {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--text-dark);
+    margin-bottom: 0;
+    letter-spacing: 0.3px;
+}
+
+.topbar-profile {
+    cursor: pointer;
+    align-items: center;
+}
+
+.profile-placeholder {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-full);
+    background: var(--gradient-blue);
+    color: var(--white);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.profile-name {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-dark);
+    margin-left: 8px;
+}
+
+/* Dropdown profil modern */
+.topbar-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    min-width: 180px;
+    padding: 6px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 1050;
+}
+
+.topbar-profile:hover .topbar-dropdown,
+.topbar-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    color: var(--text-dark);
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    border-radius: 6px;
+    margin: 0 6px;
+    transition: var(--transition);
+    border-left: 2px solid transparent;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-page);
+    color: var(--primary);
+    border-left-color: var(--primary);
+}
+
+.dropdown-item i {
+    margin-right: 8px;
+    font-size: 14px;
+    min-width: 18px;
+}
+
+.dropdown-divider {
+    border: 0;
+    border-top: 1px solid var(--border-color);
+    margin: 6px 0;
+    color: rgba(226, 232, 240, 0.65);
+    font-size: 13px;
+}
+
+/* ================================================================
+   UI REFINEMENT PASS (UI.MD) — Modern Academic Enterprise
+   Hanya visual; tidak mengubah fungsi.
+   ================================================================ */
+
+/* ── Typography hierarchy ── */
+.page-header h4 {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: 0.2px;
+    margin-bottom: 2px;
+}
+
+.page-header {
+    padding-top: 4px;
+}
+
+.card-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.card-header h5,
+.card-header h6 {
+    margin: 0;
+    font-weight: 600;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-dark);
+}
+
+/* ── Focus state (accessibility) ── */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    outline: 2px solid var(--info);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.sidebar .nav-link:focus-visible {
+    outline-color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Modal modern ── */
+.modal-content {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 60px rgba(13, 37, 64, 0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 22px;
+}
+
+.modal-header .modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.modal-body {
+    padding: 22px;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 14px 22px;
+}
+
+.modal-backdrop.show {
+    background: rgba(13, 37, 64, 0.5);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+/* ── Dropdown Bootstrap modern ── */
+.dropdown-menu {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    font-size: 13px;
+}
+
+.dropdown-menu .dropdown-item {
+    border-radius: 8px;
+    margin: 0;
+}
+
+/* ── Navbar / tabs / nav-pills di dalam konten ── */
+.nav-pills .nav-link {
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 8px 16px;
+    transition: var(--transition);
+}
+
+.nav-pills .nav-link.active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: transparent;
+}
+
+/* ── Progress & list group ── */
+.progress {
+    background: var(--bg-page);
+    border-radius: var(--radius-full);
+    height: 8px;
+}
+
+.progress-bar {
+    background: var(--primary);
+    border-radius: var(--radius-full);
+}
+
+.list-group-item {
+    border-color: var(--border-color);
+    font-size: 13px;
+    padding: 12px 16px;
+}
+
+/* ── Empty state halus ── */
+.empty-state {
+    padding: 32px 16px;
+}
+
+.empty-state i {
+    font-size: 40px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* ── Form check modern ── */
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* ── Responsive refinement halus ── */
+@media (max-width: 767.98px) {
+    .page-header h4 {
+        font-size: 17px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .modal-body {
+        padding: 16px;
+    }
+
+    .topbar {
+        padding: 12px 16px;
+    }
+
+    .main-content {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar-title {
+        font-size: 13px;
+    }
+
+    .topbar-profile .profile-name {
+        display: none !important;
+    }
+
+    .topbar-profile .bi-chevron-down {
+        display: none;
+    }
+
+    .summary-card {
+        padding: 18px 18px;
+    }
+
+    .stat-card {
+        padding: 18px 16px;
+        gap: 12px;
+    }
+
+    .stat-card .stat-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 20px;
+    }
+
+    .stat-card h3 {
+        font-size: 21px;
+    }
+
+    .card-header {
+        padding: 14px 16px;
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+}
+
+/* ── Prevent horizontal scroll dari konten lebar ── */
+.main-content,
+.card,
+.table-responsive,
+.modal {
+    max-width: 100%;
+}
+
+/* ================================================================
+   TOPBAR REFINEMENT PASS v2 (TOPBAR.MD) — Navy Topbar & Geometric Luxury
+   - Primary: #004680 (palet diperbarui di :root)
+   - Topbar NAVY #004680 (bukan putih) di semua role
+   - Motif geometric luxury TERLIHAT (8-15%, bukan dots/garis polos)
+   - Kontrol topbar translucent (tanpa tombol putih solid)
+   - Hanya visual; tidak mengubah struktur HTML & fungsionalitas.
+   ================================================================ */
+
+:root {
+    --motif-quatrefoil: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='72'%20height='72'%20viewBox='0%200%2072%2072'%3E%3Cg%20fill='none'%20stroke='%23ffffff'%20stroke-width='1.5'%3E%3Ccircle%20cx='36'%20cy='36'%20r='13'/%3E%3Ccircle%20cx='36'%20cy='15'%20r='8'/%3E%3Ccircle%20cx='36'%20cy='57'%20r='8'/%3E%3Ccircle%20cx='15'%20cy='36'%20r='8'/%3E%3Ccircle%20cx='57'%20cy='36'%20r='8'/%3E%3Crect%20x='30.5'%20y='30.5'%20width='11'%20height='11'%20transform='rotate(45%2036%2036)'/%3E%3C/g%3E%3C/svg%3E");
+    --motif-diamond-lattice: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='96'%20height='96'%20viewBox='0%200%2096%2096'%3E%3Cg%20fill='none'%20stroke='%23ffffff'%20stroke-width='1'%3E%3Cpath%20d='M48%208%20L88%2048%20L48%2088%20L8%2048%20Z'/%3E%3Cpath%20d='M48%2026%20L70%2048%20L48%2070%20L26%2048%20Z'/%3E%3Ccircle%20cx='48'%20cy='48'%20r='2.5'/%3E%3Cpath%20d='M0%200%20L10%200%20L5%205%20Z%20M96%200%20L86%200%20L91%205%20Z%20M0%2096%20L10%2096%20L5%2091%20Z%20M96%2096%20L86%2096%20L91%2091%20Z'/%3E%3C/g%3E%3C/svg%3E");
+    --topbar-control-bg: rgba(255, 255, 255, 0.12);
+    --topbar-control-border: rgba(255, 255, 255, 0.28);
+    --topbar-text-soft: rgba(255, 255, 255, 0.75);
+    --topbar-border: rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- Sidebar: solid #004680 + motif luxury premium kanan-bawah ---------- */
+.sidebar {
+    background: var(--sidebar-navy);
+    background-image: none;
+    background-size: auto;
+}
+
+/* Ornamen luxury premium kanan-bawah:
+   sunburst garis hairline + lattice diamond + cincin konsentris halus + glow emas lembut */
+.sidebar::after {
+    content: '';
+    position: absolute;
+    right: -70px;
+    bottom: -70px;
+    width: 420px;
+    height: 420px;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+    opacity: 0.55;
+    background-image:
+        radial-gradient(circle at 50% 50%, rgba(240, 144, 0, 0.08) 0%, transparent 62%),
+        radial-gradient(circle at 50% 50%, rgba(0, 130, 220, 0.14) 0%, transparent 70%),
+        repeating-conic-gradient(from 208deg at 50% 50%, transparent 0deg 5deg, rgba(255, 255, 255, 0.045) 5deg 6deg),
+        var(--motif-diamond-lattice),
+        radial-gradient(circle, transparent 30%, rgba(255, 255, 255, 0.30) 30.5%, transparent 32%, transparent 46%, rgba(255, 255, 255, 0.20) 46.5%, transparent 48%, transparent 62%, rgba(255, 255, 255, 0.10) 62.5%, transparent 64%);
+    background-size: auto, auto, auto, 112px 112px, auto;
+    -webkit-mask-image: linear-gradient(135deg, transparent 30%, #000 68%);
+    mask-image: linear-gradient(135deg, transparent 30%, #000 68%);
+}
+
+/* ---------- Topbar NAVY #004680 ---------- */
+.topbar {
+    background: var(--topbar-bg);
+    color: var(--white);
+    border-bottom: 1px solid var(--topbar-border);
+    box-shadow: var(--topbar-shadow);
+    /* Rapat permanen ke atas (fixed, bukan sticky) di SEMUA halaman */
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    margin: 0;
+    z-index: 100;
+}
+
+/* Topbar ikut menyesuaikan saat sidebar collapsed */
+body.sidebar-collapsed .topbar {
+    left: var(--sidebar-collapsed-width);
+}
+
+/* Konten tidak tertutup topbar fixed */
+.main-content {
+    padding-top: 88px;
+}
+
+/* Motif geometric halus di sisi kanan topbar */
+.topbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.10;
+    background-image: var(--motif-quatrefoil);
+    background-size: 64px 64px;
+    -webkit-mask-image: linear-gradient(to left, #000 20%, transparent 90%);
+    mask-image: linear-gradient(to left, #000 20%, transparent 90%);
+}
+
+/* Glow aksen kanan-atas topbar */
+.topbar::after {
+    content: '';
+    position: absolute;
+    top: -70px;
+    right: -60px;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle, rgba(0, 140, 235, 0.30) 0%, transparent 60%);
+}
+
+.topbar > * {
+    position: relative;
+    z-index: 1;
+}
+
+.topbar-left {
+    min-width: 0;
+    gap: 12px;
+}
+
+.topbar-left .topbar-title {
+    color: var(--white);
+    font-weight: 600;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------- Kolom pencarian topbar ---------- */
+.topbar-search {
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex: 1 1 300px;
+    max-width: 420px;
+    min-width: 0;
+}
+
+.topbar-search .bi-search {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--topbar-text-soft);
+    font-size: 15px;
+    line-height: 1;
+    z-index: 1;
+}
+
+.topbar-search input {
+    width: 100%;
+    height: 38px;
+    padding: 0 14px 0 40px;
+    border-radius: var(--radius-full);
+    background: var(--topbar-control-bg);
+    border-color: var(--topbar-control-border);
+    color: var(--white);
+    font-size: 13px;
+    font-family: 'Roboto', sans-serif;
+    outline: none;
+}
+
+.topbar-search input::placeholder {
+    color: rgba(255, 255, 255, 0.70);
+    font-size: 12px;
+}
+
+.topbar-search input:focus {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+}
+
+/* Panel hasil pencarian tetap putih, rata atas kolom */
+.topbar-search .search-results {
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 14px 14px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1200;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 6px;
+    display: none;
+}
+
+/* Tombol kontrol translucent (tanpa putih solid) */
+.topbar-icon-btn,
+#sidebarCollapseBtn {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-full);
+    background: var(--topbar-control-bg);
+    border-color: var(--topbar-control-border);
+    color: var(--white);
+}
+
+.topbar-icon-btn:hover,
+#sidebarCollapseBtn:hover {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--white);
+}
+
+#sidebarCollapseBtn {
+    background: var(--topbar-control-bg);
+    border-color: var(--topbar-control-border);
+    color: var(--white);
+}
+
+#sidebarCollapseBtn:hover {
+    background: rgba(255, 255, 255, 0.24);
+    color: var(--white);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.topbar-icon-btn .badge-notif {
+    border-color: var(--primary);
+}
+
+/* Profil translucent */
+.topbar-profile {
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.10);
+    border-color: var(--topbar-control-border);
+}
+
+.topbar-profile:hover {
+    background: rgba(255, 255, 255, 0.20);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.topbar-profile .profile-name {
+    color: var(--white);
+}
+
+.topbar-profile .bi-chevron-down {
+    color: var(--topbar-text-soft);
+}
+
+.topbar-profile .profile-placeholder {
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--white);
+}
+
+/* Hamburger mobile: satu set dengan kontrol topbar (pill, translucent) */
+.sidebar-toggle {
+    background: var(--topbar-control-bg);
+    border: 1px solid var(--topbar-control-border);
+    color: var(--white);
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--white);
+}
+
+/* Hover/highlight di dropdown putih: ikut primary baru */
+.topbar-search .search-result-item:hover,
+.siswa-search .siswa-search-item:hover {
+    background: rgba(0, 70, 128, 0.06);
+    color: var(--primary);
+}
+
+/* ---------- Welcome banner: solid #004680, TANPA motif (keputusan user) ---------- */
+.welcome-card {
+    background: var(--primary);
+    background-image: none;
+}
+
+.welcome-card::before,
+.welcome-card::after {
+    display: none;
+}
+
+.welcome-card .welcome-decoration {
+    color: rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- Responsive: motif & kontrol menyesuaikan ---------- */
+@media (max-width: 1280px) {
+    .topbar-search {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .main-content {
+        padding-top: 170px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .topbar::before {
+        width: 200px;
+    }
+
+    .topbar::after {
+        opacity: 0.6;
+    }
+
+    .topbar {
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .main-content {
+        padding-top: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar::before {
+        display: none;
+    }
+}
+
+/* ================================================================
+   HEADER TABEL = WARNA TOPBAR #004680 (keputusan user 2026-08-11)
+   Hanya mengubah warna baris kepala tabel (thead). Sisanya tetap.
+   ================================================================ */
+.table thead th,
+.table thead.table-dark th,
+.table thead.thead-dark th,
+.table.dataTable thead th,
+.table.dataTable thead.table-dark th {
+    background-color: var(--primary) !important;
+    --bs-table-bg: var(--primary);
+    --bs-table-color: #fff;
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.table thead th:first-child {
+    border-top-left-radius: 14px;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 14px;
+}
+
+:root {
+    --sidebar-width: 250px;
+    --topbar-height: 72px;
+    --topbar-pad-top: calc(var(--topbar-height) + 16px);
+}
+
+/* Collapsed = ganti satu variabel; sidebar/topbar/content ikut otomatis */
+body.sidebar-collapsed {
+    --sidebar-width: var(--sidebar-collapsed-width, 80px);
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    width: var(--sidebar-width);
+}
+
+/* ---------- Topbar: rapat atas, satu baris sejajar ---------- */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    margin: 0;
+    z-index: 100;
+    height: var(--topbar-height);
+    min-height: var(--topbar-height);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    border-radius: 0;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: visible;
+}
+
+.topbar-left {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.topbar-left .topbar-title {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: auto;
+    text-align: left;
+    margin: 0;
+    font-size: 14px;
+}
+
+.topbar-search {
+    flex: 1 1 300px;
+    max-width: 420px;
+    min-width: 220px;
+    width: auto;
+}
+
+.topbar-right {
+    flex-shrink: 0;
+    width: auto;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+}
+
+.topbar-profile {
+    max-width: 240px;
+}
+
+.topbar-profile .profile-name {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#sidebarCollapseBtn {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* Motif topbar = dekorasi murni; digeser menjauh dari cluster profile */
+.topbar::before {
+    right: 380px;
+    width: 240px;
+    opacity: 0.08;
+}
+
+/* ---------- Content ---------- */
+.main-content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    max-width: calc(100% - var(--sidebar-width));
+    padding-top: var(--topbar-pad-top);
+}
+
+/* Icon konten di atas background putih = biru tua (bukan gold) */
+.text-icon {
+    color: var(--primary) !important;
+}
+
+body.sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    padding-top: var(--topbar-pad-top);
+}
+
+body.sidebar-collapsed .topbar {
+    left: var(--sidebar-width);
+}
+
+/* Transisi halus saat collapsed/expanded */
+.topbar,
+.main-content {
+    transition: margin-left 0.3s ease, left 0.3s ease, width 0.3s ease;
+}
+
+/* ---------- Desktop sedang / tablet: tetap satu baris ---------- */
+@media (max-width: 1280px) {
+    .topbar {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        height: var(--topbar-height);
+        padding: 0 14px;
+    }
+
+    .topbar-left {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        width: auto;
+    }
+
+    .topbar-left .topbar-title {
+        width: auto;
+        font-size: 13px;
+    }
+
+    .topbar-search {
+        flex: 1 1 240px;
+        max-width: 340px;
+        min-width: 160px;
+        width: auto;
+    }
+
+    .topbar-right {
+        width: auto;
+        gap: 8px;
+    }
+
+    .main-content {
+        padding-top: var(--topbar-pad-top);
+    }
+}
+
+/* ---------- Mobile: drawer + stacking (desain lama dipertahankan) ---------- */
+@media (max-width: 767.98px) {
+    .topbar {
+        left: 0;
+        right: 0;
+        height: auto;
+        min-height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+
+    .topbar-left {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+        /* ruang untuk tombol hamburger floating (.sidebar-toggle) */
+        padding-left: 56px;
+    }
+
+    /* Satu hamburger saja di mobile: pakai tombol floating .sidebar-toggle;
+       tombol collapse di dalam topbar disembunyikan agar tidak tumpang tindih
+       (double circle/ring effect) */
+    #sidebarCollapseBtn {
+        display: none;
+    }
+
+    .topbar-left .topbar-title {
+        white-space: normal;
+        text-align: left;
+    }
+
+    .topbar-search {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .topbar-right {
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        padding-top: 150px;
+    }
+
+    body.sidebar-collapsed .main-content,
+    body.sidebar-collapsed .topbar {
+        margin-left: 0;
+        left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar-left .topbar-title {
+        display: none;
+    }
+}
+
+/* ================================================================
+   DROPDOWN NOTIFIKASI MOBILE (BUG.MD) - full-width + backdrop
+   Muncul rapi di bawah topbar, tidak lagi menyamping keluar viewport
+   ================================================================ */
+@media (max-width: 767.98px) {
+    /* Backdrop semi-transparan (dibuat & dihapus via JS saat dropdown terbuka).
+       z-index 50: di atas konten halaman (z auto/0) tapi DI BAWAH topbar
+       (z-index 100). Topbar adalah stacking context — dropdown di dalamnya
+       (z 1300) TIDAK bisa mengalahkan elemen di body; jika backdrop lebih
+       tinggi dari topbar, kartu notifikasi akan tertutup lapisan blur/dark. */
+    .notif-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(13, 37, 64, 0.45);
+        z-index: 50;
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+
+    /* Dropdown notifikasi full-width dengan margin kiri-kanan konsisten */
+    .notif-dropdown {
+        display: none;
+        position: fixed;
+        top: 122px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        max-height: calc(100vh - 134px);
+        z-index: 1300;
+        flex-direction: column;
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+    }
+
+    .notif-dropdown.show {
+        display: flex;
+    }
+
+    /* List scroll di dalam dropdown, tidak memanjang keluar layar */
+    .notif-list {
+        flex: 1 1 auto;
+        max-height: none;
+    }
+
+    /* Tombol "Tandai semua dibaca" tetap utuh saat judul panjang */
+    .notif-header {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+}
+
+/* ================================================================
+   TABEL RESPONSIF MOBILE (BUG.MD) - indikator scroll + sticky kolom
+   Berlaku konsisten untuk semua tabel di role Guru/Siswa (dan Admin)
+   ================================================================ */
+
+/* Scrollbar horizontal tabel: lebih tebal & kontras (tema navy) agar
+   user sadar tabel bisa digeser. Firefox: scrollbar-color; WebKit:
+   ::-webkit-scrollbar di bawah. */
+.table-responsive {
+    scrollbar-width: auto;
+    scrollbar-color: var(--primary) rgba(0, 70, 128, 0.08);
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 70, 128, 0.08);
+    border-radius: 999px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+@media (max-width: 767.98px) {
+    /* Indikator geser di sisi kanan - muncul saat tabel overflow,
+       memudar setelah discroll sampai ujung kanan (class .has-overflow
+       & .scrolled-end ditambahkan otomatis via JS) — aturan global di
+       bawah (posisi wrapper, gradien, sticky kolom pertama) berlaku
+       untuk SEMUA ukuran layar, tidak hanya mobile. */
+    /* Padding sel lebih ringkas di layar kecil */
+    .main-content .table th,
+    .main-content .table td {
+        padding: 8px 10px;
+    }
+
+    /* Kontrol DataTables (Cari / Tampilkan X entri) full-width & touch-friendly */
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_length {
+        float: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+        min-height: 40px;
+        margin-left: 0;
+    }
+
+    .dataTables_wrapper .dataTables_length {
+        margin-bottom: 10px;
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+        min-height: 38px;
+        padding: 6px 30px 6px 10px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        margin-top: 10px;
+    }
+}
+
+/* Wrapper tabel. Penanda geser di sisi kanan DIHAPUS atas permintaan
+   user — tidak ada lagi band warna/gradasi di tepi kanan tabel.
+   Kolom tetap solid seragam, tanpa transparency/glow/shadow/overlay. */
+.table-responsive {
+    position: relative;
+}
+
+/* Kolom pertama (No/NIS/Nama) tetap terlihat saat scroll ke kanan —
+   berlaku SEMUA ukuran layar. Latar solid seragam, tanpa shadow/glow. */
+.main-content .table thead th:first-child,
+.main-content .table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: var(--white);
+    background-image: none;
+}
+
+.main-content .table tbody td:first-child {
+    background-color: var(--white);
+    background-image: none;
+}
+
+.main-content .table thead th:first-child {
+    background-color: var(--primary);
+    background-image: none;
+    z-index: 3;
+}
+/* ================================================================
+   CHAT INTERNAL (OPENCODE.md 21-42) - Internal Academic Messaging
+   Panel percakapan kiri + chat detail kanan, tema SIAKAD.
+   ================================================================ */
+.topbar-icon-btn {
+    text-decoration: none;
+}
+
+.chat-app {
+    display: flex;
+    height: calc(100vh - 140px);
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* ---- Panel kiri: daftar percakapan ---- */
+.chat-side {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    background: var(--white);
+}
+
+.chat-side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 14px 14px 6px;
+}
+
+.chat-back-home {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--bg-page);
+    color: var(--primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.chat-back-home:hover {
+    background: rgba(0, 70, 128, .12);
+}
+
+.chat-side-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.chat-side-search {
+    position: relative;
+    padding: 10px 14px 6px;
+}
+
+.chat-side-search > i {
+    position: absolute;
+    left: 26px;
+    top: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.chat-side-search input {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px 0 34px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: var(--bg-page);
+    font-size: 13px;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.chat-side-search input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 70, 128, .12);
+    background: var(--white);
+}
+
+.chat-conv-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    max-height: calc(100vh - 290px);
+}
+
+.conv-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background .2s, border-color .2s;
+}
+
+.conv-item:hover {
+    background: var(--bg-page);
+}
+
+.conv-item.active {
+    background: rgba(0, 70, 128, .07);
+    border-color: rgba(0, 70, 128, .25);
+}
+
+.conv-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.conv-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.conv-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conv-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.conv-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 3px;
+}
+
+.conv-preview {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conv-role {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--text-muted);
+}
+
+.conv-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+}
+
+.conv-unread {
+    background: var(--primary);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 7px;
+    line-height: 1;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ---- Panel kanan: detail chat ---- */
+.chat-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+}
+
+.chat-main-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--white);
+}
+
+.chat-mitra {
+    min-width: 0;
+}
+
+.chat-mitra-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-mitra-role {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.chat-back-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--bg-page);
+    color: var(--primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.chat-back-btn:hover {
+    background: rgba(0, 70, 128, .12);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 16px;
+    background: var(--white);
+}
+
+/* Pemisah tanggal antar pesan (Hari ini / Kemarin / dd Bulan yyyy) */
+.chat-date-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px 0 8px;
+}
+
+.chat-date-sep-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-page);
+    padding: 3px 12px;
+    border-radius: var(--radius-full);
+    letter-spacing: .3px;
+}
+
+/* Tombol muat pesan lebih lama (paginasi) */
+.chat-load-older {
+    display: block;
+    width: 100%;
+    margin: 8px 0 12px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: var(--white);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.chat-load-older:hover { background: var(--bg-page); }
+.chat-load-older:disabled { opacity: .6; cursor: default; }
+
+/* Pesan dihapus (soft delete) */
+.msg-deleted-row { justify-content: center; }
+.msg-deleted {
+    text-align: center;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-muted);
+    background: var(--bg-page);
+    padding: 6px 14px;
+    border-radius: 12px;
+}
+
+/* Tombol hapus pada bubble pesan milik sendiri.
+   Diletakkan di gutter kiri bubble (sibling), bukan menimpa teks. */
+.msg-del-btn {
+    flex: 0 0 auto;
+    order: -1; /* sebelum bubble (gutter kiri) */
+    align-self: center;
+    width: 30px;
+    height: 30px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(13, 37, 64, .12));
+    transition: background .18s ease, color .18s ease, border-color .18s ease, transform .12s ease;
+}
+
+.msg-row.mine:hover .msg-del-btn,
+.msg-row.mine:focus-within .msg-del-btn {
+    display: inline-flex;
+}
+
+/* Perangkat sentuh: tombol selalu tampil (tidak ada hover) */
+@media (hover: none) and (pointer: coarse) {
+    .msg-row.mine .msg-del-btn { display: inline-flex; }
+}
+
+.msg-del-btn:hover {
+    background: rgba(220, 38, 38, .1);
+    color: var(--danger);
+    border-color: rgba(220, 38, 38, .35);
+}
+
+.msg-del-btn:active { transform: scale(.92); }
+
+.msg-bubble { position: relative; }
+
+.chat-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 24px;
+}
+
+.chat-empty i {
+    font-size: 42px;
+    margin-bottom: 12px;
+    color: var(--border-color);
+}
+
+.chat-empty h6 {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 4px;
+}
+
+.chat-empty p {
+    font-size: 13px;
+    margin: 0;
+    max-width: 300px;
+}
+
+.chat-empty-conv {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 32px 16px;
+}
+
+.chat-empty-conv i {
+    font-size: 30px;
+    margin-bottom: 10px;
+    color: var(--border-color);
+}
+
+.chat-empty-conv span {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.chat-empty-conv small {
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 260px;
+    margin-top: 4px;
+}
+
+.msg-row {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.msg-row.mine {
+    justify-content: flex-end;
+}
+
+.msg-bubble {
+    max-width: 72%;
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.msg-row.mine .msg-bubble {
+    background: var(--primary);
+    color: var(--white);
+    border-bottom-right-radius: 6px;
+}
+
+.msg-row.theirs .msg-bubble {
+    background: var(--bg-page);
+    color: var(--text-dark);
+    border-bottom-left-radius: 6px;
+}
+
+.msg-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 3px;
+}
+
+.msg-row.mine .msg-meta {
+    justify-content: flex-end;
+    margin-top: 4px;
+    gap: 10px;
+}
+
+.msg-row.mine .msg-time {
+    color: rgba(255, 255, 255, .82);
+}
+
+.msg-row.mine .msg-status {
+    color: rgba(255, 255, 255, .95);
+}
+
+.msg-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.msg-status {
+    font-size: 10px;
+    color: rgba(0, 70, 128, .75);
+}
+
+/* ---- Input pesan ---- */
+.chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border-color);
+    background: var(--white);
+}
+
+.chat-input-bar .chat-input {
+    flex: 1;
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: var(--bg-page);
+    font-size: 14px;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.chat-input-bar .chat-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 70, 128, .12);
+    background: var(--white);
+}
+
+.chat-input-bar .chat-input:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+}
+
+.chat-input-bar .chat-send-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    color: var(--white);
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s, opacity .2s;
+}
+
+.chat-input-bar .chat-send-btn:hover:not(:disabled) {
+    background: var(--primary-dark);
+}
+
+.chat-input-bar .chat-send-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* ---- Modal Pesan Baru ---- */
+.chat-new-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+}
+
+.chat-new-search {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.chat-new-search > i {
+    position: absolute;
+    left: 14px;
+    top: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.chat-new-search .form-control {
+    height: 42px;
+    padding-left: 38px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.chat-user-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.chat-user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.chat-user-row:hover {
+    background: var(--bg-page);
+}
+
+.chat-user-row .conv-name {
+    display: block;
+}
+
+/* Responsive: mobile list->detail */
+@media (max-width: 767.98px) {
+    .chat-app {
+        height: calc(100vh - 162px);
+    }
+
+    .chat-side {
+        width: 100%;
+        border-right: none;
+    }
+
+    .chat-main {
+        display: none;
+    }
+
+    .chat-app.chat-view-detail .chat-side {
+        display: none;
+    }
+
+    .chat-app.chat-view-detail .chat-main {
+        display: flex;
+    }
+
+    .chat-back-btn {
+        display: inline-flex;
+    }
+
+    .chat-conv-list {
+        max-height: none;
+    }
+
+.msg-bubble {
+        max-width: 85%;
+    }
+}
+
+/* Halaman chat: naikkan FAB chatbot agar tidak menutupi tombol kirim pesan */
+body.siakad-chat-page .chatbot-fab {
+    bottom: 110px;
+}

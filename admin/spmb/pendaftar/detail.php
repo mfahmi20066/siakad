@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../../config/koneksi.php';
 include '../../../config/session.php';
 cekAdmin();
@@ -40,12 +40,12 @@ $status_config = [
 ?>
 <?php include '../../../includes/header.php'; ?>
 <?php include '../../../includes/sidebar_admin.php'; ?>
+<?php include '../../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header">
-        <h4><i class="fas fa-user-graduate text-gold me-2"></i>Detail Pendaftar</h4>
+        <div class="page-header">
+        <h4><i class="fas fa-user-graduate text-icon me-2"></i>Detail Pendaftar</h4>
     </div>
 
     <div class="card mb-4">
@@ -57,64 +57,64 @@ $status_config = [
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label text-muted" style="font-size: 13px;">Nomor Pendaftaran</label>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['no_pendaftaran']); ?></h5>
+                        <h5 class="mb-0"><?php echo e($pendaftar['no_pendaftaran']); ?></h5>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted" style="font-size: 13px;">Nama Lengkap</label>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['nama_lengkap']); ?></h5>
+                        <h5 class="mb-0"><?php echo e($pendaftar['nama_lengkap']); ?></h5>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted" style="font-size: 13px;">Email</label>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['email']); ?></h5>
+                        <h5 class="mb-0"><?php echo e($pendaftar['email']); ?></h5>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label text-muted" style="font-size: 13px;">NIK</label>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['nik']); ?></h5>
+                        <h5 class="mb-0"><?php echo e($pendaftar['nik']); ?></h5>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted" style="font-size: 13px;">Jalur</label>
                         <h5 class="mb-0">
-                            <span class="badge bg-primary"><?php echo htmlspecialchars($pendaftar['nama_jalur']); ?></span>
+                            <span class="badge bg-primary"><?php echo e($pendaftar['nama_jalur']); ?></span>
                         </h5>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted" style="font-size: 13px;">Gelombang</label>
-                        <h5 class="mb-0"><?php echo htmlspecialchars($pendaftar['nama_gelombang']); ?></h5>
+                        <h5 class="mb-0"><?php echo e($pendaftar['nama_gelombang']); ?></h5>
                     </div>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Tempat / Tanggal Lahir</label></div>
-                    <p class="mb-0"><?php echo htmlspecialchars($pendaftar['tempat_lahir']); ?>, <?php echo date('d-m-Y', strtotime($pendaftar['tanggal_lahir'])); ?></p>
+                    <p class="mb-0"><?php echo e($pendaftar['tempat_lahir'] ?? '-'); ?>, <?php echo date('d-m-Y', strtotime($pendaftar['tanggal_lahir'])); ?></p>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Jenis Kelamin</label></div>
-                    <p class="mb-0"><?php echo $pendaftar['jenis_kelamin'] == 'L' ? 'Laki-laki' : 'Perempuan'; ?></p>
+                    <p class="mb-0"><?php echo ($pendaftar['jenis_kelamin'] ?? '') == 'L' ? 'Laki-laki' : 'Perempuan'; ?></p>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Asal Sekolah</label></div>
-                    <p class="mb-0"><?php echo htmlspecialchars($pendaftar['asal_sekolah']); ?></p>
+                    <p class="mb-0"><?php echo e($pendaftar['asal_sekolah'] ?? '-'); ?></p>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Alamat</label></div>
-                    <p class="mb-0"><?php echo htmlspecialchars($pendaftar['alamat']); ?></p>
+                    <p class="mb-0"><?php echo e($pendaftar['alamat'] ?? '-'); ?></p>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Nama Orang Tua</label></div>
-                    <p class="mb-0"><?php echo htmlspecialchars($pendaftar['nama_ortu']); ?></p>
+                    <p class="mb-0"><?php echo e($pendaftar['nama_ortu'] ?? '-'); ?></p>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">No. HP Orang Tua</label></div>
-                    <p class="mb-0"><?php echo htmlspecialchars($pendaftar['no_hp_ortu']); ?></p>
+                    <p class="mb-0"><?php echo e($pendaftar['no_hp_ortu'] ?? '-'); ?></p>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Tgl. Daftar</label></div>
@@ -151,7 +151,7 @@ $status_config = [
                             <?php while ($dok = mysqli_fetch_assoc($query_dokumen)): ?>
                             <?php
                                 // Build secure download URL with verification parameters
-                                $file_path = htmlspecialchars($dok['path_file'] ?? '');
+                                $file_path = e($dok['path_file'] ?? '');
                                 $jenis = $dok['jenis_dokumen'] ?? '';
                                 $download_url = '../../../spmb/download-dokumen.php?id=' . $pendaftar['id'] . '&jenis=' . $jenis . '&no=' . urlencode($pendaftar['no_pendaftaran']) . '&tgl=' . urlencode($pendaftar['tanggal_lahir']);
                                 $view_url = '/siakad/uploads/spmb/' . $pendaftar['id'] . '/' . $file_path;
@@ -173,7 +173,7 @@ $status_config = [
                                     echo '<span class="badge bg-' . $config['color'] . '">' . $config['label'] . '</span>';
                                     ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($dok['catatan'] ?? ''); ?></td>
+                                <td><?php echo e($dok['catatan'] ?? ''); ?></td>
                                 <td class="text-center">
                                     <a href="<?php echo $view_url; ?>" target="_blank"
                                     class="btn btn-sm btn-outline-primary" title="Lihat Dokumen">
@@ -259,7 +259,7 @@ $status_config = [
             <?php if ($pendaftar['catatan_verifikasi']): ?>
             <div class="mt-3 p-3" style="background: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 8px;">
                 <div class="mb-2"><label class="form-label text-muted" style="font-size: 13px;">Catatan Verifikasi</label></div>
-                <p class="mb-0" style="color: #92400E; font-size: 14px;"><?php echo htmlspecialchars($pendaftar['catatan_verifikasi']); ?></p>
+                <p class="mb-0" style="color: #92400E; font-size: 14px;"><?php echo e($pendaftar['catatan_verifikasi']); ?></p>
             </div>
             <?php endif; ?>
         </div>

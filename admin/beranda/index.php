@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -48,9 +48,99 @@ if (mysqli_num_rows($cek_kolom) == 0) {
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 
+// ===== Program Unggulan (dinamis, bisa diedit admin) =====
+require_once '../../config/helper_program.php';
+program_cek_table($koneksi);
+program_seed_default($koneksi);
+
+$edit_program = null;
+if (isset($_GET['edit_program'])) {
+    $edit_id = (int) $_GET['edit_program'];
+    $ep = mysqli_query($koneksi, "SELECT * FROM program_unggulan WHERE id=$edit_id");
+    if ($ep && mysqli_num_rows($ep) > 0) $edit_program = mysqli_fetch_assoc($ep);
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_program'])) {
+    $judul     = mysqli_real_escape_string($koneksi, trim($_POST['judul'] ?? ''));
+    $deskripsi = mysqli_real_escape_string($koneksi, trim($_POST['deskripsi'] ?? ''));
+    $ikon      = mysqli_real_escape_string($koneksi, trim($_POST['ikon'] ?? ''));
+    if ($ikon === '') $ikon = 'fa-star';
+    $urutan = (int) ($_POST['urutan_program'] ?? 0);
+
+    if ($judul === '' || $deskripsi === '') {
+        $error = 'Judul dan deskripsi program wajib diisi.';
+    } elseif (isset($_POST['id_program']) && $_POST['id_program'] !== '') {
+        $id = (int) $_POST['id_program'];
+        $upd = mysqli_query($koneksi, "UPDATE program_unggulan SET judul='$judul', deskripsi='$deskripsi', ikon='$ikon', urutan=$urutan WHERE id=$id");
+        if ($upd) {
+            $new_foto = program_simpan_foto($koneksi, $id, $_FILES['foto_program'] ?? null);
+            if (($_FILES['foto_program']['error'] ?? 4) !== 4 && $new_foto === '') {
+                $error = 'Gagal mengupload foto (format jpg/jpeg/png/gif/webp, maks 2MB).';
+            } else {
+                $_SESSION['flash_success'] = "Program \"$judul\" berhasil diperbarui!";
+                header("Location: index.php#program");
+                exit();
+            }
+        } else {
+            $error = 'Gagal memperbarui program: ' . mysqli_error($koneksi);
+        }
+    } else {
+        $ins = mysqli_query($koneksi, "INSERT INTO program_unggulan (judul, deskripsi, ikon, urutan) VALUES ('$judul', '$deskripsi', '$ikon', $urutan)");
+        if ($ins) {
+            $id = (int) mysqli_insert_id($koneksi);
+            $new_foto = program_simpan_foto($koneksi, $id, $_FILES['foto_program'] ?? null);
+            if (($_FILES['foto_program']['error'] ?? 4) !== 4 && $new_foto === '') {
+                $error = 'Gagal mengupload foto (format jpg/jpeg/png/gif/webp, maks 2MB).';
+            } else {
+                $_SESSION['flash_success'] = "Program \"$judul\" berhasil ditambahkan!";
+                header("Location: index.php#program");
+                exit();
+            }
+        } else {
+            $error = 'Gagal menambahkan program: ' . mysqli_error($koneksi);
+        }
+    }
+}
+
+if (isset($_GET['hapus_program'])) {
+    $id = (int) $_GET['hapus_program'];
+    mysqli_query($koneksi, "DELETE FROM program_unggulan WHERE id=$id");
+    $success = 'Program berhasil dihapus.';
+}
+
+if (isset($_GET['naik_program']) || isset($_GET['turun_program'])) {
+    $id   = (int) ($_GET['naik_program'] ?? $_GET['turun_program']);
+    $naik = isset($_GET['naik_program']);
+    $row  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM program_unggulan WHERE id=$id"));
+    if ($row) {
+        $u = (int) $row['urutan'];
+        $sibling = mysqli_fetch_assoc(mysqli_query($koneksi,
+            "SELECT * FROM program_unggulan WHERE id<>$id AND urutan " . ($naik ? "< $u" : "> $u")
+            . " ORDER BY urutan " . ($naik ? "DESC" : "ASC") . " LIMIT 1"));
+        if ($sibling) {
+            mysqli_query($koneksi, "UPDATE program_unggulan SET urutan={$sibling['urutan']} WHERE id=$id");
+            mysqli_query($koneksi, "UPDATE program_unggulan SET urutan=$u WHERE id={$sibling['id']}");
+        }
+    }
+}
+
+// Hapus foto program (link Hapus Foto di form edit & tabel)
+if (isset($_GET['hapus_foto_program'])) {
+    program_hapus_foto($koneksi, (int) $_GET['hapus_foto_program']);
+    $_SESSION['flash_success'] = 'Foto program berhasil dihapus.';
+    header("Location: index.php#program");
+    exit();
+}
+
 // Handle update pengaturan
 $success = '';
 $error = '';
+
+// Flash message dari redirect POST (agar pesan sukses tetap tampil setelah redirect ke tab)
+if (!empty($_SESSION['flash_success'])) {
+    $success = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_setting'])) {
     $nama_sekolah = mysqli_real_escape_string($koneksi, $_POST['nama_sekolah'] ?? '');
@@ -150,13 +240,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="container-fluid px-4 py-3">
+        <div class="container-fluid px-4 py-3">
         <div class="page-header mb-4">
-            <h4><i class="fas fa-home text-gold me-2"></i>Kelola Beranda</h4>
+            <h4><i class="fas fa-home text-icon me-2"></i>Kelola Beranda</h4>
         </div>
 
         <?php if ($success): ?>
@@ -186,6 +276,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="program-tab" data-bs-toggle="tab" data-bs-target="#program" type="button" role="tab">
+                    <i class="fas fa-rocket me-2"></i>Program Unggulan
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="galeri-tab" data-bs-toggle="tab" data-bs-target="#galeri" type="button" role="tab">
                     <i class="fas fa-images me-2"></i>Galeri Sekolah
                 </button>
@@ -208,34 +303,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                                     <div class="mb-3">
                                         <label for="nama_sekolah" class="form-label">Nama Sekolah <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="nama_sekolah" name="nama_sekolah" 
-                                            value="<?php echo htmlspecialchars($setting['nama_sekolah'] ?? ''); ?>" required>
+                                            value="<?php echo e($setting['nama_sekolah'] ?? ''); ?>" required>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="alamat_sekolah" class="form-label">Alamat Sekolah <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" id="alamat_sekolah" name="alamat_sekolah" rows="2" required><?php echo htmlspecialchars($setting['alamat_sekolah'] ?? ''); ?></textarea>
+                                        <textarea class="form-control" id="alamat_sekolah" name="alamat_sekolah" rows="2" required><?php echo e($setting['alamat_sekolah'] ?? ''); ?></textarea>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="nama_kepsek" class="form-label">Nama Kepala Sekolah <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="nama_kepsek" name="nama_kepsek" 
-                                            value="<?php echo htmlspecialchars($setting['nama_kepsek'] ?? ''); ?>" required>
+                                            value="<?php echo e($setting['nama_kepsek'] ?? ''); ?>" required>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="visi" class="form-label">Visi Sekolah <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" id="visi" name="visi" rows="3" required><?php echo htmlspecialchars($setting['visi'] ?? ''); ?></textarea>
+                                        <textarea class="form-control" id="visi" name="visi" rows="3" required><?php echo e($setting['visi'] ?? ''); ?></textarea>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="misi" class="form-label">Misi Sekolah <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" id="misi" name="misi" rows="3" required><?php echo htmlspecialchars($setting['misi'] ?? ''); ?></textarea>
+                                        <textarea class="form-control" id="misi" name="misi" rows="3" required><?php echo e($setting['misi'] ?? ''); ?></textarea>
+                                        <small class="form-text text-muted">Tulis satu misi per baris — setiap baris tampil sebagai poin di beranda.</small>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="sambutan_kepsek" class="form-label">Sambutan Kepala Sekolah</label>
                                         <textarea class="form-control" id="sambutan_kepsek" name="sambutan_kepsek" rows="5"
-                                            placeholder="Tulis sambutan kepala sekolah untuk landing page..."><?php echo htmlspecialchars($setting['sambutan_kepsek'] ?? ''); ?></textarea>
+                                            placeholder="Tulis sambutan kepala sekolah untuk landing page..."><?php echo e($setting['sambutan_kepsek'] ?? ''); ?></textarea>
                                         <small class="text-muted">Ditampilkan di bagian "Sambutan Kepala Sekolah" pada halaman utama.</small>
                                     </div>
 
@@ -246,19 +342,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                                     <div class="mb-3">
                                         <label for="telepon" class="form-label">Telepon</label>
                                         <input type="tel" class="form-control" id="telepon" name="telepon" 
-                                            value="<?php echo htmlspecialchars($setting['telepon'] ?? ''); ?>">
+                                            value="<?php echo e($setting['telepon'] ?? ''); ?>">
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="email" class="form-label">Email</label>
                                         <input type="email" class="form-control" id="email" name="email" 
-                                            value="<?php echo htmlspecialchars($setting['email'] ?? ''); ?>">
+                                            value="<?php echo e($setting['email'] ?? ''); ?>">
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="whatsapp" class="form-label">WhatsApp</label>
                                         <input type="tel" class="form-control" id="whatsapp" name="whatsapp" 
-                                            value="<?php echo htmlspecialchars($setting['whatsapp'] ?? ''); ?>">
+                                            value="<?php echo e($setting['whatsapp'] ?? ''); ?>">
                                     </div>
 
                                     <hr>
@@ -292,7 +388,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                             </div>
                             <div class="card-body text-center">
                                 <?php if (!empty($setting['foto_kepsek'])): ?>
-                                <img src="/siakad/assets/img/<?php echo htmlspecialchars($setting['foto_kepsek']); ?>" 
+                                <img src="/siakad/assets/img/<?php echo e($setting['foto_kepsek']); ?>" 
                                     alt="Kepala Sekolah" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                                 <?php else: ?>
                                 <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px;">
@@ -312,55 +408,203 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                 </div>
             </div>
 
-            <!-- TAB 2: Struktur Organisasi -->
+            <!-- TAB 2: Struktur Organisasi (Upload Foto) -->
             <div class="tab-pane fade" id="struktur" role="tabpanel">
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-sitemap me-2"></i>Struktur Organisasi Sekolah</h6>
+                        <h6 class="mb-0"><i class="fas fa-sitemap me-2"></i>Struktur Organisasi</h6>
                     </div>
                     <div class="card-body">
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-info-circle me-2"></i>Upload foto struktur organisasi untuk ditampilkan di beranda.
+                        </div>
                         <div class="row">
-                            <div class="col-lg-8">
-                                <div class="mb-4">
-                                    <h6 class="mb-3">Preview Struktur Organisasi</h6>
-                                    <div class="bg-light p-4 rounded text-center">
+                            <div class="col-lg-4">
+                                <div class="card text-center mb-4">
+                                    <div class="card-body">
                                         <?php if (!empty($setting['foto_struktur'])): ?>
-                                        <img src="/siakad/assets/img/<?php echo htmlspecialchars($setting['foto_struktur']); ?>" 
-                                            alt="Struktur Organisasi" class="img-fluid rounded" style="max-height: 400px;">
+                                        <img src="/siakad/assets/img/<?php echo e($setting['foto_struktur']); ?>"
+                                            alt="Struktur Organisasi" class="img-thumbnail mb-3" style="max-width:100%">
                                         <?php else: ?>
-                                        <div class="text-muted py-5">
-                                            <i class="fas fa-image fa-3x mb-3"></i>
-                                            <p>Belum ada foto struktur organisasi</p>
+                                        <div class="rounded mb-3 p-4 bg-light d-inline-block" style="max-width:250px;">
+                                            <i class="fas fa-sitemap fa-3x text-muted"></i>
                                         </div>
                                         <?php endif; ?>
+                                        <form method="POST" enctype="multipart/form-data">
+                                            <input type="file" class="form-control mb-2" name="foto_struktur" accept="image/*" required>
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-upload me-2"></i>Upload Foto
+                                            </button>
+                                        </form>
+                                        <small class="d-block mt-3 text-muted">JPG, PNG, GIF, WebP (Max 5MB)</small>
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-lg-8">
+                                <div class="preview-photo mb-3">
+                                    <?php if (!empty($setting['foto_struktur'])): ?>
+                                    <img src="/siakad/assets/img/<?php echo e($setting['foto_struktur']); ?>"
+                                        alt="Preview Struktur Organisasi" class="img-fluid rounded shadow-sm">
+                                    <div class="text-center mt-2 text-muted">
+                                        <small>Foto struktur organisasi akan ditampilkan di beranda (fallback bila struktur dinamis kosong).</small>
+                                    </div>
+                                    <?php else: ?>
+                                    <div class="alert alert-warning mt-3">
+                                        <i class="fas fa-exclamation-circle me-2"></i>Belum ada foto struktur organisasi. Silakan upload foto untuk mengganti tampilan beranda.
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!-- TAB 3: Program Unggulan (dinamis, bisa diedit) -->
+            <div class="tab-pane fade" id="program" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-rocket me-2"></i>Program Unggulan Sekolah</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-info-circle me-2"></i>Program ini tampil di beranda (section
+                            <strong>Program Unggulan)</strong> dan diperbarui otomatis dari data di bawah.
+                            Berita sekolah tidak terpengaruh.
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-7">
+                                <h6 class="mb-3">Preview di Beranda</h6>
+                                <div class="row g-3">
+                                    <?php foreach (program_get_all($koneksi) as $i => $p): ?>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow-sm overflow-hidden rounded-3">
+                                            <div class="text-center d-flex align-items-center justify-content-center position-relative"
+                                                 style="height:110px;background:linear-gradient(135deg,rgba(4,70,128,.08),rgba(240,144,0,.10));">
+                                                <i class="fas <?= e($p['ikon']) ?>" style="font-size:36px;color:var(--primary);opacity:.75;"></i>
+                                                <span class="badge position-absolute top-0 end-0 m-2" style="background:var(--primary);"><?= $i + 1 ?></span>
+                                            </div>
+                                            <div class="card-body text-center">
+                                                <h6 class="fw-bold mb-1" style="color:var(--primary);"><?= e($p['judul']) ?></h6>
+                                                <p class="text-muted small mb-0"><?= e($p['deskripsi']) ?></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
 
-                            <div class="col-lg-4">
-                                <div class="card border-primary">
+                            <div class="col-lg-5">
+                                <div class="card border-primary mb-4">
                                     <div class="card-body">
-                                        <h6 class="card-title mb-3"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Foto</h6>
+                                        <h6 class="card-title mb-3">
+                                            <i class="fas <?= $edit_program ? 'fa-pen' : 'fa-plus' ?> me-2"></i>
+                                            <?= $edit_program ? 'Edit Program' : 'Tambah Program' ?>
+                                            <?php if ($edit_program): ?>
+                                                <a href="index.php#program" class="btn btn-sm btn-outline-secondary float-end" title="Batal"><i class="fas fa-times"></i></a>
+                                            <?php endif; ?>
+                                        </h6>
                                         <form method="POST" enctype="multipart/form-data">
+                                            <?php if ($edit_program): ?>
+                                            <input type="hidden" name="id_program" value="<?= (int) $edit_program['id'] ?>">
+                                            <?php endif; ?>
+                                            <input type="hidden" name="aksi_program" value="1">
                                             <div class="mb-3">
-                                                <label for="foto_struktur" class="form-label">Pilih Foto</label>
-                                                <input type="file" class="form-control" id="foto_struktur" name="foto_struktur" 
-                                                    accept="image/*" required>
-                                                <small class="text-muted">JPG, PNG, GIF, WebP (Max 5MB)</small>
+                                                <label class="form-label">Judul Program <span class="text-danger">*</span></label>
+                                                <input type="text" name="judul" class="form-control" required
+                                                       value="<?= e($edit_program['judul'] ?? '') ?>"
+                                                       placeholder="cth: Program IPA">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Deskripsi <span class="text-danger">*</span></label>
+                                                <textarea name="deskripsi" class="form-control" rows="3" required
+                                                          placeholder="Penjelasan singkat program..."><?= e($edit_program['deskripsi'] ?? '') ?></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Ikon (Font Awesome)</label>
+                                                <input type="text" name="ikon" class="form-control" list="ikon-program"
+                                                       value="<?= e($edit_program['ikon'] ?? '') ?>"
+                                                       placeholder="cth: fa-flask">
+                                                <datalist id="ikon-program">
+                                                    <option value="fa-flask"><option value="fa-landmark"><option value="fa-futbol">
+                                                    <option value="fa-laptop"><option value="fa-book"><option value="fa-microscope">
+                                                    <option value="fa-music"><option value="fa-palette"><option value="fa-dumbbell">
+                                                    <option value="fa-users"><option value="fa-robot"><option value="fa-globe">
+                                                    <option value="fa-calculator"><option value="fa-atom"><option value="fa-language">
+                                                    <option value="fa-star"><option value="fa-lightbulb"><option value="fa-chalkboard-user">
+                                                </datalist>
+                                                <small class="text-muted">Nama ikon dari <code>fontawesome.com/icons</code>. Kosongkan untuk ikon default bintang.</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Foto Program</label>
+                                                <?php if (!empty($edit_program['foto']) && is_file('../../assets/img/foto_program/' . $edit_program['foto'])): ?>
+                                                    <div class="mb-2">
+                                                        <img src="/siakad/assets/img/foto_program/<?= e($edit_program['foto']) ?>"
+                                                            alt="<?= e($edit_program['judul']) ?>" class="img-thumbnail d-block" style="max-width:100%;max-height:120px;object-fit:cover;">
+                                                        <a href="index.php?hapus_foto_program=<?= (int) $edit_program['id'] ?>#program" class="btn btn-sm btn-outline-danger mt-1"
+                                                        onclick="return siHapus('index.php?hapus_foto_program=<?= (int) $edit_program['id'] ?>#program', 'foto <?= e($edit_program['judul']) ?>');"><i class="fas fa-trash"></i> Hapus foto</a>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <input type="file" name="foto_program" class="form-control" accept="image/*">
+                                                <small class="text-muted">Format: jpg/jpeg/png/gif/webp (max 2MB). Kosongkan bila tidak ganti.</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Urutan</label>
+                                                <input type="number" name="urutan_program" class="form-control" min="0"
+                                                    value="<?= (int) ($edit_program['urutan'] ?? 0) ?>">
                                             </div>
                                             <button type="submit" class="btn btn-primary w-100">
-                                                <i class="fas fa-upload me-2"></i>Upload
+                                                <i class="fas fa-save me-2"></i><?= $edit_program ? 'Simpan Perubahan' : 'Tambah Program' ?>
                                             </button>
                                         </form>
-                                        
-                                        <?php if (!empty($setting['foto_struktur'])): ?>
-                                        <hr>
-                                        <small class="text-muted">
-                                            <strong>File saat ini:</strong><br>
-                                            <?php echo htmlspecialchars($setting['foto_struktur']); ?>
-                                        </small>
-                                        <?php endif; ?>
                                     </div>
+                                </div>
+
+                                <h6 class="mb-3">Daftar Program</h6>
+                                <div class="table-responsive" style="max-height:420px; overflow:auto;">
+                                    <table class="table table-sm table-bordered align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Foto</th>
+                                                    <th>Program</th>
+                                                    <th style="width:200px;" class="text-center">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            <?php foreach (program_get_all($koneksi) as $p): ?>
+                                                <tr>
+                                                    <td class="text-center align-middle" style="width:70px;">
+                                                        <?php if (!empty($p['foto']) && is_file('../../assets/img/foto_program/' . $p['foto'])): ?>
+                                                            <img src="/siakad/assets/img/foto_program/<?= e($p['foto']) ?>"
+                                                                alt="<?= e($p['judul']) ?>"
+                                                                class="img-thumbnail" style="max-width:60px;max-height:44px;object-fit:cover;">
+                                                        <?php else: ?>
+                                                            <span class="text-muted small">belum</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <i class="fas <?= e($p['ikon']) ?> text-primary me-1"></i>
+                                                        <strong><?= e($p['judul']) ?></strong>
+                                                        <br><small class="text-muted"><?= e(mb_strimwidth($p['deskripsi'], 0, 60, '…')) ?></small>
+                                                    </td>
+                                                    <td class="text-center text-nowrap">
+                                                        <?php if (!empty($p['foto']) && is_file('../../assets/img/foto_program/' . $p['foto'])): ?>
+                                                            <a href="index.php?hapus_foto_program=<?= (int) $p['id'] ?>#program" class="btn btn-sm btn-outline-danger" title="Hapus foto"
+                                                            onclick="return siHapus('index.php?hapus_foto_program=<?= (int) $p['id'] ?>#program', 'foto <?= e($p['judul']) ?>');">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        <?php endif; ?>
+                                                        <a href="index.php?edit_program=<?= (int) $p['id'] ?>#program" class="btn btn-sm btn-outline-primary" title="Edit (ganti juga fotonya di sini)"><i class="fas fa-pen"></i></a>
+                                                        <a href="index.php?naik_program=<?= (int) $p['id'] ?>#program" class="btn btn-sm btn-outline-secondary" title="Naik"><i class="fas fa-chevron-up"></i></a>
+                                                        <a href="index.php?turun_program=<?= (int) $p['id'] ?>#program" class="btn btn-sm btn-outline-secondary" title="Turun"><i class="fas fa-chevron-down"></i></a>
+                                                        <a href="index.php?hapus_program=<?= (int) $p['id'] ?>#program" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                           onclick="return siHapus('index.php?hapus_program=<?= (int) $p['id'] ?>#program', '<?= addslashes(e($p['judul'])) ?>');">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                            </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -368,7 +612,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                 </div>
             </div>
 
-            <!-- TAB 3: Galeri Sekolah -->
+            <!-- TAB 4: Galeri Sekolah -->
             <div class="tab-pane fade" id="galeri" role="tabpanel">
                 <div class="row">
                     <div class="col-12">
@@ -382,6 +626,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
 
                 <div class="row">
                     <?php 
+                    $program_list_admin = program_get_all($koneksi);
                     $galeri_kategori = [
                         ['folder' => 'foto_sekolah', 'label' => 'Foto Sekolah', 'icon' => 'fa-school', 'warna' => 'primary'],
                         ['folder' => 'foto_siswa', 'label' => 'Foto Siswa', 'icon' => 'fa-users', 'warna' => 'success'],
@@ -416,8 +661,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                                 <div class="row g-2 mb-3">
                                     <?php foreach (array_slice($files, 0, 3) as $file): ?>
                                     <div class="col-4">
-                                        <img src="/siakad/assets/img/<?php echo $kat['folder']; ?>/<?php echo htmlspecialchars($file); ?>" 
-                                            alt="<?php echo htmlspecialchars($file); ?>" class="img-fluid rounded" style="height: 60px; object-fit: cover;">
+                                        <img src="/siakad/assets/img/<?php echo $kat['folder']; ?>/<?php echo e($file); ?>" 
+                                            alt="<?php echo e($file); ?>" class="img-fluid rounded" style="height: 60px; object-fit: cover;">
                                     </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -429,6 +674,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
                                         <input type="file" class="form-control form-control-sm" name="foto_galeri" 
                                             accept="image/*" required>
                                     </div>
+                                    <?php if ($kat['folder'] === 'foto_program' && !empty($program_list_admin)): ?>
+                                    <div class="mb-2">
+                                        <select class="form-select form-select-sm" name="pasang_program">
+                                            <option value="0">Pasang otomatis ke program tanpa foto</option>
+                                            <?php foreach ($program_list_admin as $p): ?>
+                                            <option value="<?= (int) $p['id'] ?>">Ganti foto: <?= e($p['judul']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <?php endif; ?>
                                     <button type="submit" class="btn btn-sm btn-<?php echo $kat['warna']; ?> w-100">
                                         <i class="fas fa-upload me-1"></i>Upload
                                     </button>
@@ -448,13 +703,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
 </div>
 
 <script>
-// Buka tab Struktur Organisasi otomatis saat diakses via menu sidebar (admin/beranda/index.php#struktur)
+// Buka tab otomatis sesuai hash URL (mis. #program, #struktur, #galeri) — supaya
+// setelah edit/simpan/hapus pengguna tetap berada di tab yang sama.
 document.addEventListener('DOMContentLoaded', function () {
-    if (window.location.hash === '#struktur') {
-        var tab = document.getElementById('struktur-tab');
-        if (tab && window.bootstrap) {
-            new bootstrap.Tab(tab).show();
-        }
+    var hash = window.location.hash;
+    if (!hash) return;
+    var tabId = hash.replace('#', '') + '-tab';
+    var tab = document.getElementById(tabId);
+    if (tab && window.bootstrap) {
+        new bootstrap.Tab(tab).show();
     }
 });
 </script>

@@ -63,14 +63,14 @@ if ($query_diterima) {
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/siakad/assets/css/landing.css?v=1.0">
     
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #F5F7FB; }
+        body { font-family: 'Roboto', sans-serif; background: #F5F7FB; }
         .content-section { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 18px; box-shadow: 0 8px 24px rgba(13, 37, 64, 0.08); margin-top: 40px; }
         .section-title { color: #163A63; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .section-subtitle { color: #4A5568; margin-bottom: 32px; }
@@ -140,7 +140,7 @@ if ($query_diterima) {
                             Cari berdasarkan Nomor Pendaftaran
                         </label>
                         <input type="text" class="form-control" id="no_pendaftaran" name="no_pendaftaran" 
-                            placeholder="Contoh: SPMB-2026-00001" value="<?php echo htmlspecialchars($search_no); ?>">
+                            placeholder="Contoh: SPMB-2026-00001" value="<?php echo e($search_no); ?>">
                     </div>
                     <div style="display: flex; align-items: flex-end;">
                         <button type="submit" class="btn-search">
@@ -162,17 +162,17 @@ if ($query_diterima) {
                 
                 <div class="result-row">
                     <div class="result-label">Nomor Pendaftaran</div>
-                    <div class="result-value"><strong><?php echo htmlspecialchars($search_results['no_pendaftaran']); ?></strong></div>
+                    <div class="result-value"><strong><?php echo e($search_results['no_pendaftaran']); ?></strong></div>
                 </div>
                 
                 <div class="result-row">
                     <div class="result-label">Nama</div>
-                    <div class="result-value"><?php echo htmlspecialchars($search_results['nama_lengkap']); ?></div>
+                    <div class="result-value"><?php echo e($search_results['nama_lengkap']); ?></div>
                 </div>
                 
                 <div class="result-row">
                     <div class="result-label">Jalur</div>
-                    <div class="result-value"><?php echo htmlspecialchars($search_results['nama_jalur'] ?? 'N/A'); ?></div>
+                    <div class="result-value"><?php echo e($search_results['nama_jalur'] ?? 'N/A'); ?></div>
                 </div>
                 
                 <div class="result-row">
@@ -214,6 +214,7 @@ if ($query_diterima) {
             </h3>
             
             <?php if ($total_diterima > 0): ?>
+            <div class="table-responsive">
             <table class="list-table">
                 <thead>
                     <tr>
@@ -232,14 +233,15 @@ if ($query_diterima) {
                     ?>
                     <tr>
                         <td><?php echo $no++; ?></td>
-                        <td><strong><?php echo htmlspecialchars($row['no_pendaftaran']); ?></strong></td>
-                        <td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td>
-                        <td><?php echo htmlspecialchars($row['nama_jalur'] ?? 'N/A'); ?></td>
-                        <td><?php echo htmlspecialchars($row['nama_gelombang'] ?? 'N/A'); ?></td>
+                        <td><strong><?php echo e($row['no_pendaftaran']); ?></strong></td>
+                        <td><?php echo e($row['nama_lengkap']); ?></td>
+                        <td><?php echo e($row['nama_jalur'] ?? 'N/A'); ?></td>
+                        <td><?php echo e($row['nama_gelombang'] ?? 'N/A'); ?></td>
                     </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
+            </div>
             <?php else: ?>
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>

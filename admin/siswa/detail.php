@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
@@ -37,12 +37,12 @@ if ($q_absensi) {
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-user-graduate text-gold me-2"></i>Detail Siswa</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user-graduate text-icon me-2"></i>Detail Siswa</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -66,9 +66,9 @@ if ($q_absensi) {
                          data-bs-toggle="modal" data-bs-target="#modalFoto"
                          data-src="<?= $foto_s_src ?>"
                          title="Klik untuk memperbesar">
-                    <h5><?= htmlspecialchars($data['nama'] ?? 'Tidak Diketahui') ?></h5>
+                    <h5><?= e($data['nama'] ?? 'Tidak Diketahui') ?></h5>
                     <p class="text-muted mb-1">NIS: <strong><?= $data['nis'] ?? '-' ?></strong></p>
-                    <span class="badge bg-info text-dark mb-3"><?= htmlspecialchars($data['nama_kelas'] ?? 'Belum Ada Kelas') ?></span>
+                    <span class="badge bg-info text-dark mb-3"><?= e($data['nama_kelas'] ?? 'Belum Ada Kelas') ?></span>
                     
                     <table class="table table-sm text-start mt-2">
                         <tr>
@@ -77,7 +77,7 @@ if ($q_absensi) {
                         </tr>
                         <tr>
                             <td><strong>Tempat Lahir</strong></td>
-                            <td>: <?= htmlspecialchars($data['tempat_lahir'] ?? '-') ?></td>
+                            <td>: <?= e($data['tempat_lahir'] ?? '-') ?></td>
                         </tr>
                         <tr>
                             <td><strong>Tanggal Lahir</strong></td>
@@ -85,15 +85,23 @@ if ($q_absensi) {
                         </tr>
                         <tr>
                             <td><strong>No HP</strong></td>
-                            <td>: <?= htmlspecialchars($data['no_hp'] ?? '-') ?></td>
+                            <td>: <?= e($data['no_hp'] ?? '-') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Orang Tua / Wali</strong></td>
+                            <td>: <?= e($data['nama_ortu'] ?? '-') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>No. HP Ortu</strong></td>
+                            <td>: <?= e($data['no_hp_ortu'] ?? '-') ?></td>
                         </tr>
                         <tr>
                             <td><strong>Tahun Ajaran</strong></td>
-                            <td>: <?= htmlspecialchars($data['tahun_ajaran'] ?? '-') ?></td>
+                            <td>: <?= e($data['tahun_ajaran'] ?? '-') ?></td>
                         </tr>
                     </table>
                     <p class="text-muted small text-start">
-                        <i class="fas fa-map-marker-alt text-danger"></i> <?= htmlspecialchars($data['alamat'] ?? '-') ?>
+                        <i class="fas fa-map-marker-alt text-danger"></i> <?= e($data['alamat'] ?? '-') ?>
                     </p>
                     <a href="edit.php?id=<?= $id ?>" class="btn btn-warning btn-sm w-100">
                         <i class="fas fa-edit"></i> Edit Data
@@ -162,7 +170,7 @@ if ($q_absensi) {
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td>
-                                    <strong><?= htmlspecialchars($r['nama_mapel']) ?></strong>
+                                    <strong><?= e($r['nama_mapel']) ?></strong>
                                 </td>
                                 <td><?= number_format((float)$harian, 2) ?></td>
                                 <td><?= number_format((float)$uts, 2) ?></td>
@@ -170,7 +178,7 @@ if ($q_absensi) {
                                 <td>
                                     <span class="badge bg-success fs-6"><?= number_format((float)$akhir, 2) ?></span>
                                 </td>
-                                <td>Semester <?= htmlspecialchars($sem) ?></td>
+                                <td>Semester <?= e($sem) ?></td>
                             </tr>
                             <?php 
                                 endwhile; 

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';
@@ -49,8 +49,8 @@ foreach ($array_kelas_guru as $k) {
 }
 $array_kelas_guru = array_values($kelas_unique);
 
-$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY tingkat, nama_kelas");
-$mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
+$kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
+$mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
 
 // Proses tambah jadwal dari halaman edit guru
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_POST['aksi_jadwal'] === 'tambah_jadwal') {
@@ -59,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
     $hari    = mysqli_real_escape_string($koneksi, $_POST['hari'] ?? '');
     $mulai   = mysqli_real_escape_string($koneksi, $_POST['jam_mulai'] ?? '00:00:00');
     $selesai = mysqli_real_escape_string($koneksi, $_POST['jam_selesai'] ?? '00:00:00');
+    $error   = null;
 
     if (!in_array($hari, ['Senin','Selasa','Rabu','Kamis','Jumat'], true)) {
         $error = "Hari tidak valid. Hanya Senin s.d Jumat yang diizinkan (Sabtu/Minggu ditolak).";
@@ -79,6 +80,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
         if (mysqli_num_rows($cek_bentrok) > 0) {
             $error = "Jadwal bentrok! Kelas tersebut sudah memiliki jadwal di hari dan jam yang sama.";
         } else {
+            // Bentrok jadwal GURU (mengajar di kelas lain di hari & jam yang sama)
+            $cek_guru = mysqli_query($koneksi,
+                "SELECT j.id, k.nama_kelas FROM jadwal j
+                 LEFT JOIN kelas k ON k.id = j.kelas_id
+                 WHERE j.guru_id = '$id'
+                 AND j.hari = '$hari'
+                 AND j.tahun_ajaran_id = " . ($taAktif ? (int)$taAktif['id'] : 'NULL') . "
+                 AND (
+                     ('$mulai' >= j.jam_mulai AND '$mulai' < j.jam_selesai) OR
+                     ('$selesai' > j.jam_mulai AND '$selesai' <= j.jam_selesai) OR
+                     ('$mulai' <= j.jam_mulai AND '$selesai' >= j.jam_selesai)
+                 )");
+            if (mysqli_num_rows($cek_guru) > 0) {
+                $rg = mysqli_fetch_assoc($cek_guru);
+                $error = "Jadwal bentrok! Guru ini sudah mengajar di kelas " . e($rg['nama_kelas'] ?? '-') . " pada hari dan jam yang sama.";
+            }
+            if ($error === null) {
             // Pastikan sinkron dengan aplikasi lain (tahun ajaran & validasi bentrok dipakai dari tabel yang sama)
             $taId  = $taAktif ? (int)$taAktif['id'] : 'NULL';
             $taName = $taAktif ? $taAktif['tahun'] : (date('Y') . '/' . (date('Y') + 1));
@@ -90,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
             header("Location: edit.php?id=$id&success=Jadwal berhasil ditambahkan");
 
             exit();
+            }
         }
     }
 }
@@ -106,7 +125,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
     $hp     = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
 
-    // ── Upload / Hapus Foto ───────────────────────────────
+    // â”€â”€ Email: validasi format + cek duplikat di tabel users â”€â”€
+    $error = null;
+    $email = mysqli_real_escape_string($koneksi, trim($_POST['email'] ?? ''));
+    if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Format email tidak valid!";
+    } elseif (!empty($email)) {
+        $cek_email = mysqli_fetch_row(mysqli_query($koneksi,
+            "SELECT COUNT(*) FROM users WHERE email='$email'
+             AND NOT (id_ref='$id' AND role='guru')"))[0];
+        if ($cek_email > 0) {
+            $error = "Email sudah digunakan oleh pengguna lain!";
+        }
+    }
+
+    // â”€â”€ Upload / Hapus Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     $foto_update = $data['foto'] ?? '';
     $folder_guru = __DIR__ . '/../../assets/img/foto_guru/';
 
@@ -135,41 +168,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
         $foto_update = '';
     }
 
-    mysqli_query($koneksi, "UPDATE guru 
-                            SET nip='$nip', nama='$nama', jenis_kelamin='$jk',
-                                tempat_lahir='$ttl', tanggal_lahir=$tgl,
-                                alamat='$alamat', no_hp='$hp', foto='$foto_update'
-                            WHERE id='$id'");
+    if ($error === null) {
+        $emailSql = $email !== '' ? "'$email'" : "NULL";
+        mysqli_query($koneksi, "UPDATE guru 
+                                SET nip='$nip', nama='$nama', nama_lengkap='$nama', jenis_kelamin='$jk',
+                                    tempat_lahir='$ttl', tanggal_lahir=$tgl,
+                                    alamat='$alamat', no_hp='$hp', email=$emailSql, foto='$foto_update'
+                                WHERE id='$id'");
 
-    $user_id = $data['user_id'] ?? ($data['id_user'] ?? null);
-    if ($user_id !== null) {
-        mysqli_query($koneksi, "UPDATE users SET nama='$nama' WHERE id='$user_id'");
-    } else {
-        mysqli_query($koneksi, "UPDATE users SET nama='$nama' WHERE id_ref='$id' AND role='guru'");
-    }
+        // Sinkronkan nama & email ke tabel users (akun terhubung via id_ref)
+        mysqli_query($koneksi, "UPDATE users SET nama='$nama', email=$emailSql
+                                WHERE id_ref='$id' AND role='guru'");
 
-    if (!empty($_POST['password'])) {
-        $pass = hashPassword($_POST['password']);
-        if ($user_id !== null) {
-            mysqli_query($koneksi, "UPDATE users SET password='$pass' WHERE id='$user_id'");
-        } else {
-            mysqli_query($koneksi, "UPDATE users SET password='$pass' WHERE id_ref='$id' AND role='guru'");
+        if (!empty($_POST['password'])) {
+            $pass = hashPassword($_POST['password']);
+            mysqli_query($koneksi, "UPDATE users SET password='$pass'
+                                    WHERE id_ref='$id' AND role='guru'");
         }
-    }
 
-    header("Location: index.php?success=Data guru berhasil diupdate");
-    exit();
+        header("Location: index.php?success=Data guru berhasil diupdate");
+        exit();
+    }
 }
 ?>
 
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
+<?php include '../../includes/topbar_admin.php'; ?>
+
 
 <div class="main-content">
-    <?php include '../../includes/topbar_admin.php'; ?>
-
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0"><i class="fas fa-edit text-gold me-2"></i>Edit Guru</h4>
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-edit text-icon me-2"></i>Edit Guru</h4>
         <a href="index.php" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
@@ -187,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                         <ul class="list-group list-group-flush mt-2">
                             <?php if (!empty($array_mapel_guru)): ?>
                                 <?php foreach ($array_mapel_guru as $m): ?>
-                                    <li class="list-group-item"><?= htmlspecialchars($m['nama_mapel']) ?></li>
+                                    <li class="list-group-item"><?= e($m['nama_mapel']) ?></li>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <li class="list-group-item text-muted">Tidak ada mapel (hanya wali kelas)</li>
@@ -200,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                         <ul class="list-group list-group-flush mt-2">
                             <?php if (!empty($array_kelas_guru)): ?>
                                 <?php foreach ($array_kelas_guru as $k): ?>
-                                    <li class="list-group-item"><?= htmlspecialchars($k['nama_kelas']) ?></li>
+                                    <li class="list-group-item"><?= e($k['nama_kelas']) ?></li>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <li class="list-group-item text-muted">Belum ada kelas</li>
@@ -230,12 +260,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                                 <div class="mb-3">
                                     <label class="form-label">NIP</label>
                                     <input type="text" name="nip" class="form-control"
-                                           value="<?= htmlspecialchars($data['nip'] ?? '') ?>" required>
+                                           value="<?= e($data['nip'] ?? '') ?>" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Nama Lengkap</label>
                                     <input type="text" name="nama" class="form-control"
-                                           value="<?= htmlspecialchars($data['nama'] ?? '') ?>" required>
+                                           value="<?= e($data['nama'] ?? '') ?>" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Jenis Kelamin</label>
@@ -251,23 +281,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                                 <div class="mb-3">
                                     <label class="form-label">Tempat Lahir</label>
                                     <input type="text" name="tempat_lahir" class="form-control"
-                                           value="<?= htmlspecialchars($data['tempat_lahir'] ?? '') ?>">
+                                           value="<?= e($data['tempat_lahir'] ?? '') ?>">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Tanggal Lahir</label>
                                     <input type="date" name="tanggal_lahir" class="form-control"
-                                           value="<?= htmlspecialchars($data['tanggal_lahir'] ?? '') ?>">
+                                           value="<?= e($data['tanggal_lahir'] ?? '') ?>">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Alamat</label>
                                     <textarea name="alamat" class="form-control" rows="3">
-                                        <?= htmlspecialchars($data['alamat'] ?? '') ?>
+                                        <?= e($data['alamat'] ?? '') ?>
                                     </textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">No HP</label>
                                     <input type="text" name="no_hp" class="form-control"
-                                           value="<?= htmlspecialchars($data['no_hp'] ?? '') ?>">
+                                           value="<?= e($data['no_hp'] ?? '') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control"
+                                           value="<?= e($data['email'] ?? '') ?>"
+                                           placeholder="nama@gmail.com">
+                                    <small class="text-muted">Tersinkron otomatis dengan akun login guru.</small>
                                 </div>
                             </div>
 
@@ -313,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
 
                                 <div class="alert alert-warning mt-3">
                                     <i class="fas fa-exclamation-triangle"></i>
-                                    Pastikan guru sudah diberitahu jika password diubah.
+                                    Pastikan guru sudah diberitahu jika email & password diubah.
                                 </div>
                             </div>
 
@@ -348,7 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                                     <option value="">-- Pilih Kelas --</option>
                                     <?php if ($kelas_list) : ?>
                                         <?php while ($k = mysqli_fetch_assoc($kelas_list)) : ?>
-                                            <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['nama_kelas']) ?></option>
+                                            <option value="<?= $k['id'] ?>"><?= e($k['nama_kelas']) ?></option>
                                         <?php endwhile; ?>
                                     <?php endif; ?>
                                 </select>
@@ -360,7 +397,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                                     <option value="">-- Pilih Mapel --</option>
                                     <?php if ($mapel_list) : ?>
                                         <?php while ($m = mysqli_fetch_assoc($mapel_list)) : ?>
-                                            <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['nama_mapel']) ?></option>
+                                            <option value="<?= $m['id'] ?>"><?= e($m['nama_mapel']) ?></option>
                                         <?php endwhile; ?>
                                     <?php endif; ?>
                                 </select>
@@ -433,5 +470,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
-
 
