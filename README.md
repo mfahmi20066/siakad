@@ -68,7 +68,7 @@
 
 | Komponen       | Teknologi                                             |
 | -------------- | ----------------------------------------------------- |
-| Bahasa         | PHP 5.1+ (native, tanpa framework)                    |
+| Bahasa         | PHP 8.3+ (native, tanpa framework)                    |
 | Database       | MySQL 8.0+                                            |
 | Frontend       | Bootstrap 5.3.0, jQuery, HTML5, CSS3, Font Poppins    |
 | PDF            | dompdf ^3.1                                           |
