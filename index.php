@@ -889,11 +889,11 @@ $foto_profil_utama = !empty($galeri_foto[0])
             </button>
             <div id="modalBadge" class="absolute top-4 left-4 hidden items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 text-primary text-xs font-bold shadow"></div>
         </div>
-        <div class="flex items-center justify-between px-6 md:px-8 py-4 border-b border-gray-100 shrink-0 bg-white">
+        <div class="px-6 md:px-8 py-4 border-b border-gray-100 shrink-0 bg-white">
             <h3 id="modalJudul" class="text-lg md:text-xl font-bold text-gray-800 pr-8 leading-snug"></h3>
+            <div id="modalTanggal" class="inline-flex items-center text-xs text-gray-400 mt-1.5"></div>
         </div>
         <div class="overflow-y-auto px-6 md:px-8 py-6 bg-gray-50/50">
-            <div id="modalTanggal" class="inline-flex items-center text-xs text-gray-400 mb-4"></div>
             <p id="modalRingkasan" class="text-gray-500 text-sm md:text-base font-medium mb-4 border-l-4 border-accent/60 pl-3"></p>
             <div id="modalIsi" class="text-gray-700 text-sm md:text-base leading-relaxed whitespace-pre-line"></div>
             <div class="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
@@ -932,10 +932,25 @@ $foto_profil_utama = !empty($galeri_foto[0])
 
         document.getElementById('modalJudul').textContent = judul;
 
+        var tg = document.getElementById('modalTanggal');
+        if (tgl) {
+            tg.innerHTML = '<i class="fas fa-calendar-alt mr-1.5"></i> ' + tgl;
+            tg.classList.remove('hidden');
+            tg.classList.add('inline-flex');
+        } else {
+            tg.classList.add('hidden');
+            tg.classList.remove('inline-flex');
+        }
+
         var tb = document.getElementById('modalBadge');
-        tb.innerHTML = '<i class="fas fa-calendar-alt"></i> ' + tgl;
-        tb.classList.remove('hidden');
-        tb.classList.add('inline-flex');
+        if (img && tgl) {
+            tb.innerHTML = '<i class="fas fa-calendar-alt"></i> ' + tgl;
+            tb.classList.remove('hidden');
+            tb.classList.add('inline-flex');
+        } else {
+            tb.classList.add('hidden');
+            tb.classList.remove('inline-flex');
+        }
 
         var g = document.getElementById('modalGambar');
         var ig = document.getElementById('modalImg');
@@ -1125,7 +1140,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
 
             <div class="lg:w-1/2">
                 <div class="bg-gray-50 rounded-lg shadow-md overflow-hidden h-full min-h-[380px]">
-                   <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.4670449493487!2d120.18244617497051!3d-2.967824897008311!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2d915fc11a64e9e5%3A0xad87d93a44505aa8!2sSMA%20Negeri%204%20Palopo!5e0!3m2!1sid!2sid!4v1785961580243!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                   <iframe src="https://www.google.com/maps?q=-2.9678249,120.1850211&z=15&output=embed" width="100%" height="450" class="w-full block" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
             </div>
         </div>

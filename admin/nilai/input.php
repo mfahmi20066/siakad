@@ -124,10 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 // Prepared statement INSERT INTO kelas_mapel_guru
                 if (!isset($stmt_kmg_insert) || $stmt_kmg_insert === null) {
+                    $jam_default = 2;
                     $stmt_kmg_insert = mysqli_prepare($koneksi,
                         "INSERT INTO kelas_mapel_guru (kelas_id, mapel_id, guru_id, tahun_ajaran_id, kkm, jam_per_minggu)
                          VALUES (?, ?, ?, ?, ?, ?)");
-                    mysqli_stmt_bind_param($stmt_kmg_insert, "iiiiii", $kid, $mid, $gid, $taNilaiId, $kkm_p, 2);
+                    mysqli_stmt_bind_param($stmt_kmg_insert, "iiiiii", $kid, $mid, $gid, $taNilaiId, $kkm_p, $jam_default);
                 }
                 mysqli_stmt_execute($stmt_kmg_insert);
                 $new_id = mysqli_insert_id($koneksi);
