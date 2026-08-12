@@ -1,8 +1,8 @@
-﻿<!-- Bootstrap JS Bundle (includes Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- jQuery -->
+﻿<!-- jQuery (harus LOAD PERTAMA agar DataTables & Bootstrap bisa kerja) -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <!-- Bootstrap JS Bundle (includes Popper) - setelah jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -18,10 +18,11 @@
     <script src="/siakad/assets/js/alert.js?v=1.0"></script>
 
     <!-- Custom JS -->
-    <script src="/siakad/assets/js/main.js?v=3"></script>
+    <script src="/siakad/assets/js/main.js?v=7"></script>
 
     <!-- ===== Chatbot AI (SiA Bot) ===== -->
-    <link rel="stylesheet" href="/siakad/assets/css/chatbot.css?v=3">
+    <?php if (!empty($show_chatbot)): ?>
+    <link rel="stylesheet" href="/siakad/assets/css/chatbot.css?v=4">
     <button type="button" class="chatbot-fab" id="chatbotToggle" aria-label="Buka chatbot">
         <i class="bi bi-chat-dots-fill fab-open"></i>
         <i class="bi bi-x-lg fab-close"></i>
@@ -70,6 +71,31 @@
 
     <script>window.SIA_CHAT_USER = <?= json_encode($_SESSION['username'] ?? 'guest') ?>;</script>
     <script src="/siakad/assets/js/chatbot.js"></script>
+    <?php endif; ?>
+
+    <script>
+        /* Badge pesan belum dibaca (topbar Pesan) — polling ringan semua halaman */
+        (function () {
+            var URL = '/siakad/chat/api.php?action=unread';
+            function updateBadge(n) {
+                var b = document.getElementById('chatTopBadge');
+                if (!b) return;
+                if (n > 0) {
+                    b.style.display = 'inline-flex';
+                    b.textContent = n > 99 ? '99+' : String(n);
+                } else {
+                    b.style.display = 'none';
+                }
+            }
+            function poll() {
+                fetch(URL).then(function (r) { return r.json(); }).then(function (j) {
+                    if (j && j.ok) updateBadge(j.data.total);
+                }).catch(function () {});
+            }
+            setTimeout(poll, 2000);
+            setInterval(poll, 30000);
+        })();
+    </script>
 
 </body>
 </html>
