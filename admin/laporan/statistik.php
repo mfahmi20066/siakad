@@ -48,10 +48,15 @@ $top_pelanggaran = mysqli_query($koneksi,
 
 <div class="main-content">
         <div class="page-header d-flex justify-content-between align-items-center">
-        <h4><i class="fas fa-chart-pie text-icon me-2"></i>Statistik</h4>
-        <a href="export.php?jenis=statistik" class="btn btn-success btn-sm">
-            <i class="fas fa-file-excel"></i> Export Excel
-        </a>
+        <h4 class="mb-0"><i class="fas fa-chart-pie text-icon me-2"></i>Statistik</h4>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="index.php" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+            <a href="export.php?jenis=statistik" class="btn btn-success btn-sm">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+        </div>
     </div>
 
     <div class="row g-3">

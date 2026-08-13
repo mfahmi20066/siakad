@@ -287,13 +287,13 @@ $(document).ready(function () {
         resizeTimer = setTimeout(updateTableOverflow, 150);
     });
 
-    /* ── Filter tabel berdasarkan kolom tertentu (dropdown) ── */
+    /* ── Filter tabel berdasarkan kolom tertentu (dropdown)*/
     $('.table-filter-select').on('change', function () {
         var $table       = $($(this).data('table'));
         var columnIndex  = $(this).data('column');
         if (!$table.length || $.fn.DataTable.isDataTable($table) === false) return;
 
-        $table.DataTable().column(columnIndex).search(this.value).draw();
+        $table.DataTable().column(columnIndex).search(this.value, false, false).draw();
     });
 
     /* ── Urutkan tabel berdasarkan kolom tertentu (dropdown) ──

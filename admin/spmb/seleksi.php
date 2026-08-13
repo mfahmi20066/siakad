@@ -9,6 +9,54 @@ $title = "Seleksi SPMB";
 $jalur_filter = isset($_GET['jalur']) ? (int)$_GET['jalur'] : '';
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
 
+// Proses aksi seleksi (POST, CSRF otomatis diverifikasi via enforceCsrfOnPost)
+$success = null;
+$error = null;
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+
+    if ($action === 'set_lolos') {
+        $id = (int)($_POST['id'] ?? 0);
+        $skor = (float)($_POST['skor'] ?? -1);
+        if ($id <= 0 || $skor < 0 || $skor > 100) {
+            $error = "Skor seleksi tidak valid (harus 0 - 100).";
+        } else {
+            $skor = number_format($skor, 2, '.', '');
+            $update = mysqli_query($koneksi, "UPDATE spmb_pendaftar 
+                SET status='lolos_seleksi', skor_seleksi=$skor 
+                WHERE id=$id AND status='diverifikasi'");
+            if ($update && mysqli_affected_rows($koneksi) > 0) {
+                $success = "Pendaftar berhasil ditetapkan sebagai LOLOS SELEKSI.";
+            } else {
+                $error = "Pendaftar tidak ditemukan atau statusnya sudah berubah.";
+            }
+        }
+    } elseif ($action === 'finalisasi') {
+        $kuota = (int)($_POST['kuota'] ?? 0);
+        if ($kuota <= 0) {
+            $error = "Batas kuota tidak valid.";
+        } else {
+            $ambil = mysqli_query($koneksi, "SELECT id FROM spmb_pendaftar 
+                WHERE status='diverifikasi' 
+                ORDER BY skor_seleksi DESC, created_at ASC 
+                LIMIT $kuota");
+            if ($ambil && mysqli_num_rows($ambil) > 0) {
+                $ids = [];
+                while ($r = mysqli_fetch_assoc($ambil)) {
+                    $ids[] = (int)$r['id'];
+                }
+                $id_list = implode(',', $ids);
+                mysqli_query($koneksi, "UPDATE spmb_pendaftar 
+                    SET status='lolos_seleksi' 
+                    WHERE id IN ($id_list)");
+                $success = count($ids) . " pendaftar terbaik berhasil ditetapkan sebagai LOLOS SELEKSI.";
+            } else {
+                $error = "Tidak ada pendaftar yang sudah diverifikasi.";
+            }
+        }
+    }
+}
+
 // Query pendaftar yang sudah diverifikasi
 $query = "SELECT sp.*, sj.nama_jalur, sg.nama_gelombang 
           FROM spmb_pendaftar sp
@@ -44,6 +92,18 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
         <div class="page-header">
         <h4><i class="fas fa-trophy text-icon me-2"></i>Seleksi SPMB</h4>
     </div>
+
+    <?php if ($success): ?>
+    <div class="alert alert-success alert-auto">
+        <i class="fas fa-check-circle"></i> <?php echo e($success); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+    <div class="alert alert-danger alert-auto">
+        <i class="fas fa-exclamation-circle"></i> <?php echo e($error); ?>
+    </div>
+    <?php endif; ?>
 
     <!-- Filter -->
     <div class="card mb-4">
@@ -154,6 +214,29 @@ $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC"
 </div>
 
 <script>
+function postForm(fields) {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '';
+    Object.keys(fields).forEach(function (name) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = fields[name];
+        form.appendChild(input);
+    });
+    if (meta && meta.getAttribute('content')) {
+        const t = document.createElement('input');
+        t.type = 'hidden';
+        t.name = 'csrf_token';
+        t.value = meta.getAttribute('content');
+        form.appendChild(t);
+    }
+    document.body.appendChild(form);
+    form.submit();
+}
+
 function setLolos(id) {
     const skor = document.getElementById('skor_' + id).value;
     if (skor === '' || skor < 0) {
@@ -166,7 +249,7 @@ function setLolos(id) {
         title: 'Set pendaftar ini sebagai LOLOS SELEKSI?',
         confirmText: 'Ya, Lolos'
     }).then(function (ok) {
-        if (ok) window.location.href = 'seleksi.php?id=' + id + '&action=set_lolos&skor=' + skor;
+        if (ok) postForm({ action: 'set_lolos', id: id, skor: skor });
     });
 }
 
@@ -182,7 +265,7 @@ function finalisasiLolos() {
         title: 'Set ' + kuota + ' pendaftar terbaik sebagai LOLOS SELEKSI?',
         confirmText: 'Ya, Lolos'
     }).then(function (ok) {
-        if (ok) window.location.href = 'seleksi.php?action=finalisasi&kuota=' + kuota;
+        if (ok) postForm({ action: 'finalisasi', kuota: kuota });
     });
 }
 </script>

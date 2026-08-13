@@ -178,7 +178,13 @@ $status_config = [
         
         <div class="status-timeline">
             <?php 
-            $statuses = ['menunggu_dokumen', 'menunggu_verifikasi', 'diverifikasi', 'lolos_seleksi', 'diterima', 'ditolak'];
+            // Timeline: untuk yang ditolak, "Diterima" tidak pernah jadi tahap —
+            // jalur finalnya adalah Ditolak (setelah Lolos Seleksi)
+            if ($pendaftar['status'] == 'ditolak') {
+                $statuses = ['menunggu_dokumen', 'menunggu_verifikasi', 'diverifikasi', 'lolos_seleksi', 'ditolak'];
+            } else {
+                $statuses = ['menunggu_dokumen', 'menunggu_verifikasi', 'diverifikasi', 'lolos_seleksi', 'diterima'];
+            }
             $current_status = $pendaftar['status'];
             
             foreach ($statuses as $status):
@@ -225,7 +231,7 @@ $status_config = [
             <?php endif; ?>
             
             <?php if (in_array($current_status, ['diverifikasi', 'lolos_seleksi', 'diterima', 'ditolak'])): ?>
-            <a href="/siakad/spmb/cetak-bukti.php?id=<?php echo $pendaftar['id']; ?>" class="btn-cetak" target="_blank">
+            <a href="/siakad/spmb/cetak-bukti.php?id=<?php echo $pendaftar['id']; ?>&no_pendaftaran=<?php echo urlencode($pendaftar['no_pendaftaran']); ?>&tanggal_lahir=<?php echo urlencode($pendaftar['tanggal_lahir']); ?>" class="btn-cetak" target="_blank">
                 <i class="fas fa-print me-2"></i> Cetak Bukti
             </a>
             <?php endif; ?>

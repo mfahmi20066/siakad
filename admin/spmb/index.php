@@ -731,7 +731,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                             <td><span class="badge bg-secondary"><?php echo e($pendaftar['nama_jalur'] ?? '-'); ?></span></td>
                             <td>
                                 <?php if ($total_docs > 0): ?>
-                                    <span class="badge bg-info"><?php echo "$valid_docs/$total_docs"; ?> âœ“</span>
+                                    <span class="badge bg-info"><?php echo "$valid_docs/$total_docs"; ?> <i class="fas fa-check ms-1"></i></span>
                                 <?php else: ?>
                                     <span class="badge bg-secondary">Belum Upload</span>
                                 <?php endif; ?>
@@ -963,8 +963,8 @@ if (isset($_POST['update_status_pendaftar'])) {
                             <li class="mb-2"><span class="badge bg-warning text-dark px-2 py-1">Menunggu Dokumen</span> Belum upload</li>
                             <li class="mb-2"><span class="badge bg-warning text-dark px-2 py-1">Menunggu Verifikasi</span> Belum periksa</li>
                             <li class="mb-2"><span class="badge bg-info px-2 py-1">Verifikasi Selesai</span> Siap seleksi</li>
-                            <li class="mb-2"><span class="badge bg-success px-2 py-1">âœ“ Diterima</span> Lolos seleksi</li>
-                            <li><span class="badge bg-danger px-2 py-1">âœ— Ditolak</span> Tidak diterima</li>
+                            <li class="mb-2"><span class="badge bg-success px-2 py-1"><i class="fas fa-check me-1"></i>Diterima</span> Lolos seleksi</li>
+                            <li><span class="badge bg-danger px-2 py-1"><i class="fas fa-xmark me-1"></i>Ditolak</span> Tidak diterima</li>
                         </ul>
                     </div>
                 </div>

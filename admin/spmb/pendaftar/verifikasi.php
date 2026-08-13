@@ -228,9 +228,9 @@ if (isset($_GET['upload'])) {
                             </td>
                             <td>
                                 <select class="form-select form-select-sm" name="status_<?php echo $jenis; ?>">
-                                    <option value="menunggu" <?php echo ($dok['status_verifikasi'] == 'menunggu') ? 'selected' : ''; ?>>â³ Menunggu</option>
-                                    <option value="valid" <?php echo ($dok['status_verifikasi'] == 'valid') ? 'selected' : ''; ?>>âœ“ Valid</option>
-                                    <option value="tidak_valid" <?php echo ($dok['status_verifikasi'] == 'tidak_valid') ? 'selected' : ''; ?>>âœ— Tidak Valid</option>
+                                    <option value="menunggu" <?php echo ($dok['status_verifikasi'] == 'menunggu') ? 'selected' : ''; ?>>Menunggu</option>
+                                    <option value="valid" <?php echo ($dok['status_verifikasi'] == 'valid') ? 'selected' : ''; ?>>Valid</option>
+                                    <option value="tidak_valid" <?php echo ($dok['status_verifikasi'] == 'tidak_valid') ? 'selected' : ''; ?>>Tidak Valid</option>
                                 </select>
                             </td>
                             <td>
@@ -294,8 +294,8 @@ if (isset($_GET['upload'])) {
                             <option value="menunggu_verifikasi">Menunggu Verifikasi</option>
                             <option value="diverifikasi">Diverifikasi</option>
                             <option value="lolos_seleksi">Lolos Seleksi</option>
-                            <option value="diterima" style="color: green; font-weight: bold;">âœ“ Diterima</option>
-                            <option value="ditolak" style="color: red; font-weight: bold;">âœ— Ditolak</option>
+                            <option value="diterima" style="color: green; font-weight: bold;">Diterima</option>
+                            <option value="ditolak" style="color: red; font-weight: bold;">Ditolak</option>
                         </select>
                     </div>
                     <div class="col-md-6">

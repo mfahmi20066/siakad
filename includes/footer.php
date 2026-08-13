@@ -18,7 +18,7 @@
     <script src="/siakad/assets/js/alert.js?v=1.0"></script>
 
     <!-- Custom JS -->
-    <script src="/siakad/assets/js/main.js?v=7"></script>
+    <script src="/siakad/assets/js/main.js?v=8"></script>
 
     <!-- ===== Chatbot AI (SiA Bot) ===== -->
     <?php if (!empty($show_chatbot)): ?>

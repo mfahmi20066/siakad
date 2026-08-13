@@ -11,13 +11,23 @@ if ($pendaftar_id <= 0) {
     die("ID Pendaftar tidak valid");
 }
 
+// OTENTIKASI 2-FACTOR: wajib no_pendaftaran + tanggal_lahir cocok dengan data
+// (tanpa ini ?id=N membocorkan biodata pendaftar mana pun)
+$no_pendaftaran_cek = mysqli_real_escape_string($koneksi, $_GET['no_pendaftaran'] ?? '');
+$tanggal_lahir_cek = mysqli_real_escape_string($koneksi, $_GET['tanggal_lahir'] ?? '');
+if (empty($no_pendaftaran_cek) || empty($tanggal_lahir_cek)) {
+    die("Akses ditolak: verifikasi nomor pendaftaran dan tanggal lahir diperlukan.");
+}
+
 // Query pendaftar
 $query = mysqli_query($koneksi, "
     SELECT sp.*, sg.nama_gelombang, sj.nama_jalur 
     FROM spmb_pendaftar sp
     LEFT JOIN spmb_gelombang sg ON sp.gelombang_id = sg.id
     LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
-    WHERE sp.id=$pendaftar_id
+    WHERE sp.id=$pendaftar_id 
+      AND sp.no_pendaftaran='$no_pendaftaran_cek' 
+      AND sp.tanggal_lahir='$tanggal_lahir_cek'
 ");
 
 if (!$query || mysqli_num_rows($query) == 0) {

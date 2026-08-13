@@ -9,6 +9,10 @@ $title = "Data Pendaftar SPMB";
 $gelombang_filter = isset($_GET['gelombang']) ? (int)$_GET['gelombang'] : '';
 $jalur_filter = isset($_GET['jalur']) ? (int)$_GET['jalur'] : '';
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
+$allowed_status = ['pendaftaran', 'menunggu_dokumen', 'menunggu_verifikasi', 'diverifikasi', 'lolos_seleksi', 'diterima', 'ditolak'];
+if (!in_array($status_filter, $allowed_status)) {
+    $status_filter = '';
+}
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
 
 // Query dasar

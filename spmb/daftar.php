@@ -20,8 +20,12 @@ if ($spmb_aktif != 1) {
     exit();
 }
 
-// Ambil data gelombang aktif
-$query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang WHERE status='aktif' ORDER BY tanggal_mulai ASC");
+// Ambil data gelombang aktif yang masih dalam periode buka
+$query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang 
+    WHERE status='aktif' 
+      AND tanggal_mulai <= CURDATE() 
+      AND tanggal_selesai >= CURDATE() 
+    ORDER BY tanggal_mulai ASC");
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 
 // Proses form submit
@@ -59,6 +63,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (strlen($nik) != 16) {
         $error = "NIK harus terdiri dari 16 digit!";
     } else {
+        // Validasi gelombang aktif & periode buka (server-side, jangan percaya UI)
+        $q_gel_cek = mysqli_query($koneksi, "SELECT id FROM spmb_gelombang 
+            WHERE id=$gelombang_id AND status='aktif' 
+              AND tanggal_mulai <= CURDATE() 
+              AND tanggal_selesai >= CURDATE()");
+        if (!$q_gel_cek || mysqli_num_rows($q_gel_cek) == 0) {
+            $error = "Gelombang yang dipilih tidak tersedia atau sudah ditutup.";
+        } else {
         // Cek email sudah terdaftar
         $cek_email = mysqli_query($koneksi, "SELECT id FROM spmb_pendaftar WHERE email='$email'");
         if (mysqli_num_rows($cek_email) > 0) {
@@ -84,6 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Ambil ID pendaftar yang baru saja ditambahkan
                 $pendaftar_id = mysqli_insert_id($koneksi);
                 
+                // URL dasar dinamis (hindari hardcode localhost)
+                $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
+                    . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+                
                 // Kirim email
                 $subject = "Nomor Pendaftaran SPMB SMA Negeri 4 Palopo";
                 $body = "
@@ -101,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <strong>Langkah selanjutnya:</strong><br>
                 1. Simpan nomor pendaftaran Anda dengan baik<br>
                 2. Klik link di bawah untuk upload dokumen:<br>
-                   <a href='http://localhost/siakad/spmb/upload-dokumen.php?pendaftar_id=$pendaftar_id&tanggal_lahir=$tanggal_lahir'>Upload Dokumen</a><br>
-                3. Atau masuk ke <a href='http://localhost/siakad/spmb/cek-status.php'>Cek Status</a><br><br>
+                   <a href='$base_url/siakad/spmb/upload-dokumen.php'>Upload Dokumen</a><br>
+                3. Atau masuk ke <a href='$base_url/siakad/spmb/cek-status.php'>Cek Status</a><br><br>
                 
                 Terima kasih,<br>
                 Tim SPMB SMA Negeri 4 Palopo
@@ -119,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 $error = "Terjadi kesalahan saat menyimpan data. Silakan coba lagi.";
             }
+        }
         }
     }
 }

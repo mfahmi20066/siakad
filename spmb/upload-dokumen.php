@@ -9,6 +9,14 @@ $pendaftar = null;
 $error = '';
 $success = '';
 
+// Gate: SPMB nonaktif → tutup akses upload
+$query_setting = mysqli_query($koneksi, "SELECT spmb_aktif FROM pengaturan WHERE id = 1");
+$setting = mysqli_fetch_assoc($query_setting);
+if (($setting['spmb_aktif'] ?? 0) != 1) {
+    header("Location: /siakad/spmb/index.php");
+    exit();
+}
+
 // Proses form pencarian
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['cari'])) {
     $no_pendaftaran = mysqli_real_escape_string($koneksi, $_GET['no_pendaftaran'] ?? '');
@@ -40,13 +48,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
     verifyCsrf();
     $pendaftar_id = (int) $_POST['pendaftar_id'];
     
-    // Query ulang untuk validasi
-    $cek = mysqli_query($koneksi, "SELECT id, status FROM spmb_pendaftar WHERE id=$pendaftar_id");
-    if (!$cek || mysqli_num_rows($cek) == 0) {
-        $error = "Data pendaftar tidak ditemukan!";
+    // VALIDASI SESI: hanya pendaftar yang sedang login (via pencarian 2FA) boleh upload —
+    // cegah IDOR mengupload ke pendaftar lain
+    $session_pendaftar_id = (int) ($_SESSION['spmb_pendaftar_id'] ?? 0);
+    if ($session_pendaftar_id <= 0 || $session_pendaftar_id !== $pendaftar_id) {
+        $error = "Sesi tidak valid. Silakan lakukan pencarian ulang nomor pendaftaran Anda.";
     } else {
-        $pen = mysqli_fetch_assoc($cek);
-        $upload_dir = "../uploads/spmb/$pendaftar_id/";
+        // Query ulang untuk validasi
+        $cek = mysqli_query($koneksi, "
+            SELECT sp.id, sp.status, sj.dokumen_wajib 
+            FROM spmb_pendaftar sp
+            LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
+            WHERE sp.id=$pendaftar_id
+        ");
+        if (!$cek || mysqli_num_rows($cek) == 0) {
+            $error = "Data pendaftar tidak ditemukan!";
+        } else {
+            $pen = mysqli_fetch_assoc($cek);
+            
+            // Cegah downgrade status: upload hanya boleh saat menunggu_dokumen / menunggu_verifikasi
+            if (!in_array($pen['status'], ['menunggu_dokumen', 'menunggu_verifikasi'])) {
+                $error = "Status pendaftaran Anda sudah " . ucfirst(str_replace('_', ' ', $pen['status'])) . ". Anda tidak dapat mengunggah dokumen lagi.";
+            } else {
+                $upload_dir = "../uploads/spmb/$pendaftar_id/";
         
         // Buat folder jika belum ada
         if (!is_dir($upload_dir)) {
@@ -57,8 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
         $upload_errors = [];
         $missing_required = [];
         
-        // Definisikan dokumen wajib berdasarkan jalur (sesuai spmb_pendaftar.jalur_id)
+        // Dokumen wajib dari spmb_jalur.dokumen_wajib (JSON), fallback default
         $required_docs = ['kk', 'akta', 'ijazah', 'foto'];
+        if (!empty($pen['dokumen_wajib'])) {
+            $decoded = json_decode($pen['dokumen_wajib'], true);
+            if (is_array($decoded) && count($decoded) > 0) {
+                $required_docs = array_values(array_map('strval', $decoded));
+            }
+        }
         
         // Proses setiap file yang diupload
         if (isset($_FILES['dokumen']) && is_array($_FILES['dokumen']) && isset($_FILES['dokumen']['error'])) {
@@ -199,6 +229,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
         
         if (count($upload_errors) > 0) {
             $error = "Beberapa file gagal diunggah:<br>" . implode("<br>", $upload_errors);
+        }
+            }
         }
     }
 }
@@ -425,8 +457,14 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
             }
         }
         
-        // Hitung statistik dokumen
+        // Dokumen wajib dari jalur (JSON) — fallback default
         $required_docs_list = ['kk', 'akta', 'ijazah', 'foto'];
+        if (!empty($pendaftar['dokumen_wajib'])) {
+            $decoded = json_decode($pendaftar['dokumen_wajib'], true);
+            if (is_array($decoded) && count($decoded) > 0) {
+                $required_docs_list = array_values(array_map('strval', $decoded));
+            }
+        }
         $total_required = count($required_docs_list);
         $uploaded_required = count(array_intersect($uploaded_docs, $required_docs_list));
         $valid_docs = 0;
@@ -700,15 +738,21 @@ function addAdminNotification($koneksi, $judul, $pesan, $link = null) {
                 </p>
             </div>
             
-            <?php if ($pendaftar['status'] == 'menunggu_dokumen'): ?>
+            <?php
+            // Izinkan upload ulang saat: belum upload (menunggu_dokumen) ATAU ada dokumen yang ditolak
+            // (menunggu_verifikasi dengan dokumen tidak_valid) — perbaiki deadlock dokumen ditolak
+            $boleh_upload_ulang = ($pendaftar['status'] == 'menunggu_dokumen')
+                || ($pendaftar['status'] == 'menunggu_verifikasi' && $invalid_docs > 0);
+            ?>
+            <?php if ($boleh_upload_ulang): ?>
             <button type="submit" class="btn-submit">
-                <i class="fas fa-upload me-2"></i> Unggah Semua Dokumen
+                <i class="fas fa-upload me-2"></i> Unggah Dokumen
             </button>
             <?php else: ?>
             <div style="background: #D4EDDA; border-left: 4px solid #10B981; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
                 <p style="margin: 0; color: #155724; font-size: 13px;">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>Status dokumen Anda saat ini: <?php echo $pendaftar['status']; ?></strong><br>
+                    <strong>Status dokumen Anda saat ini: <?php echo ucfirst(str_replace('_', ' ', $pendaftar['status'])); ?></strong><br>
                     Anda tidak perlu upload ulang. Tim admin sedang memverifikasi dokumen Anda.
                 </p>
             </div>

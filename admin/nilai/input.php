@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="row g-3">
 
                     <div class="col-md-6">
-                        <h6 class="text-muted mb-3 fw-bold">Data Academic</h6>
+                        <h6 class="text-muted mb-3 fw-bold">Data Akademik</h6>
 
                         <div class="mb-3">
                             <label class="form-label">Kelas <span class="text-danger">*</span></label>
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="mb-3">
                                     <label class="form-label">Tahun Ajaran</label>
                                     <input type="text" name="tahun_ajaran"
-                                           class="form-control" value="<?= e($taTahun) ?>" readonly>
+                                        class="form-control" value="<?= e($taTahun) ?>" readonly>
                                 </div>
                             </div>
                         </div>

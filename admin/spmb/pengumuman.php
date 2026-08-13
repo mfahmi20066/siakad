@@ -38,6 +38,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
             
             if (!$pendaftar) continue;
             
+            // Cegah state parsial: email pendaftar tidak boleh sudah dipakai akun users lain
+            // (users.email UNIQUE — INSERT users akan gagal diam-diam)
+            if ($action == 'diterima' && !empty($pendaftar['email'])) {
+                $email_cek = mysqli_real_escape_string($koneksi, $pendaftar['email']);
+                $q_dup = mysqli_query($koneksi, "SELECT id FROM users WHERE email='$email_cek'");
+                if ($q_dup && mysqli_num_rows($q_dup) > 0) {
+                    $errors[] = "{$pendaftar['nama_lengkap']} (No. {$pendaftar['no_pendaftaran']}): email {$pendaftar['email']} sudah digunakan akun SIAKAD lain — akun tidak dibuat.";
+                    continue;
+                }
+            }
+            
             // Update status
             $status_baru = ($action == 'diterima') ? 'diterima' : 'ditolak';
             $update = mysqli_query($koneksi, "UPDATE spmb_pendaftar SET status='$status_baru' WHERE id=$id");
@@ -95,17 +106,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                                 NULL, 
                                 NOW()
                             )");
+                    
+                    if ($insert_siswa) {
+                        // Hubungkan akun users ke data siswa (relasi id_ref) —
+                        // pola yang sama dengan akun siswa yang dibuat dari form admin
+                        $siswa_id = mysqli_insert_id($koneksi);
+                        mysqli_query($koneksi, "UPDATE users SET id_ref=$siswa_id WHERE id=$user_id AND role='siswa'");
+                    }
                     }
                     
                     // Kirim email
                     $subject = "Selamat! Anda Diterima di SMA Negeri 4 Palopo";
+                    $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
+                        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
                     $body = "
                     Halo {$pendaftar['nama_lengkap']},<br><br>
                     
                     <strong>Selamat!</strong> Anda telah diterima sebagai calon siswa SMA Negeri 4 Palopo untuk tahun ajaran $ta_spmb.<br><br>
                     
                     <strong>Login ke SIAKAD:</strong><br>
-                    URL: http://localhost/siakad/auth/login.php<br>
+                    URL: $base_url/siakad/auth/login.php<br>
                     Username: $username<br>
                     Password: $password<br><br>
                     
@@ -148,6 +168,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                     }
                 }
             }
+        }
+        
+        if (!empty($errors)) {
+            $error = implode('<br>', $errors);
         }
         
         if ($processed > 0) {
@@ -319,6 +343,15 @@ function finalizeSelection(action) {
         inputFinalize.name = 'finalize';
         inputFinalize.value = '1';
         form.appendChild(inputFinalize);
+        
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.getAttribute('content')) {
+            const t = document.createElement('input');
+            t.type = 'hidden';
+            t.name = 'csrf_token';
+            t.value = meta.getAttribute('content');
+            form.appendChild(t);
+        }
         
         document.body.appendChild(form);
         form.submit();
