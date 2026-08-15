@@ -7,7 +7,7 @@ foreach ($nameParts as $part) {
 }
 $initials = substr($initials, 0, 2);
 
-// Foto profil (dari session saat login / upload)
+// foto profil, ambil dari session pas login/upload
 $foto_profil = trim($_SESSION['foto'] ?? '');
 $foto_path   = '';
 if ($foto_profil !== '') {

@@ -5,7 +5,7 @@ cekAdmin();
 
 $title = "Tambah Mata Pelajaran";
 
-// Use ORDER BY kolom yang kemungkinan ada
+// order by kolom yang kemungkinan ada aja
 $guru_list = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 if (!$guru_list) {
     $guru_list = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama_lengkap");
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $guru_id  = isset($_POST['guru_id']) ? (int)$_POST['guru_id'] : 0;
     $kelas_id = isset($_POST['kelas_id_wali']) ? (int)$_POST['kelas_id_wali'] : 0;
 
-    // Load kode & nama mapel berdasarkan mapel_id
+    // load kode & nama mapel by mapel_id
     $kode = '';
     $nama = '';
     if ($mapel_id > 0) {
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $kode = mysqli_real_escape_string($koneksi, strtoupper($kode));
         $nama = mysqli_real_escape_string($koneksi, $nama);
 
-        // Set wali kelas -> kelas.wali_kelas (hanya jika guru_id valid)
+        // set wali kelas -> kelas.wali_kelas (kalo guru_id valid)
         if ($kelas_id > 0 && $guru_id > 0) {
             mysqli_query(
                 $koneksi,

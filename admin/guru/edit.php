@@ -6,7 +6,7 @@ include '../../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Edit Guru";
 
-// Tahun ajaran aktif untuk jadwal baru (dinamis)
+// tahun ajaran aktif buat jadwal baru
 $taAktif = null;
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); }
 catch (Throwable $e) { $taAktif = null; }
@@ -18,7 +18,7 @@ if (!$data) {
     exit();
 }
 
-// Ambil daftar kelas & mapel yang terkait guru dari tabel jadwal (untuk ditampilkan di halaman edit)
+// daftar kelas & mapel terkait guru dari jadwal, buat ditampilkan di halaman edit
 $array_mapel_guru = [];
 $array_kelas_guru = [];
 $q_jadwal = mysqli_query(
@@ -36,7 +36,7 @@ if ($q_jadwal) {
     }
 }
 
-// Unikkan berdasarkan id
+// unikkan berdasarkan id
 $mapel_unique = [];
 foreach ($array_mapel_guru as $m) {
     $mapel_unique[$m['mapel_id']] = $m;
@@ -52,7 +52,7 @@ $array_kelas_guru = array_values($kelas_unique);
 $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 $mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
 
-// Proses tambah jadwal dari halaman edit guru
+// proses tambah jadwal dari halaman edit guru
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_POST['aksi_jadwal'] === 'tambah_jadwal') {
     $kid     = (int)($_POST['kelas_id'] ?? 0);
     $mid     = (int)($_POST['mapel_id'] ?? 0);
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
     } elseif ($selesai <= $mulai) {
         $error = "Jam selesai harus lebih dari jam mulai!";
     } else {
-        // Bentrok jadwal (cek jam di kelas yang sama)
+        // cek bentrok jadwal di kelas yang sama
         $cek_bentrok = mysqli_query($koneksi,
             "SELECT id FROM jadwal
              WHERE kelas_id = '$kid'
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
         if (mysqli_num_rows($cek_bentrok) > 0) {
             $error = "Jadwal bentrok! Kelas tersebut sudah memiliki jadwal di hari dan jam yang sama.";
         } else {
-            // Bentrok jadwal GURU (mengajar di kelas lain di hari & jam yang sama)
+            // bentrok jadwal guru (ngajar di kelas lain di hari & jam sama)
             $cek_guru = mysqli_query($koneksi,
                 "SELECT j.id, k.nama_kelas FROM jadwal j
                  LEFT JOIN kelas k ON k.id = j.kelas_id
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
                 $error = "Jadwal bentrok! Guru ini sudah mengajar di kelas " . e($rg['nama_kelas'] ?? '-') . " pada hari dan jam yang sama.";
             }
             if ($error === null) {
-            // Pastikan sinkron dengan aplikasi lain (tahun ajaran & validasi bentrok dipakai dari tabel yang sama)
+            // pastikan sinkron: tahun ajaran & validasi bentrok pake tabel yang sama
             $taId  = $taAktif ? (int)$taAktif['id'] : 'NULL';
             $taName = $taAktif ? $taAktif['tahun'] : (date('Y') . '/' . (date('Y') + 1));
             mysqli_query($koneksi,
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aksi_jadwal']) && $_PO
     }
 }
 
-// Proses update data guru (form utama)
+// proses update data guru
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_POST['aksi_jadwal'] !== 'tambah_jadwal')) {
     $nip    = mysqli_real_escape_string($koneksi, $_POST['nip']);
     $nama   = mysqli_real_escape_string($koneksi, $_POST['nama']);
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
     $hp     = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
 
-    // â”€â”€ Email: validasi format + cek duplikat di tabel users â”€â”€
+    // email: validasi format + cek duplikat di users
     $error = null;
     $email = mysqli_real_escape_string($koneksi, trim($_POST['email'] ?? ''));
     if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
         }
     }
 
-    // â”€â”€ Upload / Hapus Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // upload / hapus foto
     $foto_update = $data['foto'] ?? '';
     $folder_guru = __DIR__ . '/../../assets/img/foto_guru/';
 
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && (!isset($_POST['aksi_jadwal']) || $_
                                     alamat='$alamat', no_hp='$hp', email=$emailSql, foto='$foto_update'
                                 WHERE id='$id'");
 
-        // Sinkronkan nama & email ke tabel users (akun terhubung via id_ref)
+        // sinkron nama & email ke users (akun terhubung via id_ref)
         mysqli_query($koneksi, "UPDATE users SET nama='$nama', email=$emailSql
                                 WHERE id_ref='$id' AND role='guru'");
 

@@ -7,23 +7,23 @@ header("Pragma: no-cache");
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'form';
 
-// Halaman form pemilihan kelas & semester
+// halaman form: pilih kelas & semester
 if ($action === 'form'):
 
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $sys       = mysqli_fetch_assoc($q_setting);
 
-// Ambil daftar tahun ajaran yang tersedia dari data rapor — berbasis tahun_ajaran_id + JOIN master
+// tahun ajaran dari data rapor, berbasis tahun_ajaran_id + join master
 $tahun_list = mysqli_query($koneksi,
     "SELECT DISTINCT ta.id AS ta_id, ta.nama_tahun_ajaran AS tahun_ajaran
      FROM rapor r JOIN tahun_ajaran ta ON ta.id = r.tahun_ajaran_id
      ORDER BY ta.id DESC");
-// Tahun default dari MASTER tahun aktif (bukan pengaturan teks / date('Y'))
+// tahun default dari master tahun aktif (bukan pengaturan teks / date)
 $q_master = mysqli_query($koneksi, "SELECT nama_tahun_ajaran FROM tahun_ajaran WHERE status='aktif' LIMIT 1");
 $tahun_def = ($q_master && $m = mysqli_fetch_assoc($q_master)) ? $m['nama_tahun_ajaran']
             : ($sys['tahun_pelajaran'] ?? (date('Y') . '/' . (date('Y')+1)));
 
-// Ambil daftar semua kelas (tidak terbatas pada kelas yang sudah punya data rapor)
+// semua kelas, ga cuma yang udah punya rapor
 $kelas_list = mysqli_query($koneksi,
     "SELECT k.id, k.nama_kelas, k.tingkat
      FROM kelas k
@@ -102,7 +102,7 @@ $kelas_list = mysqli_query($koneksi,
 </div>
 
 <script>
-// Muat daftar tahun ajaran & siswa otomatis berdasarkan kelas & semester yang dipilih
+// muat tahun ajaran & siswa otomatis sesuai kelas & semester
 function muatSiswaPerKelas() {
     const namaKelas = document.getElementById('nama_kelas').value;
     const semester = document.getElementById('semester_ta').value;
@@ -118,7 +118,7 @@ function muatSiswaPerKelas() {
     taSelect.innerHTML = '<option value="">Memuat tahun ajaran...</option>';
     siswaSelect.innerHTML = '<option value="">Sedang memuat data...</option>';
 
-    // 1. Muat daftar tahun ajaran untuk kelas & semester tersebut
+    // 1. muat tahun ajaran buat kelas & semester
     const xhrTa = new XMLHttpRequest();
     xhrTa.open('GET', 'get_ta_by_kelas.php?nama_kelas=' + encodeURIComponent(namaKelas) + '&semester=' + encodeURIComponent(semester), true);
     xhrTa.onload = function() {
@@ -139,13 +139,13 @@ function muatSiswaPerKelas() {
             taSelect.innerHTML = '<option value="">Gagal memuat tahun ajaran</option>';
         }
 
-        // 2. Setelah TA dipilih, muat siswa
+        // 2. abis ta dipilih, muat siswa
         muatSiswa();
     };
     xhrTa.send();
 }
 
-// Muat daftar siswa berdasarkan kelas, semester & tahun ajaran yang terpilih
+// muat siswa by kelas, semester & ta terpilih
 function muatSiswa() {
     const namaKelas = document.getElementById('nama_kelas').value;
     const semester = document.getElementById('semester_ta').value;
@@ -173,10 +173,10 @@ function muatSiswa() {
     xhr.send();
 }
 
-// Ketika tahun ajaran berubah, muat ulang daftar siswa
+// pas ta berubah, muat ulang siswa
 document.getElementById('select_ta').addEventListener('change', muatSiswa);
 
-// Alihkan action form antara cetak (print) dan PDF
+// alihkan action form antara cetak (print) dan pdf
 function ubahAction() {
     var fmt = document.getElementById('format').value;
     var form = document.querySelector('form');
@@ -207,16 +207,14 @@ document.getElementById('format').addEventListener('change', ubahAction);
 exit;
 endif;
 
-// ===================================================================
-// Halaman CETAK — menampilkan rapor individu berdasarkan kelas & nama siswa
-// ===================================================================
+// halaman cetak: rapor individu by kelas & nama siswa
 
 $nama_kelas = isset($_GET['nama_kelas']) ? mysqli_real_escape_string($koneksi, trim($_GET['nama_kelas'])) : '';
 $nama       = isset($_GET['nama']) ? mysqli_real_escape_string($koneksi, trim($_GET['nama'])) : '';
 $semester   = isset($_GET['semester']) ? mysqli_real_escape_string($koneksi, $_GET['semester']) : '1';
 $ta         = isset($_GET['ta']) ? mysqli_real_escape_string($koneksi, $_GET['ta']) : '';
 
-// Resolve tahun (legacy string) â†’ ID master; query utama tetap pakai id.
+// resolve tahun (string legacy) ke id master; query utama tetep pake id
 $taId = 0;
 if ($ta !== '') {
     $rq = mysqli_query($koneksi, "SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran='$ta' LIMIT 1");
@@ -233,7 +231,7 @@ if (!$nama_kelas || !$nama) {
     die('Nama kelas dan nama siswa wajib diisi.');
 }
 
-// Ambil informasi kelas berdasarkan nama
+// ambil info kelas by nama
 $info_kelas = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT k.*, g.nama AS wali_kelas
      FROM kelas k
@@ -244,8 +242,7 @@ if (!$info_kelas) {
     die('Kelas "' . e($nama_kelas) . '" tidak ditemukan.');
 }
 
-// Ambil semua siswa di kelas yang cocok dengan nama (kiri), lengkapi dengan data rapor
-// bila sudah tersedia (kiri). Dengan begitu semua kelas tetap bisa dicetak.
+// ambil semua siswa di kelas yang cocok (kiri), lengkapi data rapor kalo ada, biar semua kelas tetep bisa dicetak
 $siswa_list = mysqli_query($koneksi,
     "SELECT s.id AS id_siswa, s.nis, s.nisn, s.nama, s.nama_lengkap,
             s.jenis_kelamin, s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
@@ -263,11 +260,11 @@ $siswa_list = mysqli_query($koneksi,
        AND s.nama LIKE '%$nama%'
      ORDER BY s.nama");
 
-// Ambil setting sekolah
+// ambil setting sekolah
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting   = mysqli_fetch_assoc($q_setting);
 
-// Cek apakah kolom kelompok/kkm sudah tersedia
+// cek kolom kelompok/kkm udah ada
 $cek_kelompok = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kelompok'");
 $ada_kelompok = mysqli_num_rows($cek_kelompok) > 0;
 $select_mapel_extra = $ada_kelompok ? "m.kelompok, m.kkm," : "'Umum' AS kelompok, 75 AS kkm,";
@@ -445,7 +442,7 @@ $counter = 0;
 while ($rapor = mysqli_fetch_assoc($siswa_list)):
     $counter++;
 
-    // Gunakan id siswa sebagai acuan, bukan r.siswa_id yang mungkin NULL
+    // pake id siswa sebagai acuan, bukan r.siswa_id yang bisa null
     $sid_siswa = $rapor['id_siswa'];
     // Semester & tahun ajaran fallback ke nilai dari URL bila belum ada record rapor
     $smt_efektif  = !empty($rapor['semester']) ? $rapor['semester'] : $semester;

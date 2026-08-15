@@ -1,12 +1,12 @@
 <?php
 include '../config/koneksi.php';
 
-// Cek pengumuman aktif
+// cek pengumuman aktif
 $query_setting = mysqli_query($koneksi, "SELECT spmb_pengumuman_aktif FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 $pengumuman_aktif = $setting['spmb_pengumuman_aktif'] ?? 0;
 
-// Jika pengumuman tidak aktif
+// kalo pengumuman ga aktif
 if ($pengumuman_aktif != 1) {
     $pengumuman_aktif = false;
 }
@@ -15,7 +15,7 @@ $search_no = '';
 $search_results = null;
 $error_msg = '';
 
-// Proses pencarian
+// proses pencarian
 if ($_SERVER['REQUEST_METHOD'] == 'POST' || (isset($_GET['cari']) && !empty($_GET['no_pendaftaran']))) {
     $search_no = mysqli_real_escape_string($koneksi, $_GET['no_pendaftaran'] ?? $_POST['no_pendaftaran'] ?? '');
     
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' || (isset($_GET['cari']) && !empty($_GE
     }
 }
 
-// Ambil daftar pendaftar yang diterima (untuk ditampilkan publik, bisa sesuai kebijakan)
+// daftar pendaftar yang diterima (tampil publik, sesuai kebijakan)
 $query_diterima = mysqli_query($koneksi, "
     SELECT sp.nama_lengkap, sp.no_pendaftaran, sj.nama_jalur, sg.nama_gelombang
     FROM spmb_pendaftar sp

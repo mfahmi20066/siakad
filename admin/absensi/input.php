@@ -5,7 +5,7 @@ include '../../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Input Absensi";
 
-// Tahun ajaran aktif (source of truth) — bukan POST/date('Y').
+// tahun ajaran aktif (source of truth), bukan dari post/date
 $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
@@ -13,7 +13,7 @@ catch (Throwable $e) { $taId = null; }
 $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 $guru_list  = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
-// Tahap 1: tampilkan daftar siswa setelah kelas dipilih
+// tahap 1: tampilkan siswa setelah kelas dipilih
 if (isset($_POST['kelas_id']) && !isset($_POST['simpan'])) {
     $kid         = $_POST['kelas_id'];
     $gid         = $_POST['guru_id'];
@@ -21,7 +21,7 @@ if (isset($_POST['kelas_id']) && !isset($_POST['simpan'])) {
     $siswa_kelas = mysqli_query($koneksi, "SELECT * FROM siswa WHERE kelas_id='$kid' ORDER BY nama");
 }
 
-// Tahap 2: simpan absensi
+// tahap 2: simpan absensi
 if (isset($_POST['simpan'])) {
     $kid         = $_POST['kelas_id'];
     $tgl         = $_POST['tanggal'];
@@ -29,7 +29,7 @@ if (isset($_POST['simpan'])) {
     $statuses    = $_POST['status'];
     $keterangans = $_POST['keterangan'];
 
-    // Validasi relasional: kelas harus ada & pada tahun ajaran aktif.
+    // validasi: kelas harus ada & di tahun ajaran aktif
     $kelasTa = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT tahun_ajaran_id FROM kelas WHERE id=".(int)$kid));
     if ($taId === null || $taTahun === '') {
@@ -40,7 +40,7 @@ if (isset($_POST['simpan'])) {
         $error = "Kelas terpilih bukan pada tahun ajaran aktif ($taTahun).";
     } else {
         foreach ($siswa_ids as $i => $sid) {
-            // Pastikan siswa benar-benar berada di kelas ini (validasi relasi).
+            // pastikan siswa beneran di kelas ini
             $srow = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT kelas_id FROM siswa WHERE id=".(int)$sid));
             if (!$srow || $srow['kelas_id'] != $kid) continue;
 

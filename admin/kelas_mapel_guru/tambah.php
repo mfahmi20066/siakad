@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($jam < 1 || $jam > 40) {
         $error = "Jam per minggu harus antara 1 - 40.";
     } else {
-        // Cek duplikat: satu guru per (kelas + mapel + TA)
+        // cek duplikat: satu guru per (kelas + mapel + ta)
         $cek = mysqli_query($koneksi, "SELECT id FROM kelas_mapel_guru WHERE kelas_id=$kid AND mapel_id=$mid AND tahun_ajaran_id=$taId LIMIT 1");
         if (mysqli_num_rows($cek) > 0) {
             $error = "Mapel ini sudah ditugaskan di kelas tersebut. Gunakan Edit untuk mengubah guru/KKM.";

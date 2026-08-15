@@ -6,19 +6,19 @@ cekAdmin();
 $title = "Kelola Berita & Pengumuman";
 $user_id = (int)($_SESSION['user_id'] ?? 0);
 
-// Cek dan tambah kolom ringkasan jika belum ada
+// cek & tambah kolom ringkasan kalo belum ada
 $cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM berita_sekolah LIKE 'ringkasan'");
 if (mysqli_num_rows($cek_kolom) == 0) {
     mysqli_query($koneksi, "ALTER TABLE berita_sekolah ADD COLUMN ringkasan TEXT AFTER judul");
 }
 
-// Cek dan tambah kolom kategori jika belum ada
+// cek & tambah kolom kategori kalo belum ada
 $cek_kategori = mysqli_query($koneksi, "SHOW COLUMNS FROM berita_sekolah LIKE 'kategori'");
 if (mysqli_num_rows($cek_kategori) == 0) {
     mysqli_query($koneksi, "ALTER TABLE berita_sekolah ADD COLUMN kategori VARCHAR(100) DEFAULT 'Umum' AFTER isi");
 }
 
-// Cek dan tambah kolom gambar jika belum ada
+// cek & tambah kolom gambar kalo belum ada
 $cek_gambar = mysqli_query($koneksi, "SHOW COLUMNS FROM berita_sekolah LIKE 'gambar'");
 if (mysqli_num_rows($cek_gambar) == 0) {
     mysqli_query($koneksi, "ALTER TABLE berita_sekolah ADD COLUMN gambar VARCHAR(255) AFTER kategori");
@@ -27,7 +27,7 @@ if (mysqli_num_rows($cek_gambar) == 0) {
 $success = '';
 $error = '';
 
-// Handle tambah berita
+// handle tambah berita
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_berita'])) {
     $judul = mysqli_real_escape_string($koneksi, $_POST['judul'] ?? '');
     $ringkasan = mysqli_real_escape_string($koneksi, $_POST['ringkasan'] ?? '');
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_berita'])) {
     }
 }
 
-// Handle edit berita
+// handle edit berita
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_berita'])) {
     $id = (int)$_POST['id'];
     $judul = mysqli_real_escape_string($koneksi, $_POST['judul'] ?? '');
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_berita'])) {
                 $upload_path = '../../assets/img/foto_berita/' . $new_filename;
 
                 if (move_uploaded_file($file['tmp_name'], $upload_path)) {
-                    // Hapus gambar lama
+                    // hapus gambar lama
                     if ($gambar && file_exists('../../assets/img/foto_berita/' . $gambar)) {
                         unlink('../../assets/img/foto_berita/' . $gambar);
                     }
@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_berita'])) {
     }
 }
 
-// Handle hapus berita
+// handle hapus berita
 if (isset($_GET['hapus'])) {
     verifyCsrf();
     $id = (int)$_GET['hapus'];
@@ -154,14 +154,14 @@ if (isset($_GET['hapus'])) {
     }
 }
 
-// Ambil data berita
+// ambil data berita
 $query_berita = mysqli_query($koneksi, "SELECT * FROM berita_sekolah ORDER BY tanggal DESC");
 $berita_list = [];
 while ($row = mysqli_fetch_assoc($query_berita)) {
     $berita_list[] = $row;
 }
 
-// Mode edit
+// mode edit
 $edit_mode = false;
 $edit_data = null;
 if (isset($_GET['edit'])) {

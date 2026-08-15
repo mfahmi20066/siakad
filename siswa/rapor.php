@@ -5,24 +5,23 @@ include '../config/helper_tahun_ajaran.php';
 cekSiswa();
 $title = "Nilai Rapor";
 
-// AMBIL DATA DINAMIS DARI TABEL PENGATURAN (Untuk Tahun Pelajaran & Semester Aktif)
+// ambil dinamis dari pengaturan (tahun pelajaran & semester aktif)
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $sys           = mysqli_fetch_assoc($query_setting);
 
-// Ambil ID siswa dari session login yang aktif
+// ambil id siswa dari session
 $sid = $_SESSION['id_ref'];
 
-// Ambil data siswa untuk mendapatkan kelas_id secara akurat
+// ambil data siswa buat dapet kelas_id akurat
 $q_siswa = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id = '$sid'");
 $siswa   = mysqli_fetch_assoc($q_siswa);
 
-// Mengambil parameter dari URL
+// ambil parameter dari url
 $mode     = isset($_GET['mode']) ? $_GET['mode'] : 'list';
 $semester = isset($_GET['semester']) ? mysqli_real_escape_string($koneksi, $_GET['semester']) : '';
 $ta       = isset($_GET['ta']) ? mysqli_real_escape_string($koneksi, $_GET['ta']) : '';
 
-// Antisipasi jika URL mengirimkan angka 0 atau kosong, maka samakan dengan data Pengaturan Admin
-// Kolom `pengaturan.semester` bisa berisi teks seperti "1 (Ganjil)", jadi ambil ANGKA-nya saja
+// kalo url ngirim 0/kosong, samain sama data pengaturan admin; semester bisa berisi teks '1 (Ganjil)', ambil angkanya aja
 function ambil_angka_semester($val) {
     if (preg_match('/\d+/', (string)$val, $m)) return $m[0];
     return '1';
@@ -34,7 +33,7 @@ $fix_semester = (!empty($semester) && $semester !== '0')
     ? ambil_angka_semester($semester)
     : ambil_angka_semester($sys['semester'] ?? '1');
 
-// Tahun ajaran berbasis ID (source of truth) dengan kompatibilitas param lama `ta`.
+// ta berbasis id (source of truth) + kompatibilitas param lama 'ta'
 $taId = (int)($_GET['tahun_ajaran_id'] ?? 0);
 if ($taId <= 0 && !empty($ta)) {
     $qres = mysqli_query($koneksi, "SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran='$ta' LIMIT 1");
@@ -48,13 +47,13 @@ if ($taId <= 0) {
 $fix_ta = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT nama_tahun_ajaran v FROM tahun_ajaran WHERE id=$taId"))['v'] ?? $ta;
 
-// Ambil nama kelas
+// ambil nama kelas
 $nama_kelas = '-';
 $id_kelas   = $siswa['kelas_id'] ?? $siswa['id_kelas'] ?? 0;
 if ($id_kelas) {
     $rk = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM kelas WHERE id='$id_kelas'"));
     $nama_kelas = $rk['nama_kelas'] ?? '-';
-    // Ambil nama wali kelas
+    // ambil nama wali kelas
     $wali_id    = $rk['wali_kelas'] ?? 0;
     $nama_wali  = '-';
     if ($wali_id) {
@@ -63,7 +62,7 @@ if ($id_kelas) {
     }
 }
 
-// â”€â”€ DAFTAR RAPOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// daftar rapor
 $daftar_rapor = mysqli_query($koneksi,
     "SELECT r.*, k.nama_kelas
      FROM rapor r
@@ -71,15 +70,13 @@ $daftar_rapor = mysqli_query($koneksi,
      WHERE r.siswa_id = '$sid'
      ORDER BY r.tahun_ajaran_id DESC, r.semester ASC");
 
-// â”€â”€ DETAIL RAPOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// detail rapor
 $nilai_rapor  = null;
 $info_rapor   = null;
 $rekap_absen  = null;
 
 if ($mode === 'detail') {
-    // Info rapor
-    // Note: Beberapa data rapor lama memiliki semester='0' karena bug input,
-    // jadi kita terima juga semester '0' sebagai fallback.
+    // info rapor; terima juga semester '0' sebagai fallback karena bug input data lama
     $info_rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT r.*, k.nama_kelas
          FROM rapor r
@@ -88,7 +85,7 @@ if ($mode === 'detail') {
          ORDER BY r.semester DESC
          LIMIT 1"));
 
-    // Nilai per mapel (Menggunakan variabel $fix_semester & $fix_ta agar terhindar dari error '0')
+    // nilai per mapel (pake $fix_semester & $fix_ta biar ga error '0')
     $nilai_rapor = mysqli_query($koneksi,
         "SELECT n.*, mp.nama_mapel, mp.kode_mapel
          FROM nilai n
@@ -96,7 +93,7 @@ if ($mode === 'detail') {
          WHERE n.siswa_id='$sid' AND (n.semester='$fix_semester' OR n.semester='1' OR n.semester='Ganjil') AND n.tahun_ajaran_id='$taId'
          ORDER BY mp.nama_mapel");
 
-    // Rekap absensi semester ini
+    // rekap absensi semester ini
     $rekap_absen = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT
             SUM(CASE WHEN status IN ('Hadir','H') THEN 1 ELSE 0 END) as hadir,

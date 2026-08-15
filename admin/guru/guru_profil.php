@@ -8,14 +8,14 @@ $id_guru = $_SESSION['id_ref']; // id guru dari session
 $pesan   = '';
 $error   = '';
 
-// â”€â”€ Ambil data guru â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ambil data guru
 $query = mysqli_query($koneksi, "SELECT g.*, mp.nama_mapel 
                                FROM guru g 
                                LEFT JOIN mata_pelajaran mp ON mp.guru_id = g.id
                                WHERE g.id = '$id_guru'");
 $data  = mysqli_fetch_assoc($query);
 
-// â”€â”€ Proses Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses upload foto
 if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     $file    = $_FILES['foto'];
     $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -26,7 +26,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     } elseif ($file['size'] > 2048000) {
         $error = "Ukuran file terlalu besar. Maksimal 2MB.";
     } else {
-        // Hapus foto lama jika ada
+        // hapus foto lama kalo ada
         if (!empty($data['foto'])) {
             $old = __DIR__ . "/../../assets/img/foto_guru/" . $data['foto'];
             if (file_exists($old)) unlink($old);
@@ -35,7 +35,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
         $nama_file = "guru_" . $id_guru . "_" . time() . "." . $ext;
         $tujuan    = __DIR__ . "/../../assets/img/foto_guru/" . $nama_file;
 
-        // Pastikan folder ada
+        // pastikan folder ada
         if (!is_dir(__DIR__ . "/../../assets/img/foto_guru/")) {
             mkdir(__DIR__ . "/../../assets/img/foto_guru/", 0777, true);
         }
@@ -44,7 +44,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
             mysqli_query($koneksi, "UPDATE guru SET foto='$nama_file' WHERE id='$id_guru'");
             $_SESSION['foto'] = $nama_file;
             $pesan = "Foto profil berhasil diperbarui.";
-            // Refresh data
+            // refresh data
             $query = mysqli_query($koneksi, "SELECT g.*, mp.nama_mapel 
                                            FROM guru g 
                                            LEFT JOIN mata_pelajaran mp ON mp.guru_id = g.id
@@ -56,7 +56,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     }
 }
 
-// â”€â”€ Proses Update Kontak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses update kontak
 if (isset($_POST['simpan_kontak'])) {
     $no_hp  = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
@@ -64,7 +64,7 @@ if (isset($_POST['simpan_kontak'])) {
     $pesan = "Data kontak berhasil diperbarui.";
 }
 
-// â”€â”€ Proses Ganti Password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses ganti password
 if (isset($_POST['simpan_password'])) {
     $pass_baru    = $_POST['password_baru'];
     $pass_konfirm = $_POST['password_konfirm'];
@@ -81,7 +81,7 @@ if (isset($_POST['simpan_password'])) {
     }
 }
 
-// â”€â”€ Path foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// path foto
 $foto_file = $data['foto'] ?? '';
 $foto_src  = (!empty($foto_file) && file_exists(__DIR__ . "/../../assets/img/foto_guru/" . $foto_file))
              ? "/siakad/assets/img/foto_guru/" . $foto_file
@@ -118,7 +118,7 @@ require_once '../../includes/header.php';
 
     <div class="row g-4">
 
-      <!-- â”€â”€ Kartu Foto & Info Singkat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- kartu foto & info singkat -->
       <div class="col-md-4">
         <div class="card shadow-sm h-100">
           <div class="card-body text-center py-4">
@@ -187,7 +187,7 @@ require_once '../../includes/header.php';
         </div>
       </div>
 
-      <!-- â”€â”€ Kartu Update Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+      <!-- kartu update info -->
       <div class="col-md-8">
         <div class="card shadow-sm mb-4">
           <div class="card-header bg-white fw-bold">

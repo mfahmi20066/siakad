@@ -4,11 +4,11 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Edit Mata Pelajaran";
 
-// Mengamankan parameter ID dari URL
+// amankan parameter id dari url
 $id   = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 $data = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE id='$id'"));
 
-// QUERY AMAN: Cukup SELECT * tanpa ORDER BY kolom spesifik agar bebas dari eror nama kolom
+// query aman: select * aja, ga pake order by kolom spesifik biar bebas error nama kolom
 $guru_list = mysqli_query($koneksi, "SELECT * FROM guru");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -20,10 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $kategori = in_array($_POST['kategori'] ?? 'wajib', ['wajib', 'pilihan', 'projek']) ? $_POST['kategori'] : 'wajib';
     $status   = ($_POST['status'] ?? 'aktif') === 'nonaktif' ? 'nonaktif' : 'aktif';
 
-    // Cek duplikat kode, kecuali milik mapel ini sendiri
+    // cek duplikat kode, kecuali mapel ini sendiri
     $cek_kode = mysqli_query($koneksi, "SELECT id FROM mata_pelajaran WHERE kode_mapel='$kode' AND id != '$id'");
 
-    // Cek duplikat nama, kecuali milik mapel ini sendiri
+    // cek duplikat nama, kecuali mapel ini sendiri
     $cek_nama = mysqli_query($koneksi, "SELECT id FROM mata_pelajaran WHERE nama_mapel='$nama' AND id != '$id'");
 
     if ($cek_kode && mysqli_num_rows($cek_kode) > 0) {
@@ -31,14 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($cek_nama && mysqli_num_rows($cek_nama) > 0) {
         $error = "Nama mata pelajaran <strong>$nama</strong> sudah ada!";
     } else {
-        // KINI AMAN: Menyimpan guru_id ke database karena kolomnya sudah Anda buat di phpMyAdmin pada Langkah 1
+        // simpan guru_id ke db (kolomnya udah dibuat di phpmyadmin)
         $val_guru = !empty($guru) ? "'$guru'" : "NULL";
 
-        // Cek apakah kolom kelompok/kkm sudah ada (biar tidak error kalau migrasi belum dijalankan)
+        // cek kolom kelompok/kkm ada ga, biar ga error kalo migrasi belum jalan
         $cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kelompok'");
         $ada_kolom_kelompok = mysqli_num_rows($cek_kolom) > 0;
 
-        // Kolom Kurikulum Merdeka (kategori, status) — ditambah bila kolomnya ada
+        // kolom kurikulum merdeka (kategori, status) kalo ada
         $ada_kategori = mysqli_num_rows(mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kategori'")) > 0;
         $ada_status   = mysqli_num_rows(mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'status'")) > 0;
         $kolom_extra = ($ada_kategori ? ", kategori='$kategori'" : '') . ($ada_status ? ", status='$status'" : '');
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php if ($guru_list): ?>
                                     <?php while ($g = mysqli_fetch_assoc($guru_list)): ?>
                                     <?php 
-                                        // Deteksi otomatis kolom nama yang aktif di tabel guru Anda
+                                        // deteksi otomatis kolom nama di tabel guru
                                         $nama_tampil = $g['nama_guru'] ?? $g['nama_lengkap'] ?? $g['nama'] ?? 'Nama Tidak Terdeteksi';
                                     ?>
                                     <option value="<?= $g['id'] ?>"

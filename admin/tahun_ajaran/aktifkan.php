@@ -1,9 +1,5 @@
 <?php
-/**
- * Aktifkan satu tahun ajaran.
- * Secara aman (transaction): semua tahun ajaran -> nonaktif, lalu id target -> aktif.
- * Hanya satu tahun ajaran yang boleh aktif. Tidak ada DELETE / TRUNCATE.
- */
+// aktifkan satu tahun ajaran: transaction, semua nonaktif dulu baru target aktif. ga ada delete/truncate
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_tahun_ajaran.php';
@@ -35,7 +31,7 @@ try {
             throw new RuntimeException('Gagal mengaktifkan tahun ajaran target.');
         }
 
-        // Sinkronkan label ke pengaturan (tahun saja; semester tetap dari tabel semester)
+        // sinkron label ke pengaturan (tahun aja; semester tetep dari tabel semester)
         $sync = $pdo->prepare("UPDATE pengaturan SET tahun_pelajaran = :ta, semester = '1 (Ganjil)' WHERE id = 1");
         $sync->execute([':ta' => $ta['nama_tahun_ajaran']]);
 

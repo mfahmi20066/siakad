@@ -5,14 +5,14 @@ include '../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Pengaturan Akademik";
 
-// Tahun ajaran aktif dari master (source of truth); tahun_pelajaran di sini = mirror.
+// tahun ajaran dari master (source of truth); tahun_pelajaran di sini cuma mirror
 $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taTahun = ''; }
 
-// Proses simpan data saat form diklik
+// proses simpan saat form diklik
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Tahun pelajaran = mirror master; user tidak bisa mengubah jadi sumber berbeda.
+    // tahun pelajaran = mirror master, user ga bisa ubah
     $tapel = $taTahun;
     $sem   = mysqli_real_escape_string($koneksi, $_POST['semester']);
 
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Ambil data yang sedang aktif saat ini
+// ambil data yang lagi aktif
 $data_akademik = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM akademik_setting WHERE id=1"));
 ?>
 <?php include '../includes/header.php'; ?>

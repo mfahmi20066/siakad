@@ -6,21 +6,21 @@ $title = "Edit Nilai";
 
 $id   = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// SINKRONISASI SELECT: Menggunakan s.nama untuk menampilkan nama siswa secara utuh
+// pake s.nama biar nama siswa tampil utuh
 $stmt_data = mysqli_prepare($koneksi, "SELECT n.*, s.nama AS nama_siswa, s.nis, m.nama_mapel, k.nama_kelas FROM nilai n JOIN siswa s ON n.siswa_id = s.id JOIN mata_pelajaran m ON n.mapel_id = m.id LEFT JOIN kelas k ON s.kelas_id = k.id WHERE n.id = ?");
 mysqli_stmt_bind_param($stmt_data, "i", $id);
 mysqli_stmt_execute($stmt_data);
 mysqli_stmt_bind_result($stmt_data, $n_id, $n_siswa_id, $n_mapel_id, $n_nilai_harian, $n_nilai_uts, $n_nilai_uas, $n_nilai_akhir, $n_nilai_kehadiran, $n_nilai_uh, $n_semester, $n_nama_siswa, $n_nis, $n_nama_mapel, $n_nama_kelas);
 mysqli_stmt_fetch($stmt_data);
 
-// FITUR AMAN: Cek struktur nama kolom nilai saat ini (nilai_uh vs nilai_harian)
+// cek struktur kolom nilai (nilai_uh vs nilai_harian)
 $cek_uh = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
 $kolom_uh = (mysqli_num_rows($cek_uh) > 0) ? "nilai_uh" : "nilai_harian";
 
-// OTOMATIS: rekap kehadiran diambil langsung dari tabel absensi, untuk ditampilkan sebagai info
+// rekap kehadiran dari absensi, ditampilkan sebagai info
 $kehadiran_info = ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpa' => 0, 'total' => 0, 'persen' => 0];
 if (!empty($data['siswa_id']) && !empty($data['mapel_id'])) {
-    // Prepared statement ambil rekap kehadiran
+    // ambil rekap kehadiran
     if (!isset($stmt_abs_rekap) || $stmt_abs_rekap === null) {
         $stmt_abs_rekap = mysqli_prepare($koneksi,
             "SELECT SUM(status = 'Hadir') AS hadir,
@@ -52,12 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($nh < 0 || $nh > 100 || $uts < 0 || $uts > 100 || $uas < 0 || $uas > 100) {
         $error = "Nilai harus antara 0 sampai 100!";
     } else {
-        // OTOMATIS: nilai kehadiran dihitung ulang dari tabel absensi (bukan input manual)
-        // Ikut menentukan 20% dari Nilai Akhir
+        // nilai kehadiran dihitung ulang dari absensi (bukan manual), masuk 20% nilai akhir
         $cek_kolom_kehadiran = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_kehadiran'");
         $ada_kolom_kehadiran = mysqli_num_rows($cek_kolom_kehadiran) > 0;
 
-        // Prepared statement ambil rekap kehadiran untuk update
+        // ambil rekap kehadiran buat update
         if (!isset($stmt_abs_update) || $stmt_abs_update === null) {
             $stmt_abs_update = mysqli_prepare($koneksi,
                 "SELECT SUM(status = 'Hadir') AS hadir, COUNT(*) AS total
@@ -72,12 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             : 0;
         $kehadiran_sql = "'$kehadiran'";
 
-        // RUMUS NILAI AKHIR: Harian 20% + UTS 25% + UAS 35% + Kehadiran 20%
+        // rumus nilai akhir: harian 20% + uts 25% + uas 35% + kehadiran 20%
         $akhir = round(($nh * 0.20) + ($uts * 0.25) + ($uas * 0.35) + ($kehadiran * 0.20), 2);
 
-        // Update yang konsisten dengan skema tabel nilai
+        // update sesuai skema tabel nilai
         $set_kehadiran = $ada_kolom_kehadiran ? "nilai_kehadiran = $kehadiran_sql," : "";
-        // Prepared statement UPDATE nilai
+        // update nilai
         if (!isset($stmt_update_nilai) || $stmt_update_nilai === null) {
             $stmt_update_nilai = mysqli_prepare($koneksi,
                 "UPDATE nilai SET nilai_harian = ?, nilai_uts = ?, nilai_uas = ?, $kolom_uh = ?, $set_kehadiran nilai_akhir = ? WHERE id = ?");
@@ -237,7 +236,7 @@ function hitungNilaiAkhir() {
     const nh        = parseFloat(document.querySelector('[name="nilai_harian"]').value) || 0;
     const uts       = parseFloat(document.querySelector('[name="nilai_uts"]').value) || 0;
     const uas       = parseFloat(document.querySelector('[name="nilai_uas"]').value) || 0;
-    const kehadiran = <?= json_encode($kehadiran_info['persen']) ?>; // dari absensi, tetap (tidak diubah lewat form ini)
+    const kehadiran = <?= json_encode($kehadiran_info['persen']) ?>; // dari absensi, ga diubah lewat form ini
     const akhir = Math.round(((nh * 0.20) + (uts * 0.25) + (uas * 0.35) + (kehadiran * 0.20)) * 100) / 100;
 
     let predikat = 'E';

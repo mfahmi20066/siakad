@@ -4,22 +4,21 @@ require_once '../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 
-// Ambil ID pendaftar dari URL
+// ambil id pendaftar dari url
 $pendaftar_id = (int) ($_GET['id'] ?? 0);
 
 if ($pendaftar_id <= 0) {
     die("ID Pendaftar tidak valid");
 }
 
-// OTENTIKASI 2-FACTOR: wajib no_pendaftaran + tanggal_lahir cocok dengan data
-// (tanpa ini ?id=N membocorkan biodata pendaftar mana pun)
+// otentikasi 2 faktor: wajib no_pendaftaran + tanggal_lahir cocok, biar ?id=N ga bocorin biodata pendaftar
 $no_pendaftaran_cek = mysqli_real_escape_string($koneksi, $_GET['no_pendaftaran'] ?? '');
 $tanggal_lahir_cek = mysqli_real_escape_string($koneksi, $_GET['tanggal_lahir'] ?? '');
 if (empty($no_pendaftaran_cek) || empty($tanggal_lahir_cek)) {
     die("Akses ditolak: verifikasi nomor pendaftaran dan tanggal lahir diperlukan.");
 }
 
-// Query pendaftar
+// query pendaftar
 $query = mysqli_query($koneksi, "
     SELECT sp.*, sg.nama_gelombang, sj.nama_jalur 
     FROM spmb_pendaftar sp
@@ -36,7 +35,7 @@ if (!$query || mysqli_num_rows($query) == 0) {
 
 $pendaftar = mysqli_fetch_assoc($query);
 
-// Generate HTML untuk PDF
+// generate html buat pdf
 $html = "
 <!DOCTYPE html>
 <html lang='id'>
@@ -285,7 +284,7 @@ $html = "
 </html>
 ";
 
-// Helper function untuk status badge
+// helper fungsi status badge
 function getStatusBadge($status) {
     $status_config = [
         'menunggu_dokumen' => 'Menunggu Dokumen',
@@ -305,13 +304,13 @@ function getStatusBadge($status) {
     return "<span class='status-badge $class'>$label</span>";
 }
 
-// Generate PDF menggunakan Dompdf
+// generate pdf pake dompdf
 $dompdf = new Dompdf();
 $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
 
-// Output PDF
+// output pdf
 $filename = 'bukti-pendaftaran-' . $pendaftar['no_pendaftaran'] . '.pdf';
 $dompdf->stream($filename, ['Attachment' => false]);
 ?>

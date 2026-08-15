@@ -5,20 +5,20 @@ cekAdmin();
 
 $title = "Export Data SPMB";
 
-// Query dasar untuk filter
+// query dasar buat filter
 $query = "SELECT sp.*, sg.nama_gelombang, sj.nama_jalur 
           FROM spmb_pendaftar sp
           LEFT JOIN spmb_gelombang sg ON sp.gelombang_id = sg.id
           LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
           WHERE 1=1";
 
-// Filter values
+// nilai filter
 $gelombang_filter = isset($_GET['gelombang']) ? (int)$_GET['gelombang'] : '';
 $jalur_filter = isset($_GET['jalur']) ? (int)$_GET['jalur'] : '';
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
 
-// Apply filters
+// terapkan filter
 if (!empty($gelombang_filter)) {
     $query .= " AND sp.gelombang_id = $gelombang_filter";
 }
@@ -34,7 +34,7 @@ if (!empty($search)) {
 
 $query .= " ORDER BY sp.created_at DESC";
 
-// Export to Excel (XLSX)
+// export ke excel (xlsx)
 if (isset($_GET['export']) && $_GET['export'] == 'excel') {
     require_once __DIR__ . '/../../config/helper_xlsx.php';
 
@@ -85,7 +85,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'excel') {
     exit();
 }
 
-// Export to PDF
+// export ke pdf
 if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
     require_once __DIR__ . '/../../vendor/autoload.php';
     
@@ -200,7 +200,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
     exit();
 }
 
-// Ambil gelombang & jalur untuk filter (hanya saat tidak export)
+// ambil gelombang & jalur buat filter (cuma kalo bukan export)
 $query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang WHERE status='aktif' ORDER BY tanggal_mulai ASC");
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 ?>

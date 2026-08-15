@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mulai   = !empty($_POST['tanggal_mulai']) ? $_POST['tanggal_mulai'] : null;
     $selesai = !empty($_POST['tanggal_selesai']) ? $_POST['tanggal_selesai'] : null;
 
-    // Validasi format YYYY/YYYY
+    // validasi format yyyy/yyyy
     if (!preg_match('/^\d{4}\/\d{4}$/', $nama_ta)) {
         $error = "Format tahun ajaran salah. Gunakan format YYYY/YYYY, contoh: 2027/2028.";
     } elseif ($mulai && $selesai && strtotime($mulai) > strtotime($selesai)) {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $pdo = tahun_ajaran_pdo();
         try {
-            // Cek duplicate
+            // cek duplikat
             $cek = $pdo->prepare('SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran = :nama LIMIT 1');
             $cek->execute(['nama' => $nama_ta]);
             if ($cek->fetch()) {
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     ]);
                     $taId = (int)$pdo->lastInsertId();
 
-                    // Auto-generate semester Ganjil & Genap (tanpa duplikat)
+                    // auto-generate semester ganjil & genap (tanpa duplikat)
                     foreach (['Ganjil', 'Genap'] as $sems) {
                         $s = $pdo->prepare(
                             'INSERT INTO semester (tahun_ajaran_id, nama, status) VALUES (:ta, :nama, :status)

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --primary: #004680;
     --primary-dark: #00345F;
     --primary-light: #075A96;
@@ -37,9 +37,7 @@
     --ring: 0 0 0 3px rgba(0, 70, 128, 0.35);
 }
 
-/* ================================================================
-   GLOBAL LANDING PAGE STYLES
-   ================================================================ */
+/* global landing page styles */
 
 * {
     margin: 0;
@@ -105,9 +103,7 @@ button:focus-visible,
     }
 }
 
-/* ================================================================
-   NAVBAR LANDING (STICKY)
-   ================================================================ */
+/* navbar landing (sticky) */
 
 .landing-navbar {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
@@ -220,9 +216,7 @@ button:focus-visible,
     }
 }
 
-/* ================================================================
-   HERO SECTION
-   ================================================================ */
+/* hero section */
 
 .landing-hero {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-light) 100%);
@@ -382,9 +376,7 @@ button:focus-visible,
     }
 }
 
-/* ================================================================
-   SPMB BANNER SECTION (Toggle)
-   ================================================================ */
+/* spmb banner section (toggle) */
 
 .landing-spmb-banner {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
@@ -495,9 +487,7 @@ button:focus-visible,
     transform: translateY(-1px);
 }
 
-/* ================================================================
-   GENERIC SECTION STYLES
-   ================================================================ */
+/* generic section styles */
 
 .landing-section {
     padding: 80px 24px;
@@ -523,9 +513,7 @@ button:focus-visible,
     margin-right: auto;
 }
 
-/* ================================================================
-   PROFIL SEKOLAH SECTION
-   ================================================================ */
+/* profil sekolah section */
 
 .landing-profil {
     background: var(--bg-page);
@@ -584,9 +572,7 @@ button:focus-visible,
     line-height: 1.7;
 }
 
-/* ================================================================
-   BERITA SECTION
-   ================================================================ */
+/* berita section */
 
 .landing-berita {
     background: var(--white);
@@ -678,9 +664,7 @@ button:focus-visible,
     gap: 10px;
 }
 
-/* ================================================================
-   KONTAK SECTION
-   ================================================================ */
+/* kontak section */
 
 .landing-kontak {
     background: var(--bg-page);
@@ -760,9 +744,7 @@ button:focus-visible,
     }
 }
 
-/* ================================================================
-   FOOTER
-   ================================================================ */
+/* footer */
 
 .landing-footer {
     background: var(--primary-dark);
@@ -858,13 +840,9 @@ button:focus-visible,
     }
 }
 
-/* ================================================================
-   BERANDA BARU (TAILWIND) — komponen khusus index.php
-   Dipakai bersama Tailwind CDN; warna tetap memakai token di atas
-   supaya konsisten dengan sisa sistem (navy + putih).
-   ================================================================ */
+/* beranda baru (tailwind) — komponen khusus index.php, warna tetep pake token biar konsisten (navy + putih) */
 
-/* --- Hero Slider --- */
+/* hero slider */
 .hero-slider {
     height: 70vh;
     position: relative;
@@ -925,7 +903,7 @@ button:focus-visible,
     }
 }
 
-/* --- Tombol & pembatas section (versi Tailwind) --- */
+/* tombol & pembatas section (versi Tailwind) */
 .btn-primary {
     background-color: var(--primary);
     color: var(--white);
@@ -967,7 +945,7 @@ button:focus-visible,
     border-radius: var(--radius-full);
 }
 
-/* --- Flip Card: Visi & Misi --- */
+/* flip card: visi & misi */
 .flip-perspective {
     perspective: 1200px;
 }
@@ -996,7 +974,7 @@ button:focus-visible,
     background: linear-gradient(135deg, var(--primary-dark), var(--primary));
 }
 
-/* --- Galeri: tombol filter kategori --- */
+/* galeri: tombol filter kategori */
 .filter-btn {
     background: var(--white);
     color: var(--text-muted);
@@ -1041,7 +1019,7 @@ button:focus-visible,
     }
 }
 
-/* --- Kartu hover umum (Program, Fasilitas, Profil Quick Facts) --- */
+/* kartu hover umum (Program, Fasilitas, Profil Quick Facts) */
 .card-hover {
     transition: transform var(--transition-slow), box-shadow var(--transition-slow);
 }
@@ -1051,7 +1029,7 @@ button:focus-visible,
     box-shadow: var(--shadow-lg);
 }
 
-/* --- Tombol Back to Top --- */
+/* tombol back to top */
 #backToTop {
     background-color: var(--primary);
     color: var(--white);
@@ -1071,9 +1049,7 @@ button:focus-visible,
     transform: translateY(-1px);
 }
 
-/* ================================================================
-   MODAL BERITA — modernisasi UI
-   ================================================================ */
+/* modal berita — modernisasi ui */
 .modal-berita .modal-panel {
     box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 70, 128, 0.08);
 }
@@ -1154,9 +1130,7 @@ button:focus-visible,
     box-shadow: var(--ring);
 }
 
-/* ================================================================
-   STATISTIK SEKOLAH — counter
-   ================================================================ */
+/* statistik sekolah — counter */
 .stat-section {
     color: #fff;
 }
@@ -1203,9 +1177,7 @@ button:focus-visible,
     font-weight: 500;
 }
 
-/* ================================================================
-   SPMB Countdown
-   ================================================================ */
+/* spmb countdown */
 .countdown-unit {
     min-width: 76px;
     padding: 12px 10px;
@@ -1232,9 +1204,7 @@ button:focus-visible,
     letter-spacing: 0.08em;
 }
 
-/* ================================================================
-   LIGHTBOX GALERI
-   ================================================================ */
+/* lightbox galeri */
 .lightbox-close {
     transition: color var(--transition), transform var(--transition);
 }
@@ -1244,11 +1214,9 @@ button:focus-visible,
     transform: scale(1.15);
 }
 
-/* ================================================================
-   STRUKTUR ORGANISASI — org chart hierarki (data dinamis dari DB)
-   ================================================================ */
+/* struktur organisasi — org chart hierarki (data dinamis dari db) */
 
-/* ---------- Container preview ---------- */
+/* container preview */
 .preview-diagram {
     background: #fff;
     border: 1px solid #E2E8F0;
@@ -1259,7 +1227,7 @@ button:focus-visible,
     overflow-y: auto;
 }
 
-/* ---------- Header diagram ---------- */
+/* header diagram */
 .org-header {
     display: flex;
     align-items: center;
@@ -1302,7 +1270,7 @@ button:focus-visible,
     color: #4A5568;
 }
 
-/* ---------- Zoom kontrol ---------- */
+/* zoom kontrol */
 .org-zoom-toolbar {
     display: flex;
     align-items: center;
@@ -1346,7 +1314,7 @@ button:focus-visible,
     transition: transform 0.2s ease;
 }
 
-/* ---------- Zona atas: Komite - - - Kepsek ---- TU ---------- */
+/* zona atas: Komite - - - Kepsek ---- TU */
 .org-zone-top {
     display: flex;
     align-items: flex-end;
@@ -1391,7 +1359,7 @@ button:focus-visible,
     display: none;
 }
 
-/* ---------- Tree klasik (baris per level) ---------- */
+/* tree klasik (baris per level) */
 .org-tree-root,
 .org-tree {
     list-style: none;
@@ -1447,7 +1415,7 @@ button:focus-visible,
     display: none;
 }
 
-/* ---------- Node / card ---------- */
+/* node / card */
 .org-node {
     display: inline-flex;
     flex-direction: column;
@@ -1505,7 +1473,7 @@ button:focus-visible,
     margin-top: 4px;
 }
 
-/* ---------- Varian warna per hierarki ---------- */
+/* varian warna per hierarki */
 .org-node.st-root {
     border-left-color: #004680;
     border-color: #004680;
@@ -1569,7 +1537,7 @@ button:focus-visible,
     font-size: 11px;
 }
 
-/* ---------- Zona tengah / bawah ---------- */
+/* zona tengah / bawah */
 .org-zone {
     margin-top: 10px;
 }
@@ -1578,7 +1546,7 @@ button:focus-visible,
     margin-top: 34px;
 }
 
-/* ---------- Zona root: Kepala Sekolah di tengah atas ---------- */
+/* zona root: Kepala Sekolah di tengah atas */
 .org-zone-root {
     display: flex;
     justify-content: center;
@@ -1624,7 +1592,7 @@ button:focus-visible,
     display: none;
 }
 
-/* ---------- Responsive ---------- */
+/* responsive */
 @media (max-width: 767.98px) {
     .preview-diagram {
         padding: 16px 10px;

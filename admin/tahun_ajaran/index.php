@@ -10,7 +10,7 @@ $data = listTahunAjaran($pdo);
 $aktif = null;
 try { $aktif = getTahunAjaranAktif($pdo); } catch (Throwable $e) { $aktif = null; }
 
-// Map semester per tahun ajaran
+// map semester per tahun ajaran
 $semesterMap = [];
 foreach ($data as $ta) {
     $semesterMap[$ta['id']] = getSemestersByTahunAjaran($pdo, (int)$ta['id']);

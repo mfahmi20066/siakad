@@ -167,7 +167,7 @@ siakad/
 
 ### Kredensial Rahasia (SMTP & API)
 - File: `config/secrets.php` — **jangan di-commit ke repo publik** dan **jangan diekspos dari JavaScript**
-- Berisi: `GROQ_API_KEY` (chatbot), `MAIL_*` (SMTP), `SCHOOL_NPSN` (generator NIS)
+- Berisi: `GEMINI_API_KEY` (chatbot), `MAIL_*` (SMTP), `SCHOOL_NPSN` (generator NIS)
 
 ### Helper Auth
 - `config/helper_auth.php` — `hashPassword()` & `checkPassword()` (bcrypt + fallback md5)

@@ -1,22 +1,22 @@
 <?php
 include '../config/koneksi.php';
 
-// Ambil data pengaturan SPMB
+// ambil data pengaturan spmb
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 
-// Cek SPMB aktif
+// cek spmb aktif
 $spmb_aktif = $setting['spmb_aktif'] ?? 0;
 $spmb_tanggal_buka = $setting['spmb_tanggal_buka'] ?? '';
 $spmb_tanggal_tutup = $setting['spmb_tanggal_tutup'] ?? '';
 
-// Jika SPMB tidak aktif, redirect ke landing page
+// spmb nonaktif? redirect ke landing
 if ($spmb_aktif != 1) {
     header("Location: /siakad/index.php");
     exit();
 }
 
-// Ambil jalur pendaftaran dari database
+// ambil jalur pendaftaran dari db
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 ?>
 <!DOCTYPE html>

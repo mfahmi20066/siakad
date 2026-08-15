@@ -13,7 +13,7 @@ if (!$user) {
     exit();
 }
 
-// Ambil data referensi (guru/siswa) jika ada
+// ambil data referensi (guru/siswa) kalo ada
 $ref_data = null;
 if ($user['role'] == 'guru' && $user['id_ref']) {
     $ref = mysqli_query($koneksi, "SELECT * FROM guru WHERE id='{$user['id_ref']}'");

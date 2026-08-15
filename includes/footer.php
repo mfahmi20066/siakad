@@ -74,7 +74,7 @@
     <?php endif; ?>
 
     <script>
-        /* Badge pesan belum dibaca (topbar Pesan) — polling ringan semua halaman */
+        // badge pesan belum dibaca, polling ringan di semua halaman
         (function () {
             var URL = '/siakad/chat/api.php?action=unread';
             function updateBadge(n) {

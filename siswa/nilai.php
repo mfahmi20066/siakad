@@ -112,7 +112,7 @@ $remidi = mysqli_fetch_row(mysqli_query($koneksi,
                     <?php $no = 1; while ($r = mysqli_fetch_assoc($data)):
                         $na = $r['nilai_akhir'] ?? 0;
 
-                        // â”€â”€ FIX: deteksi otomatis nama kolom nilai harian â”€â”€
+                        // fix: deteksi otomatis nama kolom nilai harian
                         $nh = $r['nilai_harian'] ?? $r['nilai_uh'] ?? $r['uh'] ?? $r['nilai_ulangan'] ?? 0;
                         $nu = $r['nilai_uts']    ?? $r['uts'] ?? 0;
                         $nuas = $r['nilai_uas']  ?? $r['uas'] ?? 0;

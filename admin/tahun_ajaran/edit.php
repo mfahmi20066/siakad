@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Tanggal mulai tidak boleh lebih lambat dari tanggal selesai.";
     } else {
         try {
-            // Cek duplikat pada tahun lain
+            // cek duplikat di tahun lain
             $cek = $pdo->prepare('SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran = :nama AND id <> :id LIMIT 1');
             $cek->execute([':nama' => $nama_ta, ':id' => $id]);
             if ($cek->fetch()) {

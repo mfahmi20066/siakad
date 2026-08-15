@@ -4,11 +4,11 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Statistik";
 
-// Statistik absensi: distribusi status
+// statistik absensi: distribusi status
 $stat_absensi = mysqli_query($koneksi,
     "SELECT status, COUNT(*) AS jml FROM absensi GROUP BY status ORDER BY jml DESC");
 
-// Statistik nilai: distribusi nilai akhir (kelompok nilai)
+// statistik nilai: distribusi nilai akhir per kelompok
 $dist_nilai = mysqli_query($koneksi,
     "SELECT
          SUM(CASE WHEN nilai_akhir >= 90 THEN 1 ELSE 0 END) AS a,
@@ -19,7 +19,7 @@ $dist_nilai = mysqli_query($koneksi,
 
 $dist = mysqli_fetch_assoc($dist_nilai);
 
-// Statistik kesiswaan
+// statistik kesiswaan
 $stat_prestasi = mysqli_query($koneksi,
     "SELECT tingkat, COUNT(*) AS jml FROM prestasi_siswa GROUP BY tingkat ORDER BY jml DESC");
 $stat_pelanggaran = mysqli_query($koneksi,

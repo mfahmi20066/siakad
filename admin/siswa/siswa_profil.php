@@ -12,14 +12,14 @@ $id_siswa = $_SESSION['id_ref']; // id siswa dari session
 $pesan    = '';
 $error    = '';
 
-// â”€â”€ Ambil data siswa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ambil data siswa
 $query = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas 
                                FROM siswa s 
                                LEFT JOIN kelas k ON s.kelas_id = k.id
                                WHERE s.id = '$id_siswa'");
 $data  = mysqli_fetch_assoc($query);
 
-// â”€â”€ Proses Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses upload foto
 if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     $file    = $_FILES['foto'];
     $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -30,7 +30,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     } elseif ($file['size'] > 2048000) {
         $error = "Ukuran file terlalu besar. Maksimal 2MB.";
     } else {
-        // Hapus foto lama jika ada
+        // hapus foto lama kalo ada
         if (!empty($data['foto'])) {
             $old = __DIR__ . "/../../assets/img/foto_siswa/" . $data['foto'];
             if (file_exists($old)) unlink($old);
@@ -39,7 +39,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
         $nama_file = "siswa_" . $id_siswa . "_" . time() . "." . $ext;
         $tujuan    = __DIR__ . "/../../assets/img/foto_siswa/" . $nama_file;
 
-        // Pastikan folder ada
+        // pastikan folder ada
         if (!is_dir(__DIR__ . "/../../assets/img/foto_siswa/")) {
             mkdir(__DIR__ . "/../../assets/img/foto_siswa/", 0777, true);
         }
@@ -48,7 +48,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
             mysqli_query($koneksi, "UPDATE siswa SET foto='$nama_file' WHERE id='$id_siswa'");
             $_SESSION['foto'] = $nama_file;
             $pesan = "Foto profil berhasil diperbarui.";
-            // Refresh data
+            // refresh data
             $query = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas 
                                           FROM siswa s 
                                           LEFT JOIN kelas k ON s.kelas_id = k.id
@@ -60,7 +60,7 @@ if (isset($_POST['simpan_foto']) && !empty($_FILES['foto']['name'])) {
     }
 }
 
-// â”€â”€ Proses Update Kontak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses update kontak
 if (isset($_POST['simpan_kontak'])) {
     $no_hp  = mysqli_real_escape_string($koneksi, $_POST['no_hp']);
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
@@ -68,7 +68,7 @@ if (isset($_POST['simpan_kontak'])) {
     $pesan = "Data kontak berhasil diperbarui.";
 }
 
-// â”€â”€ Proses Ganti Password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses ganti password
 if (isset($_POST['simpan_password'])) {
     $pass_baru   = $_POST['password_baru'];
     $pass_konfirm = $_POST['password_konfirm'];
@@ -79,14 +79,14 @@ if (isset($_POST['simpan_password'])) {
         $error = "Password minimal 6 karakter.";
     } else {
         $hash = hashPassword($pass_baru);
-        // Update di tabel users
+        // update di tabel users
         $id_user = $_SESSION['user_id'];
         mysqli_query($koneksi, "UPDATE users SET password='$hash' WHERE id='$id_user'");
         $pesan = "Password berhasil diperbarui.";
     }
 }
 
-// â”€â”€ Path foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// path foto
 $foto_file = $data['foto'] ?? '';
 $foto_src  = (!empty($foto_file) && file_exists(__DIR__ . "/../../assets/img/foto_siswa/" . $foto_file))
              ? "/siakad/assets/img/foto_siswa/" . $foto_file
@@ -284,11 +284,11 @@ require_once '../../includes/header.php';
 </div>
 
 <script>
-// Preview foto langsung + auto submit
+// preview foto langsung + auto submit
 function previewDanSubmit(input) {
   if (input.files && input.files[0]) {
     var file   = input.files[0];
-    var maxSize = 2 * 1024 * 1024; // 2MB
+    var maxSize = 2 * 1024 * 1024; // 2mb
 
     if (file.size > maxSize) {
       siToast('warning', 'Ukuran file terlalu besar! Maksimal 2MB.');
@@ -296,14 +296,14 @@ function previewDanSubmit(input) {
       return;
     }
 
-    // Preview sebelum upload
+    // preview sebelum upload
     var reader = new FileReader();
     reader.onload = function(e) {
       document.getElementById('previewFoto').src = e.target.result;
     };
     reader.readAsDataURL(file);
 
-    // Auto submit form foto
+    // auto submit form foto
     siConfirm({
         icon: 'question',
         title: 'Upload foto ini sebagai foto profil?',
@@ -313,7 +313,7 @@ function previewDanSubmit(input) {
         document.getElementById('formFoto').submit();
       } else {
         input.value = '';
-        // Reset preview
+        // reset preview
         document.getElementById('previewFoto').src = '<?= $foto_src ?>';
       }
     });

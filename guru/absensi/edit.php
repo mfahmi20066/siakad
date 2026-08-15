@@ -1,14 +1,14 @@
 ﻿<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
-cekGuru(); // Memastikan hanya role guru yang bisa akses
+cekGuru(); // cuma guru yang bisa akses
 $title = "Edit Absensi";
 
 $id  = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
-// SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang sedang login
+// pake id_ref sebagai id guru yang login
 $gid = isset($_SESSION['id_ref']) ? $_SESSION['id_ref'] : '';
 
-// Mengambil data absensi dan memvalidasi hak akses guru melalui pivot kelas_mapel_guru
+// ambil absensi + validasi hak akses guru via pivot kelas_mapel_guru
 $query = "SELECT a.*, s.nama_lengkap AS nama_siswa, s.nis, k.nama_kelas
           FROM absensi a
           JOIN siswa s ON a.siswa_id = s.id
@@ -20,7 +20,7 @@ $query = "SELECT a.*, s.nama_lengkap AS nama_siswa, s.nis, k.nama_kelas
 $res  = mysqli_query($koneksi, $query);
 $data = mysqli_fetch_assoc($res);
 
-// Jika data absensi tidak ditemukan atau bukan kelas/mapel ampu guru ini, kembalikan ke index
+// absensi ga ketemu / bukan ampu guru ini? balik ke index
 if (!$data) {
     header("Location: index.php");
     exit();
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $st  = mysqli_real_escape_string($koneksi, $_POST['status']);
     $ket = mysqli_real_escape_string($koneksi, trim($_POST['keterangan']));
 
-    // UPDATE FIX: Menghapus guru_id dari kondisi WHERE karena tidak ada di tabel absensi
+    // fix: buang guru_id dari where, ga ada di tabel absensi
     $update_query = "UPDATE absensi SET status='$st', keterangan='$ket' WHERE id='$id'";
     
     if (mysqli_query($koneksi, $update_query)) {
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <label class="form-label font-weight-bold">Status Kehadiran</label>
                         <select name="status" class="form-select">
                             <?php 
-                            // Mendukung opsi ENUM panjang maupun inisial satu huruf (H/I/S/A) sesuai struktur table Anda
+                            // dukung enum panjang maupun inisial (H/I/S/A)
                             $status_list = ['Hadir', 'Sakit', 'Izin', 'Alpa', 'H', 'S', 'I', 'A'];
                             foreach ($status_list as $s): 
                                 if ($data['status'] == $s):

@@ -3,8 +3,7 @@ include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
 
-// Endpoint AJAX: persentase kehadiran siswa untuk 1 mapel (dari absensi).
-// Hanya untuk siswa di kelas yang guru ini ampu (melalui pivot kelas_mapel_guru).
+// endpoint ajax: persen kehadiran siswa per mapel (dari absensi), cuma buat kelas yang guru ini ampu
 
 $gid = isset($_SESSION['id_ref']) ? $_SESSION['id_ref'] : '';
 $sid = isset($_GET['siswa_id']) ? mysqli_real_escape_string($koneksi, $_GET['siswa_id']) : '';
@@ -16,7 +15,7 @@ $result = [
 ];
 
 if ($sid !== '' && $mid !== '' && $gid !== '') {
-    // Validasi hak akses: siswa berada di kelas yang guru ini ampu + mapel diajarkan
+    // validasi hak akses: siswa di kelas ampu + mapel diajarkan
     $q_izin = mysqli_query($koneksi,
         "SELECT s.kelas_id
          FROM siswa s

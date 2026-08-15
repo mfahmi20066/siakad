@@ -5,7 +5,7 @@ cekAdmin();
 verifyCsrf();
 
 $id = (int) $_GET['id'];
-// Prepared statement DELETE
+// hapus data
 $stmt_delete = mysqli_prepare($koneksi, "DELETE FROM nilai WHERE id=?");
 mysqli_stmt_bind_param($stmt_delete, "i", $id);
 mysqli_stmt_execute($stmt_delete);

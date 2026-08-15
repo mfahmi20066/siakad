@@ -8,8 +8,8 @@ include '../../config/database.php';
 cekAdmin();
 $title = "Verifikasi Akun";
 
-// â”€â”€ Aksi setujui / tolak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Setujui via GET link; tolak via POST modal (atau GET fallback).
+// aksi setujui / tolak
+// setujui via get link; tolak via post modal (atau get fallback)
 if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak']))) {
     verifyCsrf();
     $aksi = isset($_GET['aksi']) ? $_GET['aksi'] : 'tolak';
@@ -22,7 +22,7 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
         $email = $upd['email'];
 
         if ($aksi === 'setujui') {
-            // Insert record terkait di tabel guru/siswa sesuai role
+            // insert record di guru/siswa sesuai role
             $id_ref = null;
             if ($upd['role'] === 'guru') {
                 $nama_e = mysqli_real_escape_string($koneksi, $nama);
@@ -32,17 +32,16 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
                      VALUES (NULL, '$nama_e', '$nama_e', '$email_e')");
                 $id_ref = mysqli_insert_id($koneksi);
             } elseif ($upd['role'] === 'siswa') {
-                // Tahun ajaran diambil dari master tahun aktif (sumber kebenaran),
-                // bukan nilai bebas/hardcode; simpan id + teks legacy agar tidak NULL.
+                // tahun ajaran dari master tahun aktif (bukan hardcode); simpan id + teks legacy biar ga null
                 $taSI = null; $taST = '';
                 try {
                     $taV = getTahunAjaranAktif(tahun_ajaran_pdo());
                     $taSI = (int) $taV['id'];
                     $taST = $taV['tahun'];
-                } catch (Throwable $e) { /* biar $taSI tetap NULL; insert dibiarkan tanpa tahun */ }
+                } catch (Throwable $e) { } // biar $taSI tetep NULL, insert dibiarkan tanpa tahun
                 $nama_e = mysqli_real_escape_string($koneksi, $nama);
                 $email_e = mysqli_real_escape_string($koneksi, $email);
-                // NIS otomatis dari NisGeneratorService (tahun masuk = tahun ajaran aktif).
+                // nis otomatis dari NisGeneratorService (tahun masuk = tahun ajaran aktif)
                 $tahunMasuk = ($taST !== '') ? (int) explode('/', $taST)[0] : (int) date('Y');
                 $nis = app_generate_nis_sementara($tahunMasuk);
                 if ($taSI !== null) {
@@ -113,7 +112,7 @@ if ((isset($_GET['aksi']) && isset($_GET['id'])) || (isset($_POST['id_tolak'])))
     exit();
 }
 
-// â”€â”€ Ambil daftar akun pending â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ambil daftar akun pending
 $data = mysqli_query($koneksi, "SELECT * FROM users WHERE status='pending' ORDER BY created_at DESC");
 $jml_pending = mysqli_num_rows($data);
 ?>

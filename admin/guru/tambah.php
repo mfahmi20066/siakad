@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uname  = mysqli_real_escape_string($koneksi, $_POST['username']);
     $pass   = hashPassword($_POST['password']);
 
-    // â”€â”€ Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // upload foto
     $foto_nama = '';
     if (!empty($_FILES['foto']['name'])) {
         $file      = $_FILES['foto'];
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Mapping guru: mata pelajaran (wali kelas dipindah ke halaman tambah mata pelajaran)
+    // mapping mapel guru (wali kelas pindah ke halaman tambah mapel)
     $mapel_ids = isset($_POST['mapel_ids']) ? (array) $_POST['mapel_ids'] : [];
     $kelas_id  = 0;
 
@@ -51,27 +51,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
 
-    // 1. Cek apakah username sudah dipakai di tabel users
+    // 1. cek username udah kepake di users
     $cek = mysqli_query($koneksi, "SELECT id FROM users WHERE username='$uname'");
     if (mysqli_num_rows($cek) > 0) {
         $error = "Username sudah digunakan, silakan pilih yang lain!";
     } elseif (isset($upload_gagal)) {
-        // Biarkan $error dari validasi upload tampil
+        // biarkan $error dari validasi upload tampil
     } else {
-        // 2. ALUR YANG BENAR: Simpan ke tabel guru terlebih dahulu (Tanpa kolom user_id)
+        // 2. simpan ke guru dulu (tanpa user_id)
         $query_guru = "INSERT INTO guru (nip, nama, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, no_hp, foto)
                        VALUES ('$nip', '$nama', '$nama', '$jk', '$ttl', " . (!empty($tgl) ? "'$tgl'" : "NULL") . ", '$alamat', '$hp', '$foto_nama')";
         
         if (mysqli_query($koneksi, $query_guru)) {
-            // Ambil ID guru yang baru saja didapatkan dari perintah di atas
+            // ambil id guru yang barusan dibuat
             $guru_id = mysqli_insert_id($koneksi);
 
-            // 3. Simpan ke tabel users menggunakan id_ref sebagai penghubung akun gurunya
+            // 3. simpan ke users, id_ref jadi penghubung akun guru
             mysqli_query($koneksi, "INSERT INTO users (username, password, nama, role, id_ref, status)
                                     VALUES ('$uname', '$pass', '$nama', 'guru', '$guru_id', 'aktif')");
 
-            // Update tugas mengajar (mapel) & wali kelas
-            // Mata pelajaran diampu -> mata_pelajaran.guru_id
+            // update tugas mengajar & wali kelas
+            // mapel yang diampu -> mata_pelajaran.guru_id
             if (!empty($mapel_ids_sanitized)) {
                 $in = implode(',', $mapel_ids_sanitized);
                 mysqli_query($koneksi, "UPDATE mata_pelajaran SET guru_id='$guru_id' WHERE id IN ($in)");
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
 
-            // Notifikasi ke admin bahwa ada data guru baru
+            // notif ke admin ada guru baru
             if (!function_exists('notifikasi_ke_role')) {
                 include __DIR__ . '/../../includes/notifikasi_functions.php';
             }

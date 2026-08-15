@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tgl   = $_POST['tanggal'];
     $uid   = $_SESSION['user_id'];
 
-    // PERBAIKAN: Menggunakan 'admin_id' sesuai dengan struktur bawaan database pengumuman
+    // pake 'admin_id' sesuai struktur bawaan db pengumuman
     mysqli_query($koneksi,
         "INSERT INTO pengumuman (judul, isi, admin_id, tanggal)
          VALUES ('$judul', '$isi', '$uid', '$tgl')") or die(mysqli_error($koneksi));
 
-    // Notifikasi otomatis ke semua guru dan siswa
+    // notif otomatis ke semua guru & siswa
     if (!function_exists('notifikasi_ke_role')) {
         include __DIR__ . '/../../includes/notifikasi_functions.php';
     }

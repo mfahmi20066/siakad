@@ -5,7 +5,7 @@ cekAdmin();
 
 $title = "Kelola Beranda";
 
-// Cek dan tambah kolom pengaturan yang dibutuhkan untuk beranda
+// cek & tambah kolom pengaturan yang dibutuhkan beranda
 $cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM pengaturan LIKE 'nama_sekolah'");
 if (mysqli_num_rows($cek_kolom) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN nama_sekolah VARCHAR(150) DEFAULT 'SMA Negeri 4 Palopo' AFTER id");
@@ -44,11 +44,11 @@ if (mysqli_num_rows($cek_kolom) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN sambutan_kepsek TEXT NULL");
 }
 
-// Ambil data pengaturan
+// ambil data pengaturan
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 
-// ===== Program Unggulan (dinamis, bisa diedit admin) =====
+// program unggulan (dinamis, bisa diedit admin)
 require_once '../../config/helper_program.php';
 program_cek_table($koneksi);
 program_seed_default($koneksi);
@@ -124,7 +124,7 @@ if (isset($_GET['naik_program']) || isset($_GET['turun_program'])) {
     }
 }
 
-// Hapus foto program (link Hapus Foto di form edit & tabel)
+// hapus foto program (dari link hapus foto di form edit & tabel)
 if (isset($_GET['hapus_foto_program'])) {
     program_hapus_foto($koneksi, (int) $_GET['hapus_foto_program']);
     $_SESSION['flash_success'] = 'Foto program berhasil dihapus.';
@@ -132,11 +132,11 @@ if (isset($_GET['hapus_foto_program'])) {
     exit();
 }
 
-// Handle update pengaturan
+// handle update pengaturan
 $success = '';
 $error = '';
 
-// Flash message dari redirect POST (agar pesan sukses tetap tampil setelah redirect ke tab)
+// flash message dari redirect post, biar pesan sukses tetep muncul setelah redirect ke tab
 if (!empty($_SESSION['flash_success'])) {
     $success = $_SESSION['flash_success'];
     unset($_SESSION['flash_success']);
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_setting'])) {
     }
 }
 
-// Handle upload foto struktur organisasi
+// handle upload foto struktur
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_struktur'])) {
     $file = $_FILES['foto_struktur'];
     $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_struktur'])) {
         $upload_path = $upload_dir . $new_filename;
 
         if (move_uploaded_file($file['tmp_name'], $upload_path)) {
-            // Hapus file struktur lama bila ada (hindari file yatim bila ekstensi berubah)
+            // hapus file struktur lama, biar ga ada file yatim kalo ekstensi berubah
             $old_file = $setting['foto_struktur'] ?? '';
             if ($old_file !== '' && $old_file !== $new_filename) {
                 $old_path = $upload_dir . $old_file;
@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_struktur'])) {
     }
 }
 
-// Handle upload foto kepala sekolah
+// handle upload foto kepsek
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
     $file = $_FILES['foto_kepsek'];
     $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -703,8 +703,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_kepsek'])) {
 </div>
 
 <script>
-// Buka tab otomatis sesuai hash URL (mis. #program, #struktur, #galeri) — supaya
-// setelah edit/simpan/hapus pengguna tetap berada di tab yang sama.
+// buka tab sesuai hash url (mis. #program), biar user tetep di tab yang sama setelah edit/simpan
 document.addEventListener('DOMContentLoaded', function () {
     var hash = window.location.hash;
     if (!hash) return;

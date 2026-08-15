@@ -5,16 +5,16 @@ include '../../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Tambah Jadwal";
 
-// Ambil dropdown kelas, mapel, dan guru
+// ambil dropdown kelas, mapel, guru
 $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 $mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
 $guru_list  = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
-// Optional: set default dari request (kalau dibuka dari halaman lain)
+// default dari request, kalo dibuka dari halaman lain
 $default_kelas = isset($_GET['kelas_id']) ? mysqli_real_escape_string($koneksi, $_GET['kelas_id']) : '';
 $default_mapel = isset($_GET['mapel_id']) ? mysqli_real_escape_string($koneksi, $_GET['mapel_id']) : '';
 
-// Tahun ajaran aktif (sumber kebenaran) — BUKAN dari POST bebas / date('Y').
+// tahun ajaran aktif (sumber kebenaran), bukan dari post bebas / date
 $taId = null; $taTahun = '';
 try {
     $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo());
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $error = null;
 
-    // Validasi jam
+    // validasi jam
     if (empty($kid) || empty($mid) || empty($hari) || empty($mulai) || empty($selesai)) {
         $error = "Semua kolom wajib diisi.";
     } elseif (!in_array($hari, ['Senin','Selasa','Rabu','Kamis','Jumat'], true)) {
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($selesai <= $mulai) {
         $error = "Jam selesai harus lebih dari jam mulai.";
     } else {
-        // Cek bentrok jadwal — KELAS yang sama di hari & jam yang sama
+        // cek bentrok jadwal kelas di hari & jam yang sama
         $cek_bentrok = mysqli_query($koneksi, "SELECT id FROM jadwal WHERE kelas_id='$kid' AND hari='$hari' AND (
             ('$mulai' < jam_selesai AND '$selesai' > jam_mulai)
         )");
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($cek_bentrok && mysqli_num_rows($cek_bentrok) > 0) {
             $error = "Jadwal bentrok! Kelas tersebut sudah memiliki jadwal di hari dan jam yang sama.";
         } else {
-            // Cek bentrok jadwal — GURU yang sama mengajar di kelas lain di hari & jam yang sama
+            // cek bentrok jadwal guru (ngajar di kelas lain di hari & jam sama)
             if (!empty($gid)) {
                 $cek_guru = mysqli_query($koneksi,
                     "SELECT j.id, k.nama_kelas FROM jadwal j
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             if ($error === null) {
-            // Validasi relasional: kelas harus berada pada tahun ajaran aktif.
+            // validasi: kelas harus di tahun ajaran aktif
             $kelasTa = mysqli_fetch_assoc(mysqli_query($koneksi,
                 "SELECT tahun_ajaran_id FROM kelas WHERE id=".(int)$kid));
             if ($taId === null || $taTahun === '') {
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
 
                 if ($ins) {
-                    // Auto-sinkron ke pivot kelas_mapel_guru (jadwal => penugasan)
+                    // auto-sinkron ke pivot kelas_mapel_guru (jadwal => penugasan)
                     $cek_pivot = mysqli_query($koneksi,
                         "SELECT id FROM kelas_mapel_guru WHERE kelas_id='$kid' AND mapel_id='$mid' AND guru_id='$gid' AND tahun_ajaran_id='$taId' LIMIT 1");
                     if (mysqli_num_rows($cek_pivot) == 0) {
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             "INSERT INTO kelas_mapel_guru (kelas_id, mapel_id, guru_id, tahun_ajaran_id, kkm, jam_per_minggu)
                              VALUES ('$kid', '$mid', '$gid', '$taId', $kkm_pivot, 2)");
                     }
-                    // Notifikasi otomatis ke guru yang bersangkutan
+                    // notif otomatis ke guru yang bersangkutan
                     if (!function_exists('notifikasi_id_user_by_ref')) {
                         include __DIR__ . '/../../includes/notifikasi_functions.php';
                     }

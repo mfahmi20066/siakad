@@ -4,15 +4,15 @@ include '../config/session.php';
 cekSiswa();
 $title = "Jadwal Pelajaran";
 
-// Ambil ID siswa dari session login yang aktif
+// ambil id siswa dari session login
 $sid = $_SESSION['id_ref'];
 
-// Cari data kelas_id milik siswa yang sedang login dari tabel siswa
+// cari kelas_id milik siswa yang login
 $q_siswa = mysqli_query($koneksi, "SELECT kelas_id FROM siswa WHERE id = '$sid'");
 $siswa   = mysqli_fetch_assoc($q_siswa);
 $kid     = $siswa['kelas_id'] ?? '';
 
-// Ambil nama wali kelas dari data kelas (kelas.wali_kelas -> guru.nama_lengkap)
+// ambil nama wali kelas dari data kelas
 $wali_kelas = '-';
 if ($kid) {
     $qw = mysqli_query($koneksi,
@@ -25,7 +25,7 @@ if ($kid) {
     }
 }
 
-// Ambil data jadwal berdasarkan kelas_id dan sesuaikan nama kolom guru menjadi nama_lengkap
+// ambil jadwal by kelas_id, nama guru diubah ke nama_lengkap
 $data  = mysqli_query($koneksi,
          "SELECT j.*, m.nama_mapel, g.nama_lengkap AS nama_guru
           FROM jadwal j
@@ -42,7 +42,7 @@ if ($data) {
     }
 }
 
-// Hitung total jam per hari untuk ringkasan
+// hitung total jam per hari buat ringkasan
 $per_hari = [];
 foreach ($rows as $r) {
     $per_hari[$r['hari']] = ($per_hari[$r['hari']] ?? 0) + 1;

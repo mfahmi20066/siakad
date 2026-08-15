@@ -6,7 +6,7 @@ verifyCsrf();
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Cegah hapus admin utama (ID=1)
+// cegah hapus admin utama (id=1)
 if ($id <= 1) {
     header("Location: index.php?success=Gagal: Tidak bisa menghapus admin utama");
     exit();

@@ -9,10 +9,10 @@ $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
 
-// Ambil daftar kelas untuk dropdown filter utama
+// daftar kelas buat dropdown filter
 $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
-// Request AJAX: Mengambil list nama siswa berdasarkan kelas yang dipilih
+// ajax: list nama siswa by kelas terpilih
 if (isset($_GET['get_siswa_by_kelas'])) {
     $kelas_id = mysqli_real_escape_string($koneksi, $_GET['get_siswa_by_kelas']);
     $siswa_query = mysqli_query($koneksi, "SELECT id, nis, nama FROM siswa WHERE kelas_id = '$kelas_id' ORDER BY nama");
@@ -25,13 +25,13 @@ if (isset($_GET['get_siswa_by_kelas'])) {
     exit;
 }
 
-// Proses Simpan Data Rapor Massal saat Form di-Submit
+// proses simpan rapor massal saat form disubmit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $kelas_id      = $_POST['kelas_id'];
     $semester      = $_POST['semester'];
-    $data_rapor    = $_POST['rapor'] ?? []; // Menampung array input dari tabel siswa
+    $data_rapor    = $_POST['rapor'] ?? []; // menampung array input dari tabel siswa
 
-    // Tahun ajaran diambil dari MASTER tahun aktif (bukan POST) + validasi kelas.
+    // ta dari master tahun aktif + validasi kelas
     $taRaporId = null;
     if ($taId === null || $taTahun === '') {
         $raporError = "Tidak ada tahun ajaran aktif. Tetapkan tahun aktif di Modul Tahun Ajaran.";
@@ -50,21 +50,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $status_kenaikan = mysqli_real_escape_string($koneksi, $val['status_kenaikan']);
             $catatan         = mysqli_real_escape_string($koneksi, $val['catatan']);
             
-            // Cek apakah data rapor siswa ini sudah pernah diinput sebelumnya (menghindari duplikat)
+            // cek rapor siswa ini udah pernah diinput (biar ga duplikat)
             $cek = mysqli_query($koneksi, "SELECT id FROM rapor WHERE siswa_id = '$siswa_id' AND semester = '$semester' AND tahun_ajaran_id = '$taRaporId'");
             
             if (mysqli_num_rows($cek) > 0) {
-                // Jika sudah ada, lakukan UPDATE
+                // udah ada? update
                 $query = "UPDATE rapor SET status_kenaikan = '$status_kenaikan', catatan = '$catatan' WHERE siswa_id = '$siswa_id' AND semester = '$semester' AND tahun_ajaran_id = '$taRaporId'";
             } else {
-                // Jika belum ada, lakukan INSERT baru
+                // belum ada? insert baru
                 $query = "INSERT INTO rapor (siswa_id, kelas_id, semester, tahun_ajaran, tahun_ajaran_id, status_kenaikan, catatan) VALUES ('$siswa_id', '$kelas_id', '$semester', '$taTahun', '$taRaporId', '$status_kenaikan', '$catatan')";
             }
             
             if (mysqli_query($koneksi, $query)) {
                 $sukses_count++;
 
-                // Kirim notifikasi otomatis ke siswa
+                // notif otomatis ke siswa
                 if (!function_exists('notifikasi_id_user_by_ref')) {
                     include __DIR__ . '/../../includes/notifikasi_functions.php';
                 }
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         
-        // Redirect dengan pesan sukses bawaan aplikasimu
+        // redirect dengan pesan sukses
         header("Location: index.php?success=" . urlencode("Berhasil menyimpan $sukses_count data rapor siswa."));
         exit;
     }
@@ -169,24 +169,24 @@ document.addEventListener("DOMContentLoaded", function() {
     filterKelas.addEventListener("change", function() {
         const kelasId = this.value;
 
-        // Jika pilihan dikosongkan kembali
+        // kalo pilihan dikosongkan lagi
         if (!kelasId) {
             containerTabel.classList.add("d-none");
             wrapperBarisSiswa.innerHTML = "";
             return;
         }
 
-        // Jalankan AJAX fetch ke file ini sendiri
+        // jalankan ajax fetch ke file ini sendiri
         fetch(`tambah.php?get_siswa_by_kelas=${kelasId}`)
             .then(response => response.json())
             .then(data => {
-                wrapperBarisSiswa.innerHTML = ""; // Bersihkan tabel lama
+                wrapperBarisSiswa.innerHTML = ""; // bersihin tabel lama
                 
                 if (data.length > 0) {
-                    // Tampilkan tabel penampung
+                    // tampilkan tabel penampung
                     containerTabel.classList.remove("d-none");
                     
-                    // Render baris form untuk masing-masing siswa secara otomatis
+                    // render baris form per siswa otomatis
                     data.forEach((siswa, index) => {
                         const tr = document.createElement("tr");
                         tr.innerHTML = `

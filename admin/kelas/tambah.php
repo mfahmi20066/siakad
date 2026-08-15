@@ -11,13 +11,13 @@ try {
     $taId    = (int) $taAktif['id'];
     $taTahun = $taAktif['tahun'];
 } catch (Throwable $e) {
-    // Tanpa tahun aktif, kelas tidak boleh ditambahkan (id adalah sumber kebenaran).
+    // tanpa tahun aktif, kelas ga boleh ditambah
 }
 
 $guru_list = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Tahun ajaran diambil dari MASTER tahun aktif (sumber kebenaran), bukan dari POST.
+    // tahun ajaran dari master tahun aktif, bukan dari post
     if ($taId === null || $taTahun === '') {
         $error = "Tidak ada tahun ajaran aktif. Tetapkan tahun ajaran aktif di Modul Tahun Ajaran terlebih dahulu.";
     } else {
@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $tingkat = (int)$_POST['tingkat'];
         $jurusan = in_array($_POST['jurusan'] ?? 'Umum', ['Umum', 'IPA', 'IPS']) ? $_POST['jurusan'] : 'Umum';
 
-        // â”€â”€ FIX: wali_kelas NULL jika kosong (foreign key butuh NULL bukan '') â”€â”€
+        // fix: wali_kelas NULL kalo kosong (foreign key butuh NULL, bukan '')
         $wali     = !empty($_POST['wali_kelas']) ? (int)$_POST['wali_kelas'] : null;
         $wali_sql = ($wali !== null) ? "'$wali'" : "NULL";
 
-        // Cek nama kelas sudah ada atau belum (berbasis tahun_ajaran_id)
+        // cek nama kelas udah ada atau belum
         $cek = mysqli_query($koneksi,
                "SELECT id FROM kelas WHERE nama_kelas='$nama' AND tahun_ajaran_id='$taId'");
 

@@ -5,7 +5,7 @@ include '../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Dashboard Admin";
 
-// Tahun ajaran aktif sebagai fallback (sumber: database, bukan hardcode)
+// tahun ajaran aktif sebagai fallback (dari db, bukan hardcode)
 $fallbackTahun = null;
 try {
     $fallbackTahun = getTahunAjaranAktif(tahun_ajaran_pdo())['tahun'];
@@ -13,14 +13,14 @@ try {
     $fallbackTahun = null;
 }
 
-// OTOMATISASI STRUKTUR: Buat tabel mapel secara otomatis jika belum ada di database
+// auto-buat tabel mapel kalo belum ada di db
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS mapel (
     id INT PRIMARY KEY AUTO_INCREMENT,
     kode_mapel VARCHAR(20) NOT NULL,
     nama_mapel VARCHAR(100) NOT NULL
 )");
 
-// OTOMATISASI STRUKTUR: Buat tabel pengumuman secara otomatis jika belum ada di database
+// auto-buat tabel pengumuman kalo belum ada
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS pengumuman (
     id INT PRIMARY KEY AUTO_INCREMENT,
     judul VARCHAR(255) NOT NULL,
@@ -30,7 +30,7 @@ mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS pengumuman (
     tanggal DATE NOT NULL
 )");
 
-// OTOMATISASI STRUKTUR: Buat tabel agenda secara otomatis jika belum ada
+// auto-buat tabel agenda kalo belum ada
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS agenda (
     id INT PRIMARY KEY AUTO_INCREMENT,
     judul VARCHAR(255) NOT NULL,
@@ -44,7 +44,7 @@ mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS agenda (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
-// Ambil data total master untuk counter box (Gunakan error handling minimal agar aman)
+// ambil total master buat counter box (error handling minimal biar aman)
 $siswa_query = mysqli_query($koneksi, "SELECT id FROM siswa");
 $siswa = $siswa_query ? mysqli_num_rows($siswa_query) : 0;
 
@@ -57,15 +57,15 @@ $kelas = $kelas_query ? mysqli_num_rows($kelas_query) : 0;
 $mapel_query = mysqli_query($koneksi, "SELECT id FROM mata_pelajaran");
 $mapel = $mapel_query ? mysqli_num_rows($mapel_query) : 0;
 
-// AMBIL DATA DARI TABEL PENGATURAN (Agar Tahun Pelajaran & Semester Dinamis)
+// ambil dari pengaturan biar tahun pelajaran & semester dinamis
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $sys           = mysqli_fetch_assoc($query_setting);
 
-// Ambil pengumuman terbaru
+// pengumuman terbaru
 $pengumuman = mysqli_query($koneksi, "SELECT * FROM pengumuman ORDER BY tanggal DESC LIMIT 4");
 
-// Ambil jadwal hari ini (otomatis sesuai hari)
-$hari_ini = date('l'); // English day name
+// jadwal hari ini (otomatis sesuai hari)
+$hari_ini = date('l'); // nama hari (inggris)
 $hari_map = [
     'Monday' => 'Senin',
     'Tuesday' => 'Selasa',
@@ -88,15 +88,14 @@ $jadwal_hari_ini = mysqli_query($koneksi, "
     ORDER BY j.jam_mulai ASC, k.nama_kelas ASC
 ");
 
-// Ambil agenda dari database — tampilkan agenda sesuai HARI INI
-// (agenda dengan hari NULL = agenda umum, tetap tampil setiap hari)
+// agenda sesuai hari ini; yang hari NULL = agenda umum, tampil tiap hari
 $agenda_hari_ini = mysqli_query($koneksi, "
     SELECT * FROM agenda
     WHERE hari IS NULL OR hari = '$hari_ini_id'
     ORDER BY urutan ASC, jam_mulai ASC, id ASC
 ");
 
-// Hitung jumlah siswa per tahun untuk grafik (simulasi jika data riil tidak ada)
+// jumlah siswa per tahun buat grafik
 $tahunPelajaran = $fallbackTahun ?? ($sys['tahun_pelajaran'] ?? '');
 $tahun_ajaran = explode('/', $tahunPelajaran ?? '');
 $tahun_awal = $tahun_ajaran ? intval($tahun_ajaran[0]) : (int)date('Y');
@@ -104,7 +103,7 @@ $tahun_data = [];
 $siswa_data = [];
 for ($i = 4; $i >= 0; $i--) {
     $tahun_data[] = ($tahun_awal - $i) . '/' . ($tahun_awal - $i + 1);
-    // Simulasi data perkembangan siswa (bisa diganti dengan query riil nantinya)
+    // data simulasi, bisa diganti query riil nanti
     $siswa_data[] = max(0, $siswa - ($i * rand(5, 15)));
 }
 $siswa_data = array_reverse($siswa_data);
@@ -308,7 +307,7 @@ $tahun_data = array_reverse($tahun_data);
                         </div>
                         <div class="panel-body">
                             <?php
-                            // Tampilkan jadwal pelajaran hari ini (otomatis)
+                            // jadwal pelajaran hari ini
                             $jadwal_count = 0;
                             if ($jadwal_hari_ini && mysqli_num_rows($jadwal_hari_ini) > 0):
                                 while ($j = mysqli_fetch_assoc($jadwal_hari_ini)):
@@ -329,7 +328,7 @@ $tahun_data = array_reverse($tahun_data);
                             <?php
                                 endwhile;
                             endif;
-                            // Jika tidak ada jadwal, tampilkan teks default
+                            // kalo ga ada jadwal, tampilkan teks default
                             if ($jadwal_count == 0):
                             ?>
                             <div class="panel-item">
@@ -346,7 +345,7 @@ $tahun_data = array_reverse($tahun_data);
                             <?php endif; ?>
 
                             <?php
-                            // Tampilkan agenda dari database (custom agenda)
+                            // agenda dari db (custom agenda)
                             if ($agenda_hari_ini && mysqli_num_rows($agenda_hari_ini) > 0):
                                 while ($ag = mysqli_fetch_assoc($agenda_hari_ini)):
                                     $label_class = 'info';
@@ -381,12 +380,10 @@ $tahun_data = array_reverse($tahun_data);
 </div>
 
 <script>
-// ================================================================
-// CHART.JS — Student Growth Chart (Line)
-// ================================================================
+// chart.js — grafik pertumbuhan siswa (line)
 const studentCtx = document.getElementById('studentGrowthChart').getContext('2d');
 
-// Gradient fill
+// gradient fill
 const studentGradient = studentCtx.createLinearGradient(0, 0, 0, 250);
 studentGradient.addColorStop(0, 'rgba(22, 58, 99, 0.25)');
 studentGradient.addColorStop(1, 'rgba(22, 58, 99, 0.01)');
@@ -467,19 +464,17 @@ new Chart(studentCtx, {
     }
 });
 
-// ================================================================
-// CHART.JS — Attendance Chart (Bar)
-// ================================================================
+// chart.js — grafik absensi (bar)
 const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
 
-// Attendance data
+// data absensi
 const weeks = ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'];
 const hadir = [92, 88, 95, 90];
 const izin = [4, 6, 3, 5];
 const sakit = [3, 4, 2, 3];
 const alpa = [1, 2, 0, 2];
 
-// Gradient fill per dataset
+// gradient fill per dataset
 function barGradient(hex) {
     const g = attendanceCtx.createLinearGradient(0, 0, 0, 300);
     g.addColorStop(0, hex + 'D9');

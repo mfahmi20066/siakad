@@ -15,8 +15,7 @@ if (!$data) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Tahun ajaran TIDAK dapat diubah dari halaman edit: gunakan tahun_ajaran_id dari record
-    // yang sudah ada sebagai sumber utama, agar kelas tidak dipindah tanpa konfirmasi.
+    // tahun ajaran ga bisa diubah dari halaman edit, pake tahun_ajaran_id dari record yang ada
     $erDataTaId  = $data['tahun_ajaran_id'];
     $taIdSql     = ($erDataTaId !== null && $erDataTaId !== '') ? "'".(int)$erDataTaId."'" : 'NULL';
     $taTxtSql    = "'".mysqli_real_escape_string($koneksi, $data['tahun_ajaran'])."'";
@@ -26,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jurusan = in_array($_POST['jurusan'] ?? 'Umum', ['Umum', 'IPA', 'IPS']) ? $_POST['jurusan'] : 'Umum';
     $wali    = $_POST['wali_kelas'];
 
-    // Cek nama kelas duplikat, kecuali data diri sendiri (berbasis tahun_ajaran_id)
+    // cek nama kelas duplikat, kecuali record sendiri
     $cek = mysqli_query($koneksi,
            "SELECT id FROM kelas 
             WHERE nama_kelas='$nama' AND tahun_ajaran_id = $taIdSql AND id != '$id'");
@@ -34,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (mysqli_num_rows($cek) > 0) {
         $error = "Kelas $nama sudah ada di tahun ajaran " . ($data['tahun_ajaran'] ? $data['tahun_ajaran'] : '(tanpa tahun)') . "!";
     } else {
-        // PERBAIKAN UTAMA: Mengatasi error Foreign Key Constraint dengan mengeset NULL jika wali kelas kosong
+        // fix: wali_kelas dikosongin (NULL) biar ga kena foreign key constraint
         if (empty($wali)) {
             mysqli_query($koneksi,
                 "UPDATE kelas 

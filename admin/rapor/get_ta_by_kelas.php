@@ -1,5 +1,5 @@
 <?php
-// Endpoint AJAX: Mengembalikan daftar tahun ajaran yang tersedia untuk sebuah kelas (format JSON)
+// endpoint ajax: daftar ta yang tersedia buat sebuah kelas (json)
 include '../../config/koneksi.php';
 
 $nama_kelas = isset($_GET['nama_kelas']) ? mysqli_real_escape_string($koneksi, trim($_GET['nama_kelas'])) : '';
@@ -12,8 +12,7 @@ if (!empty($nama_kelas)) {
         "SELECT id FROM kelas WHERE nama_kelas = '$nama_kelas' LIMIT 1"));
 
     if ($kelas) {
-        // Tahun ajaran dari rapor kelas tsb, berbasis tahun_ajaran_id + JOIN master
-        // (bukan SELECT DISTINCT tahun_ajaran sebagai source of truth).
+        // ta dari rapor kelas tsb, berbasis tahun_ajaran_id + join master (bukan select distinct)
         $q = mysqli_query($koneksi,
             "SELECT DISTINCT r.tahun_ajaran_id AS ta_id, ta.nama_tahun_ajaran AS nama
              FROM rapor r
@@ -28,7 +27,7 @@ if (!empty($nama_kelas)) {
             }
         }
 
-        // Jika belum ada rapor, fallback ke tahun ajaran nilai kelas tersebut
+        // belum ada rapor? fallback ke ta nilai kelas
         if (empty($data)) {
             $qn = mysqli_query($koneksi,
                 "SELECT DISTINCT n.tahun_ajaran_id AS ta_id, ta.nama_tahun_ajaran AS nama
@@ -46,7 +45,7 @@ if (!empty($nama_kelas)) {
             }
         }
 
-        // Fallback terakhir: tahun ajaran berjalan dari master (bukan pengaturan teks)
+        // fallback terakhir: ta berjalan dari master (bukan pengaturan teks)
         if (empty($data)) {
             $qs = mysqli_query($koneksi,
                 "SELECT nama_tahun_ajaran FROM tahun_ajaran WHERE status='aktif' LIMIT 1");

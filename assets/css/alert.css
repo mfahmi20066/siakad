@@ -1,10 +1,6 @@
-/* ================================================================
-   SIA SMA NEGERI 4 PALOPO — alert.css
-   Sistem Alert Modern: Modal Konfirmasi + Toast Notification
-   Tema konsisten Navy #163A63 / Gold #F09000 (token dari style.css)
-   ================================================================ */
+﻿/* sistem alert modern: modal konfirmasi + toast notification, tema navy #163A63 / gold #F09000 (token dari style.css) */
 
-/* ── Overlay Modal ── */
+/* overlay modal */
 .sia-overlay {
     position: fixed;
     inset: 0;
@@ -22,7 +18,7 @@
 
 .sia-overlay.sia-open { opacity: 1; }
 
-/* ── Card Modal ── */
+/* card modal */
 .sia-modal {
     width: 100%;
     max-width: 420px;
@@ -47,7 +43,7 @@
     opacity: 0;
 }
 
-/* ── Ikon Modal ── */
+/* ikon modal */
 .sia-icon {
     width: 76px;
     height: 76px;
@@ -77,7 +73,7 @@
 .sia-icon-question { background: rgba(240, 144, 0, 0.12);  color: var(--gold, #F09000); }
 .sia-icon-logout   { background: rgba(22, 58, 99, 0.08);   color: var(--primary, #163A63); }
 
-/* ── Teks Modal ── */
+/* teks modal */
 .sia-title {
     font-family: 'Roboto', sans-serif;
     font-size: 19px;
@@ -95,7 +91,7 @@
     margin-bottom: 22px;
 }
 
-/* ── Tombol Modal ── */
+/* tombol modal */
 .sia-buttons {
     display: flex;
     gap: 12px;
@@ -139,9 +135,7 @@
 
 .sia-btn-cancel:hover { background: var(--border-color, #E2E8F0); color: var(--text-dark, #1A202C); }
 
-/* ════════════════════════════════════════════════════════════════
-   TOAST NOTIFICATION (top-right)
-   ════════════════════════════════════════════════════════════════ */
+/* toast notification (top-right) */
 .sia-toast-container {
     position: fixed;
     top: 18px;
@@ -253,9 +247,7 @@
 .sia-toast-warning .sia-toast-progress { background: var(--warning, #F59E0B); }
 .sia-toast-info    .sia-toast-progress { background: var(--info, #3B82F6); }
 
-/* ════════════════════════════════════════════════════════════════
-   MODERNISASI Bootstrap .alert (flash message halaman)
-   ════════════════════════════════════════════════════════════════ */
+/* modernisasi bootstrap .alert (flash message halaman) */
 .alert {
     border: none;
     border-left: 4px solid var(--info, #3B82F6);
@@ -304,13 +296,13 @@
 
 .alert-info i { color: var(--info, #3B82F6); }
 
-/* ── Animasi ── */
+/* animasi */
 @keyframes sia-fade-slide {
     from { opacity: 0; transform: translateY(-8px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Responsive ── */
+/* responsive */
 @media (max-width: 576px) {
     .sia-modal { padding: 26px 20px 22px; }
     .sia-toast-container { top: 12px; right: 12px; width: calc(100vw - 24px); }

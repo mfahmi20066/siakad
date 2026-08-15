@@ -1,6 +1,6 @@
 const CACHE_NAME = 'sia-sman4palopo-v2';
 
-// Cache statis minimal (untuk performa & offline ringan)
+// cache statis minimal, biar offline ringan
 const STATIC_ASSETS = [
   '/siakad/',
   '/siakad/index.php',
@@ -31,16 +31,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // hanya tangani GET
+  // cuma GET aja yang diproses
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
 
-  // hanya dalam scope /siakad/
+  // di luar /siakad/ ga usah disentuh
   if (!url.pathname.startsWith('/siakad/')) return;
 
-  // Navigasi halaman & PDF: NETWORK-FIRST supaya halaman cetak/rapor dan PDF
-  // SELALU terbaru (tidak tertimpa cache lama). Jaringan gagal -> fallback cache.
+  // halaman & PDF pake network-first biar selalu fresh, kalo offline baru fallback ke cache
   if (req.mode === 'navigate' || url.pathname.match(/\.(php|pdf)$/)) {
     event.respondWith(
       fetch(req)
@@ -58,7 +57,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Aset statis (css/js/gambar): cache-first untuk performa & offline
+  // aset statis pake cache-first, biar cepet & bisa offline
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;

@@ -1,5 +1,5 @@
 <?php
-// Endpoint AJAX: Mengembalikan daftar siswa dalam bentuk <option> berdasarkan nama kelas, tahun ajaran & semester
+// endpoint ajax: daftar siswa <option> by nama kelas, ta & semester
 include '../../config/koneksi.php';
 
 $nama_kelas = isset($_GET['nama_kelas']) ? mysqli_real_escape_string($koneksi, trim($_GET['nama_kelas'])) : '';
@@ -7,13 +7,12 @@ $ta         = isset($_GET['ta']) ? mysqli_real_escape_string($koneksi, trim($_GE
 $semester   = isset($_GET['semester']) ? mysqli_real_escape_string($koneksi, $_GET['semester']) : '1';
 
 if (!empty($nama_kelas)) {
-    // Ambil id kelas berdasarkan nama_kelas
+    // ambil id kelas by nama
     $kelas = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT id FROM kelas WHERE nama_kelas = '$nama_kelas' LIMIT 1"));
 
     if ($kelas) {
-        // Ambil semua siswa di kelas tersebut (tanpa syarat punya data rapor),
-        // sehingga setiap kelas bisa diproses untuk cetak.
+        // ambil semua siswa di kelas (tanpa syarat punya rapor) biar semua kelas bisa dicetak
         $where = "s.kelas_id = '{$kelas['id']}'";
 
         $query = mysqli_query($koneksi,

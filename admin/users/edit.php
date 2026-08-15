@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "UPDATE users SET nama='$nama', username='$username',
                  role='$role', email=$emailSql WHERE id='$id'");
         }
-        // Sinkronkan nama & email ke tabel guru/siswa agar tetap terelasi dengan data master
+        // sinkron nama & email ke guru/siswa biar tetep terelasi
         if ($role === 'guru' && !empty($data['id_ref'])) {
             mysqli_query($koneksi, "UPDATE guru SET nama='$nama', nama_lengkap='$nama', email=$emailSql WHERE id='{$data['id_ref']}'");
         } elseif ($role === 'siswa' && !empty($data['id_ref'])) {

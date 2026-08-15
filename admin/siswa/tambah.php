@@ -14,7 +14,7 @@ $kelas = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nis       = mysqli_real_escape_string($koneksi, $_POST['nis']);
-    // NIS otomatis (NisGeneratorService) bila field NIS dikosongkan.
+    // nis otomatis (NisGeneratorService) kalo field nis dikosongin
     if (trim($nis) === '') {
         require_once __DIR__ . '/../../config/database.php';
         $tahunMasuk = ($taTahun !== '') ? (int) explode('/', $taTahun)[0] : (int) date('Y');
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password  = hashPassword($_POST['password']);
     $foto_nama = '';
 
-    // â”€â”€ Tentukan tahun_ajaran_id dari KELAS terpilih (validasi relasional) â”€â”€
+    // tentuin tahun_ajaran_id dari kelas terpilih (validasi relasional); jangan percaya post tahun_ajaran
     // Jangan percaya nilai $_POST['tahun_ajaran']. Kelas adalah sumber kebenaran relasi.
     $kls_id        = !empty($_POST['kelas_id']) ? (int)$_POST['kelas_id'] : 0;
     $taSiswaId     = null;
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // â”€â”€ Upload Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // upload foto
     if (!empty($_FILES['foto']['name'])) {
         $file      = $_FILES['foto'];
         $ekstensi  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -81,20 +81,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Cek username sudah dipakai atau belum
+    // cek username udah kepake atau belum
     $cek = mysqli_query($koneksi, "SELECT id FROM users WHERE username='$username'");
     if (mysqli_num_rows($cek) > 0) {
         $error = "Username sudah digunakan, silakan pilih yang lain!";
     } elseif (isset($upload_gagal)) {
-        // Biarkan $error dari validasi upload tampil
+        // biarkan $error dari validasi upload tampil
     } elseif ($taSiswaError !== null) {
         $error = $taSiswaError;
     } else {
-        // Simpan ke tabel users dulu
+        // simpan ke users dulu
         mysqli_query($koneksi, "INSERT INTO users (nama, username, password, role) 
                                 VALUES ('$nama', '$username', '$password', 'siswa')");
 
-        // Simpan ke tabel siswa (user_id dihapus agar tidak error Unknown Column)
+        // simpan ke siswa (ga pake user_id biar ga error unknown column)
         mysqli_query($koneksi, "INSERT INTO siswa 
                                 (nis, nama, nama_lengkap, jenis_kelamin, tempat_lahir, 
                                 tanggal_lahir, alamat, no_hp, nama_ortu, no_hp_ortu, kelas_id, tahun_ajaran, tahun_ajaran_id, tahun_masuk, foto) 
@@ -102,14 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 ('$nis', '$nama', '$nama', '$jk', '$ttl', 
                                 " . (!empty($tgl) ? "'$tgl'" : "NULL") . ", '$alamat', '$hp', " . (!empty($nama_ortu) ? "'$nama_ortu'" : "NULL") . ", " . (!empty($hp_ortu) ? "'$hp_ortu'" : "NULL") . ", '$kls_id', '$taSiswaTxt', '$taSiswaId', " . ($taSiswaTxt ? "'" . (int) explode('/', $taSiswaTxt)[0] . "'" : "NULL") . ", '$foto_nama')");
 
-        // Hubungkan akun users yang baru dibuat ke siswa (id_ref sebagai penghubung, pola sama dengan guru)
+        // hubungkan akun users ke siswa via id_ref (pola sama kayak guru)
         $siswa_id_baru = mysqli_insert_id($koneksi);
         if ($siswa_id_baru) {
             mysqli_query($koneksi, "UPDATE users SET id_ref='$siswa_id_baru' 
                                     WHERE username='$username' AND role='siswa'");
         }
 
-        // Notifikasi ke admin bahwa ada data siswa baru
+        // notif ke admin ada siswa baru
         if (!function_exists('notifikasi_ke_role')) {
             include __DIR__ . '/../../includes/notifikasi_functions.php';
         }

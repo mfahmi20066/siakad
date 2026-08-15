@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Jadwal Pelajaran";
 
-// Filter berdasarkan kelas
+// filter berdasarkan kelas
 $filter_kelas = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 $filter_hari  = isset($_GET['hari'])     ? $_GET['hari']     : '';
 
@@ -115,18 +115,16 @@ $kelas_list = mysqli_query($koneksi,
                 </thead>
                 <tbody>
                 <?php if (mysqli_num_rows($data) == 0): ?>
-                    <?php /* tbody dibiarkan kosong: DataTables menampilkan "Tidak ada data" (zeroRecords).
-                            Jangan buat <tr><td colspan=N> tunggal di dalam DataTables — memicu
-                            "Incorrect column count" (jumlah sel != jumlah kolom). */ ?>
+                    <?php // tbody dikosongin biar datatables nampilin "tidak ada data" sendiri; <tr> tunggal bikin error column count ?>
                 <?php else: ?>
                 <?php $no = 1; while ($r = mysqli_fetch_assoc($data)): ?>
                 <?php
-                    // Hitung durasi
+                    // hitung durasi
                     $mulai   = strtotime($r['jam_mulai']);
                     $selesai = strtotime($r['jam_selesai']);
                     $durasi  = round(($selesai - $mulai) / 60) . ' mnt';
 
-                    // Warna badge hari
+                    // warna badge hari
                     $warna_hari = [
                         'Senin'  => 'primary',
                         'Selasa' => 'success',

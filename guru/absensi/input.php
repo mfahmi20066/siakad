@@ -5,15 +5,15 @@ include '../../config/helper_tahun_ajaran.php';
 cekGuru();
 $title = "Input Absensi";
 
-// Tahun ajaran aktif (source of truth) — bukan POST/date('Y').
+// ta aktif (source of truth), bukan dari post/date
 $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
 
-// SINKRONISASI SESSION: Menggunakan id_ref untuk ID Guru
+// pake id_ref sebagai id guru
 $gid = $_SESSION['id_ref'];
 
-// Hanya tampilkan kelas yang diajar guru ini (dari pivot kelas_mapel_guru)
+// cuma kelas yang diajar guru ini (dari pivot)
 $kelas_list = mysqli_query($koneksi,
     "SELECT DISTINCT k.*
      FROM kelas k
@@ -34,15 +34,15 @@ if (isset($_POST['simpan'])) {
     $statuses    = $_POST['status'];
     $keterangans = $_POST['keterangan'];
 
-    // Ambil mapel_id secara otomatis dari pivot guru untuk kelas ini
+    // ambil mapel_id otomatis dari pivot buat kelas ini
     $q_mapel = mysqli_query($koneksi, "SELECT mapel_id FROM kelas_mapel_guru WHERE kelas_id='$kid' AND guru_id='$gid' LIMIT 1");
     $res_mapel = mysqli_fetch_assoc($q_mapel);
     $mapel_id = $res_mapel ? (int)$res_mapel['mapel_id'] : 0;
 
-    // Siapkan nilai SQL untuk mapel_id (0 = tanpa mapel / presensi harian)
+    // mapel_id 0 = tanpa mapel (presensi harian)
     $mapel_sql = $mapel_id > 0 ? "'$mapel_id'" : "NULL";
 
-    // Validasi relasional: kelas harus ada & pada tahun ajaran aktif.
+    // validasi: kelas harus ada & di ta aktif
     $kelasTa = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT tahun_ajaran_id FROM kelas WHERE id=".(int)$kid));
     if ($taId === null || $taTahun === '') {
@@ -66,12 +66,11 @@ if (isset($_POST['simpan'])) {
         $st        = mysqli_real_escape_string($koneksi, $statuses[$i]);
         $ket       = mysqli_real_escape_string($koneksi, $keterangans[$i]);
 
-        // Validasi siswa berada di kelas terpilih.
+        // validasi siswa di kelas terpilih
         $srow = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT kelas_id FROM siswa WHERE id='$sid_clean'"));
         if (!$srow || $srow['kelas_id'] != $kid) continue;
 
-        // Cek apakah sudah ada absensi siswa ini pada tanggal & kelas yang sama
-        // (khusus saat mapel_id NULL, unique key MySQL tidak bisa mencegah duplikasi)
+        // cek absensi siswa ini udah ada di tanggal & kelas sama (khusus mapel null, unique key ga bisa cegah duplikasi)
         $cek = mysqli_query($koneksi,
             "SELECT id FROM absensi
              WHERE siswa_id='$sid_clean' AND tanggal='$tgl' AND kelas_id='$kid'
@@ -100,7 +99,7 @@ if (isset($_POST['simpan'])) {
         header("Location: index.php?success=Absensi tanggal $tgl berhasil disimpan ($total_save siswa)");
         exit();
     } else {
-        // Jika gagal, jangan redirect sukses palsu — tampilkan pesan error
+        // kalo gagal, jangan redirect sukses palsu — tampilkan error
         $simpan_error = "Gagal menyimpan absensi tanggal $tgl: " . e($error_msg);
     }
 }

@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Laporan";
 
-// Riwayat log export
+// riwayat log export
 $log = mysqli_query($koneksi,
     "SELECT l.*, u.nama AS nama_user
      FROM laporan_log l

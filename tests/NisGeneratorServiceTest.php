@@ -4,13 +4,9 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../config/NisGeneratorService.php';
 
-/**
- * Unit test NisGeneratorService — memakai SQLite in-memory (BUKAN db produksi).
- * Format NIS: [2 digit tahun][5 digit terakhir NPSN][3 digit urut].
- */
+// unit test NisGeneratorService, pake sqlite in-memory (bukan db produksi)
 class NisGeneratorServiceTest extends TestCase
 {
-    /** @var PDO */
     private $pdo;
 
     private const NPSN = '40500012'; // 5 digit terakhir = '00012'
@@ -67,7 +63,7 @@ class NisGeneratorServiceTest extends TestCase
         $this->assertSame('2600012001', $rencana[0]['nis_baru']);
         $this->assertSame('2600012002', $rencana[1]['nis_baru']);
         $this->assertSame('2600012003', $rencana[2]['nis_baru']);
-        // NIS lama dipertahankan dari record asli masing-masing siswa
+        // nis lama dipertahankan dari record asli masing-masing siswa
         $this->assertSame('2600012001', $rencana[0]['nis_lama']); // Ahmad
         $this->assertSame('2600012002', $rencana[1]['nis_lama']); // Budi
         $this->assertSame('2600012003', $rencana[2]['nis_lama']); // Zaini
@@ -75,7 +71,7 @@ class NisGeneratorServiceTest extends TestCase
 
     public function testGenerateMelebihi999MelemparException(): void
     {
-        // Isi 999 NIS dengan prefix yang sama, supaya urut berikutnya = 1000.
+        // isi 999 nis dengan prefix sama, biar urut berikutnya = 1000
         for ($i = 1; $i <= 999; $i++) {
             $this->insert('Siswa ' . $i, '2600012' . str_pad((string) $i, 3, '0', STR_PAD_LEFT), 2026);
         }

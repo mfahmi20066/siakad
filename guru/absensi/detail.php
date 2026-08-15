@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekGuru();
 $title = "Detail Absensi";
 
-// SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang sah
+// pake id_ref sebagai id guru (sinkronisasi session)
 $gid = $_SESSION['id_ref'];
 
 $tgl = isset($_GET['tanggal'])  ? mysqli_real_escape_string($koneksi, $_GET['tanggal'])  : '';
@@ -15,7 +15,7 @@ if (!$tgl || !$kid) {
     exit();
 }
 
-// Validasi: pastikan guru benar-benar mengajar kelas ini (via pivot)
+// validasi: guru beneran ngajar kelas ini (via pivot)
 $cek = mysqli_query($koneksi,
     "SELECT kmg.kelas_id, k.nama_kelas, mp.nama_mapel
      FROM kelas_mapel_guru kmg
@@ -30,7 +30,7 @@ if (!$info) {
     exit();
 }
 
-// Ambil detail absensi siswa pada tanggal & kelas tersebut
+// ambil detail absensi siswa di tanggal & kelas tsb
 $data = mysqli_query($koneksi,
     "SELECT a.*, s.nama, s.nis
      FROM absensi a

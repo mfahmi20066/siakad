@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uname = mysqli_real_escape_string($koneksi, $_POST['username']);
     $role  = $_POST['role'];
 
-    // Cek username duplikat, kecuali diri sendiri
+    // cek username duplikat, kecuali diri sendiri
     $cek = mysqli_query($koneksi,
            "SELECT id FROM users WHERE username='$uname' AND id != '$id'");
 
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "UPDATE users SET nama='$nama', username='$uname', role='$role'
              WHERE id='$id'");
 
-        // Update password hanya jika diisi
+        // update password cuma kalo diisi
         if (!empty($_POST['password'])) {
             $pass = hashPassword($_POST['password']);
             mysqli_query($koneksi,

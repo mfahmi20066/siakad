@@ -1,8 +1,4 @@
-/* ================================================================
-   Chatbot AI — SiA Bot (SMA Negeri 4 Palopo)
-   Riwayat chat disimpan di localStorage, bertahan saat pindah halaman,
-   dan hanya dihapus ketika logout.
-   ================================================================ */
+// chatbot sia bot — riwayat chat di localStorage, bertahan antar halaman, dihapus pas logout
 (function () {
     'use strict';
 
@@ -16,7 +12,7 @@
     // Elemen DOM
     var body, toggle, panel, messages, input, form, typing, scrollAnchor, chips;
 
-    /* ── Penyimpanan riwayat per user ── */
+    // Penyimpanan riwayat per user
     function storageKey() {
         var user = (typeof window.SIA_CHAT_USER !== 'undefined' && window.SIA_CHAT_USER)
             ? window.SIA_CHAT_USER : 'guest';
@@ -26,7 +22,7 @@
     function saveHistory() {
         try {
             localStorage.setItem(storageKey(), JSON.stringify(history));
-        } catch (e) { /* storage penuh/tidak tersedia */ }
+        } catch (e) { } // storage penuh/tidak tersedia
     }
 
     function loadHistory() {
@@ -42,17 +38,17 @@
     function clearHistory() {
         try {
             localStorage.removeItem(storageKey());
-        } catch (e) { /* noop */ }
+        } catch (e) { } // noop
     }
 
-    /* ── Rendering ── */
+    // Rendering
     function esc(text) {
         var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    /* Render teks: ubah **teks** -> <strong>, dan baris baru -> <br> */
+    // Render teks: ubah **teks** -> <strong>, dan baris baru -> <br>
     function render(text) {
         return esc(text)
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -80,7 +76,7 @@
         scrollDown();
     }
 
-    /* Efek mengetik huruf demi huruf */
+    // Efek mengetik huruf demi huruf
     function typeText(el, text) {
         var i = 0;
         el.textContent = '';
@@ -98,7 +94,7 @@
         })();
     }
 
-    /* Muat ulang seluruh pesan dari riwayat tersimpan */
+    // Muat ulang seluruh pesan dari riwayat tersimpan
     function renderHistory() {
         messages.innerHTML = '';
         if (history.length === 0) {
@@ -117,7 +113,7 @@
         scrollDown();
     }
 
-    /* Tampilkan / sembunyikan saran pertanyaan cepat */
+    // Tampilkan / sembunyikan saran pertanyaan cepat
     function showChips(show) {
         if (!chips) return;
         chips.style.display = show ? '' : 'none';

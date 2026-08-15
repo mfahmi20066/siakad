@@ -17,19 +17,19 @@ $success = '';
 $error = '';
 $folder_path = '../../assets/img/' . $folder . '/';
 
-// Helper program unggulan (dipakai untuk memasang foto program via galeri)
+// helper program unggulan, buat pasang foto program lewat galeri
 if ($folder === 'foto_program') {
     require_once '../../config/helper_program.php';
     program_cek_table($koneksi);
 }
 $program_list = $folder === 'foto_program' ? program_get_all($koneksi) : [];
 
-// Buat folder jika belum ada
+// bikin folder kalo belum ada
 if (!is_dir($folder_path)) {
     mkdir($folder_path, 0755, true);
 }
 
-// Handle upload foto
+// handle upload foto
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_galeri'])) {
     $file = $_FILES['foto_galeri'];
     $allowed_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -41,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_galeri'])) {
     } elseif ($file_size > 5 * 1024 * 1024) {
         $error = "Ukuran file terlalu besar (max 5MB)";
     } else {
-        // Folder foto_program: foto dipasang langsung ke program unggulan
-        // (pilihan via dropdown, atau otomatis ke program yang belum punya foto)
+        // folder foto_program: foto dipasang langsung ke program unggulan (pilih via dropdown, atau otomatis ke program yang belum punya foto)
         $target_program = null;
         if ($folder === 'foto_program') {
             $pid = (int) ($_POST['pasang_program'] ?? 0);
@@ -77,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['foto_galeri'])) {
     }
 }
 
-// Handle delete foto
+// handle delete foto
 if (isset($_GET['delete'])) {
     verifyCsrf();
     $delete_file = preg_replace('/[^a-z0-9_.-]/i', '', $_GET['delete']);
@@ -92,12 +91,12 @@ if (isset($_GET['delete'])) {
     }
 }
 
-// Scan folder
+// scan folder
 $files = [];
 if (is_dir($folder_path)) {
     $scanned = glob($folder_path . '*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG,GIF,WEBP}', GLOB_BRACE);
     $files = array_map('basename', $scanned);
-    rsort($files); // Sort newest first
+    rsort($files); // yang terbaru dulu
 }
 ?>
 <?php include '../../includes/header.php'; ?>

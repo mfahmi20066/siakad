@@ -10,9 +10,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-// Halaman ini menghasilkan PDF rapor milik siswa yang sedang login SAJA
-// (siswa_id dikunci dari session, tidak bisa melihat rapor siswa lain).
-// Format HTML identik dengan admin/rapor/cetak_pdf.php dan cetak_rapor.php.
+// pdf rapor milik siswa yang login aja (siswa_id dikunci dari session); format identik admin/rapor/cetak_pdf.php
 
 $sid = $_SESSION['id_ref'];
 
@@ -31,7 +29,7 @@ $fix_semester = (!empty($semester) && $semester !== '0')
     : ambil_angka_semester($sys['semester'] ?? '1');
 $fix_ta = (!empty($ta) && $ta !== '0') ? $ta : '';
 
-/* Tahun berbasis ID (source of truth) + kompatibilitas param lama `ta`. */
+// tahun berbasis id (source of truth) + kompatibilitas param lama 'ta'
 $taId = (int)($_GET['tahun_ajaran_id'] ?? 0);
 if ($taId <= 0 && !empty($ta)) {
     $qres = mysqli_query($koneksi, "SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran='$ta' LIMIT 1");
@@ -48,7 +46,7 @@ if ($taId <= 0) {
 $fix_ta = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT nama_tahun_ajaran v FROM tahun_ajaran WHERE id=$taId"))['v'] ?? $fix_ta;
 
-// Ambil rapor milik siswa yang login SAJA (fallback untuk data lama dengan semester='0')
+// rapor milik siswa yang login aja (fallback semester '0' data lama)
 $rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
          "SELECT r.*, ta.nama_tahun_ajaran AS nama_tahun, s.nama, s.nis, s.nisn, s.jenis_kelamin,
                  s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
@@ -70,7 +68,7 @@ if (!$rapor) {
     die('<p style="font-family:Arial;padding:30px;">Rapor untuk semester/tahun ajaran ini belum tersedia. <a href="rapor.php">Kembali</a></p>');
 }
 
-// Finalisasi: siswa hanya boleh mencetak rapor yang sudah difinalisasi (status = final).
+// siswa cuma boleh cetak rapor final
 if (strtolower(trim($rapor['status'] ?? 'draft')) !== 'final') {
     header("Location: rapor.php?error=" . urlencode("Rapor belum difinalisasi. Cetak dapat dilakukan setelah rapor final."));
     exit();
@@ -113,7 +111,7 @@ function romawi_pdf($n) {
     return $map[$n] ?? (string)$n;
 }
 
-// Bangun baris nilai
+// bangun baris nilai
 $rows = '';
 $no = 1; $total_na = 0; $jml_mapel = 0;
 $kelompok_aktif = null; $urutan_grup = 0;

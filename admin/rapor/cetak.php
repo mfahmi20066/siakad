@@ -25,7 +25,7 @@ if (!$rapor) {
     exit();
 }
 
-// Cek apakah kolom kelompok/kkm sudah tersedia (migrasi sudah dijalankan atau belum)
+// cek kolom kelompok/kkm ada ga (migrasi udah jalan atau belum)
 $cek_kelompok = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kelompok'");
 $ada_kelompok = mysqli_num_rows($cek_kelompok) > 0;
 
@@ -57,17 +57,17 @@ $alpa  = mysqli_fetch_row(mysqli_query($koneksi,
          "SELECT COUNT(*) FROM absensi 
           WHERE siswa_id='{$rapor['siswa_id']}' AND status='Alpa'"))[0] ?? 0;
 
-// Ambil data pengaturan sekolah
+// ambil data pengaturan sekolah
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($q_setting);
 
-// Kepribadian & ekstrakurikuler (aman kalau kolom belum ada / migrasi belum jalan)
+// kepribadian & ekskul (aman kalo kolom belum ada / migrasi belum jalan)
 $kerajinan = $rapor['kerajinan'] ?? 'Baik';
 $kelakuan  = $rapor['kelakuan']  ?? 'Baik';
 $kerapihan = $rapor['kerapihan'] ?? 'Baik';
 $eskul     = $rapor['ekstrakurikuler'] ?? '';
 
-// Helper: nomor romawi sederhana untuk kelompok
+// helper: angka romawi sederhana buat kelompok
 function romawi($n) {
     $map = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V'];
     return $map[$n] ?? (string)$n;
@@ -118,7 +118,7 @@ body {
 .btn-pdf svg { width: 18px; height: 18px; }
 .btn-pdf:hover { background: #0D2540; }
 
-/* ── Kop surat ala instansi resmi ── */
+/* kop surat ala instansi resmi */
 .kop {
     display: flex;
     align-items: center;
@@ -144,7 +144,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* ── Info identitas siswa (2 kolom ala formulir) ── */
+/* info identitas siswa (2 kolom ala formulir) */
 .identitas { width: 100%; margin-bottom: 14px; border-collapse: collapse; }
 .identitas td { padding: 2px 5px; font-size: 12px; vertical-align: top; }
 .identitas .label { width: 150px; }
@@ -267,7 +267,7 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; 
             $kkm = $n['kkm'] ?? 75;
             $kel = $n['kelompok'] ?? 'Umum';
 
-            // Baris judul kelompok setiap kali kelompok berganti
+            // baris judul kelompok pas kelompok ganti
             if ($kel !== $kelompok_aktif):
                 $kelompok_aktif = $kel;
                 $urutan_grup++;
@@ -277,8 +277,7 @@ table.rapor-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; 
         </tr>
     <?php endif; ?>
     <?php
-            // Predikat: mapel Produktif pakai Kompeten/Belum Kompeten (acuan KKM),
-            // mapel lain pakai Baik/Cukup/Kurang (skala umum)
+            // predikat: mapel produktif pake kompeten/belum kompeten, mapel lain pake baik/cukup/kurang
             if (strtolower($kel) === 'produktif') {
                 $predikat = $na >= $kkm ? 'Kompeten' : 'Belum Kompeten';
             } else {

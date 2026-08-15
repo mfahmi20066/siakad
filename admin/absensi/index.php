@@ -16,9 +16,7 @@ function normalStatus($st) {
     return $st;
 }
 
-// ============================================================
-// LEVEL 3: Guru + Tanggal + Kelas -> daftar siswa (bisa edit)
-// ============================================================
+// level 3: guru + tanggal + kelas -> daftar siswa (bisa edit)
 if ($gid && $tgl && $kid) {
     $info = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT g.nama AS nama_guru, k.nama_kelas
@@ -133,9 +131,7 @@ if ($gid && $tgl && $kid) {
 <?php exit; } ?>
 
 <?php
-// ============================================================
-// LEVEL 2: Guru -> daftar tanggal absensi + kelas
-// ============================================================
+// level 2: guru -> daftar tanggal absensi + kelas
 if ($gid) {
     $guru = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT * FROM guru WHERE id='$gid'"));
@@ -237,9 +233,7 @@ if ($gid) {
 <?php exit; } ?>
 
 <?php
-// ============================================================
-// LEVEL 1: Daftar Guru yang memiliki absensi
-// ============================================================
+// level 1: daftar guru yang punya absensi
 $guru_list = mysqli_query($koneksi,
     "SELECT g.id, g.nama, g.nip,
             COUNT(DISTINCT a.id) AS jml_data,

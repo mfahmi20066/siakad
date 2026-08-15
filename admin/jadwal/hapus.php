@@ -6,7 +6,7 @@ verifyCsrf();
 
 $id = (int) $_GET['id'];
 
-// Ambil info jadwal untuk pesan notifikasi
+// ambil info jadwal buat pesan notif
 $jadwal = mysqli_fetch_assoc(mysqli_query($koneksi,
           "SELECT j.*, k.nama_kelas, m.nama_mapel
            FROM jadwal j

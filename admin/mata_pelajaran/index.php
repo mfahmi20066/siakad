@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Mata Pelajaran";
 
-// Mengambil data dari tabel mata_pelajaran secara langsung tanpa JOIN di awal
+// ambil dari mata_pelajaran langsung, tanpa join di awal
 $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel DESC");
 ?>
 <?php include '../../includes/header.php'; ?>
@@ -62,10 +62,10 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
                 <?php else: ?>
                 <?php $no = 1; while ($r = mysqli_fetch_assoc($data)): ?>
                 <?php
-                    // 1. Ambil Nama Guru secara dinamis berdasarkan kolom foreign key yang tersedia
+                    // 1. ambil nama guru dinamis sesuai kolom foreign key yang ada
                     $nama_guru = "Belum ditentukan";
                     
-                    // Kita periksa kolom mana yang ada di tabel mata_pelajaran milikmu
+                    // cek kolom mana yang ada di tabel
                     if (isset($r['id_guru']) && !empty($r['id_guru'])) {
                         $id_g = $r['id_guru'];
                         $q_guru = mysqli_query($koneksi, "SELECT nama FROM guru WHERE id = '$id_g'");
@@ -76,14 +76,14 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
                         if ($g = mysqli_fetch_assoc($q_guru)) { $nama_guru = $g['nama']; }
                     }
 
-                    // 2. Hitung berapa kelas yang menggunakan mapel ini (dari pivot kelas_mapel_guru)
+                    // 2. hitung kelas yang pake mapel ini (dari pivot)
                     $jml_kelas = 0;
                     $q_kelas = mysqli_query($koneksi, "SELECT COUNT(DISTINCT kelas_id) FROM kelas_mapel_guru WHERE mapel_id = '{$r['id']}'");
                     if ($row_kelas = mysqli_fetch_row($q_kelas)) {
                         $jml_kelas = $row_kelas[0];
                     }
 
-                    // Kategori (Kurikulum Merdeka) & status
+                    // kategori (kurikulum merdeka) & status
                     $kategori = $r['kategori'] ?? 'wajib';
                     $k_badge  = $kategori === 'pilihan' ? 'info' : ($kategori === 'projek' ? 'warning' : 'secondary');
                     $status   = $r['status'] ?? 'aktif';
@@ -102,7 +102,7 @@ $data = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran ORDER BY nama_mapel
                     </td>
                     <td>
                         <?php
-                        // Multi-guru: tampilkan semua guru yang mengajar mapel ini (dari pivot kelas_mapel_guru)
+                        // multi-guru: tampilkan semua guru mapel ini (dari pivot)
                         $list_guru_mapel = [];
                         $q_guru_mapel = mysqli_query(
                             $koneksi,

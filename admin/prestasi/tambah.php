@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Prestasi Siswa";
 
-// Ambil daftar siswa untuk dropdown
+// ambil daftar siswa buat dropdown
 $daftar_siswa = mysqli_query($koneksi,
     "SELECT s.id, s.nis, s.nama_lengkap, s.nama, k.nama_kelas
      FROM siswa s
@@ -22,7 +22,7 @@ while ($s = mysqli_fetch_assoc($daftar_siswa)) {
 }
 $json_siswa = json_encode($data_siswa, JSON_UNESCAPED_UNICODE);
 
-// â”€â”€ Proses simpan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses simpan
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $siswa_id      = (int) $_POST['siswa_id'];
     $nama_prestasi = mysqli_real_escape_string($koneksi, $_POST['nama_prestasi']);

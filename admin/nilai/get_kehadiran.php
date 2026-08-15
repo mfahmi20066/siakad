@@ -3,8 +3,7 @@ include '../../config/koneksi.php';
 include '../../config/session.php';
 cekAdmin();
 
-// Endpoint AJAX: hitung persentase kehadiran siswa untuk 1 mata pelajaran,
-// diambil otomatis dari tabel absensi (bukan input manual).
+// endpoint ajax: hitung persen kehadiran siswa per mapel, dari tabel absensi (bukan manual)
 
 $sid = isset($_GET['siswa_id']) ? (int) $_GET['siswa_id'] : '';
 $mid = isset($_GET['mapel_id']) ? (int) $_GET['mapel_id'] : '';

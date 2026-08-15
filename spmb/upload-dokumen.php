@@ -9,7 +9,7 @@ $pendaftar = null;
 $error = '';
 $success = '';
 
-// Gate: SPMB nonaktif → tutup akses upload
+// gate: spmb nonaktif -> tutup akses upload
 $query_setting = mysqli_query($koneksi, "SELECT spmb_aktif FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 if (($setting['spmb_aktif'] ?? 0) != 1) {
@@ -17,7 +17,7 @@ if (($setting['spmb_aktif'] ?? 0) != 1) {
     exit();
 }
 
-// Proses form pencarian
+// proses form pencarian
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['cari'])) {
     $no_pendaftaran = mysqli_real_escape_string($koneksi, $_GET['no_pendaftaran'] ?? '');
     $tanggal_lahir = mysqli_real_escape_string($koneksi, $_GET['tanggal_lahir'] ?? '');
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['cari'])) {
     if (empty($no_pendaftaran) || empty($tanggal_lahir)) {
         $error = "Harap isi semua field!";
     } else {
-        // Query pendaftar
+        // query pendaftar
         $query = mysqli_query($koneksi, "
             SELECT sp.*, sj.dokumen_wajib 
             FROM spmb_pendaftar sp
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['cari'])) {
         
         if ($query && mysqli_num_rows($query) > 0) {
             $pendaftar = mysqli_fetch_assoc($query);
-            // Set session untuk tracking upload
+            // set session buat tracking upload
             $_SESSION['spmb_pendaftar_id'] = $pendaftar['id'];
         } else {
             $error = "Data tidak ditemukan. Periksa nomor pendaftaran dan tanggal lahir Anda.";
@@ -43,18 +43,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['cari'])) {
     }
 }
 
-// Proses upload dokumen
+// proses upload dokumen
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
     verifyCsrf();
     $pendaftar_id = (int) $_POST['pendaftar_id'];
     
-    // VALIDASI SESI: hanya pendaftar yang sedang login (via pencarian 2FA) boleh upload —
-    // cegah IDOR mengupload ke pendaftar lain
+    // validasi sesi: cuma pendaftar yang login (via pencarian 2fa) boleh upload — cegah idor ngirim ke pendaftar lain
     $session_pendaftar_id = (int) ($_SESSION['spmb_pendaftar_id'] ?? 0);
     if ($session_pendaftar_id <= 0 || $session_pendaftar_id !== $pendaftar_id) {
         $error = "Sesi tidak valid. Silakan lakukan pencarian ulang nomor pendaftaran Anda.";
     } else {
-        // Query ulang untuk validasi
+        // query ulang buat validasi
         $cek = mysqli_query($koneksi, "
             SELECT sp.id, sp.status, sj.dokumen_wajib 
             FROM spmb_pendaftar sp
@@ -66,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
         } else {
             $pen = mysqli_fetch_assoc($cek);
             
-            // Cegah downgrade status: upload hanya boleh saat menunggu_dokumen / menunggu_verifikasi
+            // cegah downgrade status: upload cuma boleh pas menunggu_dokumen / menunggu_verifikasi
             if (!in_array($pen['status'], ['menunggu_dokumen', 'menunggu_verifikasi'])) {
                 $error = "Status pendaftaran Anda sudah " . ucfirst(str_replace('_', ' ', $pen['status'])) . ". Anda tidak dapat mengunggah dokumen lagi.";
             } else {
                 $upload_dir = "../uploads/spmb/$pendaftar_id/";
         
-        // Buat folder jika belum ada
+        // bikin folder kalo belum ada
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
@@ -81,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
         $upload_errors = [];
         $missing_required = [];
         
-        // Dokumen wajib dari spmb_jalur.dokumen_wajib (JSON), fallback default
+        // dokumen wajib dari spmb_jalur.dokumen_wajib (json), fallback default
         $required_docs = ['kk', 'akta', 'ijazah', 'foto'];
         if (!empty($pen['dokumen_wajib'])) {
             $decoded = json_decode($pen['dokumen_wajib'], true);
@@ -90,14 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
             }
         }
         
-        // Proses setiap file yang diupload
+        // proses tiap file yang diupload
         if (isset($_FILES['dokumen']) && is_array($_FILES['dokumen']) && isset($_FILES['dokumen']['error'])) {
             $file_keys = array_keys($_FILES['dokumen']['error']);
             
             foreach ($file_keys as $key) {
-                // Skip jika tidak ada file
+                // skip kalo ga ada file
                 if ($_FILES['dokumen']['error'][$key] == UPLOAD_ERR_NO_FILE) {
-                    // Cek apakah dokumen ini wajib
+                    // cek dokumen ini wajib ga
                     if (in_array($key, $required_docs)) {
                         $missing_required[] = ucfirst($key);
                     }
@@ -110,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
                 $file_size = $_FILES['dokumen']['size'][$key] ?? 0;
                 $file_error = $_FILES['dokumen']['error'][$key];
                 
-                // Validasi file ada
+                // validasi file ada
                 if (empty($tmp_file) || empty($file_name)) {
                     if (in_array($key, $required_docs)) {
                         $missing_required[] = ucfirst($key);
@@ -118,19 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
                     continue;
                 }
                 
-                // Validasi error upload
+                // validasi error upload
                 if ($file_error != UPLOAD_ERR_OK) {
                     $upload_errors[] = "Error upload $jenis_dokumen: " . get_upload_error_message($file_error);
                     continue;
                 }
                 
-                // Validasi ukuran file
-                if ($file_size > 2 * 1024 * 1024) { // 2MB max
+                // validasi ukuran file
+                if ($file_size > 2 * 1024 * 1024) { // max 2mb
                     $upload_errors[] = "$jenis_dokumen terlalu besar (max 2MB)";
                     continue;
                 }
                 
-                // Validasi tipe file
+                // validasi tipe file
                 $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
                 $allowed_ext = ['jpg', 'jpeg', 'png', 'pdf'];
                 if (!in_array($file_ext, $allowed_ext)) {
@@ -138,12 +137,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
                     continue;
                 }
                 
-                // Generate nama file
+                // generate nama file
                 $new_filename = $jenis_dokumen . '_' . time() . '.' . $file_ext;
                 $new_filepath = $upload_dir . $new_filename;
                 
                 if (move_uploaded_file($tmp_file, $new_filepath)) {
-                    // Simpan ke database
+                    // simpan ke database
                     $insert = mysqli_query($koneksi, "
                         INSERT INTO spmb_dokumen (pendaftar_id, jenis_dokumen, path_file, status_verifikasi)
                         VALUES ($pendaftar_id, '$jenis_dokumen', '$new_filename', 'menunggu')
@@ -161,23 +160,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['upload_dokumen'])) {
             }
         }
         
-        // Cek dokumen wajib
+        // cek dokumen wajib
         if (count($missing_required) > 0) {
             $error = "Dokumen wajib berikut belum diunggah: <strong>" . implode(", ", $missing_required) . "</strong>";
         }
         
         if ($uploaded_count > 0 && count($missing_required) == 0 && count($upload_errors) == 0) {
-            // Cek apakah semua dokumen wajib sudah terupload
+            // cek semua dokumen wajib udah keupload
             $query_cek = mysqli_query($koneksi, "
                 SELECT COUNT(*) as total FROM spmb_dokumen WHERE pendaftar_id=$pendaftar_id
             ");
             $result = mysqli_fetch_assoc($query_cek);
             
             if ($result['total'] > 0) {
-                // Update status pendaftar ke menunggu_verifikasi
+                // update status pendaftar jadi menunggu_verifikasi
                 mysqli_query($koneksi, "UPDATE spmb_pendaftar SET status='menunggu_verifikasi' WHERE id=$pendaftar_id");
                 
-                // Ambil data pendaftar untuk email
+                // ambil data pendaftar buat email
                 $q_pen = mysqli_query($koneksi, "SELECT * FROM spmb_pendaftar WHERE id=$pendaftar_id");
                 $pen_data = mysqli_fetch_assoc($q_pen);
                 

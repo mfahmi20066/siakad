@@ -6,9 +6,7 @@ cekAdmin();
 $action = isset($_GET['action']) ? $_GET['action'] : 'form';
 $format = isset($_GET['format']) ? $_GET['format'] : 'pdf';
 
-// ===================================================================
-// Halaman FORM — Pilih format cetak
-// ===================================================================
+// halaman form: pilih format cetak
 if ($action === 'form'):
 ?>
 <?php
@@ -78,17 +76,13 @@ include '../../includes/sidebar_admin.php';
 exit;
 endif;
 
-// ===================================================================
-// Halaman CETAK — Menampilkan / mendownload data guru
-// ===================================================================
+// halaman cetak: menampilkan / download data guru
 
-// Ambil setting sekolah
+// ambil setting sekolah
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting   = mysqli_fetch_assoc($q_setting);
 
-// ===================================================================
-// MODE EXCEL (XLSX)
-// ===================================================================
+// mode excel (xlsx)
 if ($format === 'excel'):
 
 require_once __DIR__ . '/../../config/helper_xlsx.php';
@@ -99,7 +93,7 @@ $rows[] = [];
 $rows[] = ['No', 'NIP', 'Nama Lengkap', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'No. HP', 'Email', 'Wali Kelas', 'Mata Pelajaran'];
 $headerIdx = count($rows);
 
-// Ambil semua guru
+// ambil semua guru
 $guru_query = mysqli_query($koneksi,
     "SELECT * FROM guru ORDER BY nama");
 
@@ -111,7 +105,7 @@ while ($guru = mysqli_fetch_assoc($guru_query)):
     $tgl = (!empty($guru['tanggal_lahir']) && $guru['tanggal_lahir'] != '0000-00-00')
            ? tanggal_indo($guru['tanggal_lahir']) : '-';
 
-    // Ambil kelas yang diwalikan
+    // kelas yang diwalikan
     $wali_query = mysqli_query($koneksi,
         "SELECT nama_kelas FROM kelas WHERE wali_kelas = '$id' ORDER BY tingkat, nama_kelas");
     $wali_kelas = [];
@@ -120,7 +114,7 @@ while ($guru = mysqli_fetch_assoc($guru_query)):
     }
     $wali_str = !empty($wali_kelas) ? implode(', ', $wali_kelas) : '-';
 
-    // Ambil mata pelajaran yang diampu
+    // mapel yang diampu
     $mapel_query = mysqli_query($koneksi,
         "SELECT m.nama_mapel 
          FROM mata_pelajaran m 
@@ -130,7 +124,7 @@ while ($guru = mysqli_fetch_assoc($guru_query)):
     while ($m = mysqli_fetch_assoc($mapel_query)) {
         $mapel_list[] = $m['nama_mapel'];
     }
-    // Juga ambil dari jadwal (untuk jaga-jaga jika ada data di jadwal tapi tidak di mata_pelajaran)
+    // ambil juga dari jadwal, jaga-jaga kalo ada mapel cuma di jadwal
     if (!empty($mapel_list)) {
         $escaped = array_map(function($v) { return mysqli_real_escape_string($GLOBALS['koneksi'], $v); }, $mapel_list);
         $exclude_sql = "AND mp.nama_mapel NOT IN ('" . implode("','", $escaped) . "')";
@@ -159,9 +153,7 @@ export_xlsx('Data_Guru_' . date('Y-m-d'), ['Data Guru' => ['rows' => $rows, 'hea
 exit;
 endif;
 
-// ===================================================================
-// MODE UNDUH PDF (dompdf) — format seragam dengan cetak rapor
-// ===================================================================
+// mode unduh pdf (dompdf), formatnya seragam sama cetak rapor
 if ($format === 'pdf' && isset($_GET['download']) && $_GET['download'] === '1'):
 
 header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -184,14 +176,14 @@ while ($guru = mysqli_fetch_assoc($guru_query)):
     $tgl = (!empty($guru['tanggal_lahir']) && $guru['tanggal_lahir'] != '0000-00-00')
            ? tanggal_indo($guru['tanggal_lahir']) : '-';
 
-    // Kelas yang diwalikan
+    // kelas yang diwalikan
     $wali_query = mysqli_query($koneksi,
         "SELECT nama_kelas FROM kelas WHERE wali_kelas = '$id' ORDER BY tingkat, nama_kelas");
     $wali_kelas = [];
     while ($w = mysqli_fetch_assoc($wali_query)) $wali_kelas[] = $w['nama_kelas'];
     $wali_str = !empty($wali_kelas) ? implode(', ', $wali_kelas) : '-';
 
-    // Mata pelajaran yang diampu (dari mata_pelajaran + jadwal)
+    // mapel yang diampu (dari mata_pelajaran + jadwal)
     $mapel_query = mysqli_query($koneksi,
         "SELECT m.nama_mapel FROM mata_pelajaran m WHERE m.guru_id = '$id' ORDER BY m.nama_mapel");
     $mapel_list = [];
@@ -290,9 +282,7 @@ $dompdf->stream('Data_Guru_' . date('Y-m-d') . '.pdf', ['Attachment' => true]);
 exit;
 endif;
 
-// ===================================================================
-// MODE PDF (HTML + CSS print-friendly)
-// ===================================================================
+// mode pdf (html + css print-friendly)
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -308,7 +298,7 @@ body {
     color: #000;
 }
 
-/* â”€â”€ Tombol non-print â”€â”€ */
+/* tombol non-print */
 .no-print { margin-bottom: 15px; }
 .btn-print {
     display: inline-block;
@@ -333,7 +323,7 @@ body {
     text-decoration: none;
 }
 
-/* â”€â”€ Kop surat â”€â”€ */
+/* kop surat */
 .kop {
     display: flex;
     align-items: center;
@@ -357,14 +347,14 @@ body {
     margin: 10px 0 15px;
 }
 
-/* â”€â”€ Info ringkasan â”€â”€ */
+/* info ringkasan */
 .info-ringkasan {
     text-align: center;
     margin-bottom: 15px;
     font-size: 11px;
 }
 
-/* â”€â”€ Tabel â”€â”€ */
+/* tabel */
 table.data-table {
     width: 100%;
     border-collapse: collapse;
@@ -386,7 +376,7 @@ table.data-table {
 .text-center { text-align: center; }
 .text-muted { color: #888; font-style: italic; }
 
-/* â”€â”€ Footer ttd â”€â”€ */
+/* footer ttd */
 .footer-ttd {
     margin-top: 40px;
     width: 100%;
@@ -452,7 +442,7 @@ table.data-table {
 <div class="judul">DATA GURU</div>
 
 <?php
-// Ambil semua guru
+// ambil semua guru
 $guru_query = mysqli_query($koneksi,
     "SELECT * FROM guru ORDER BY nama");
 
@@ -487,7 +477,7 @@ $total_guru = mysqli_num_rows($guru_query);
         $tgl = (!empty($guru['tanggal_lahir']) && $guru['tanggal_lahir'] != '0000-00-00') 
                ? tanggal_indo($guru['tanggal_lahir']) : '-';
 
-        // Ambil kelas yang diwalikan
+        // kelas yang diwalikan
         $wali_query = mysqli_query($koneksi,
             "SELECT nama_kelas FROM kelas WHERE wali_kelas = '$id' ORDER BY tingkat, nama_kelas");
         $wali_kelas = [];
@@ -496,7 +486,7 @@ $total_guru = mysqli_num_rows($guru_query);
         }
         $wali_str = !empty($wali_kelas) ? implode(', ', $wali_kelas) : '<span class="text-muted">-</span>';
 
-        // Ambil mata pelajaran yang diampu
+        // mapel yang diampu
         $mapel_query = mysqli_query($koneksi,
             "SELECT m.nama_mapel 
              FROM mata_pelajaran m 
@@ -506,7 +496,7 @@ $total_guru = mysqli_num_rows($guru_query);
         while ($m = mysqli_fetch_assoc($mapel_query)) {
             $mapel_list[] = $m['nama_mapel'];
         }
-        // Juga dari jadwal
+        // plus dari jadwal
         $exclude = !empty($mapel_list) 
             ? "AND mp.nama_mapel NOT IN ('" . implode("','", array_map(function($v) use ($koneksi) { 
                 return mysqli_real_escape_string($koneksi, $v); 

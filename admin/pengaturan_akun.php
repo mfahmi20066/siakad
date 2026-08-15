@@ -7,7 +7,7 @@ cekAdmin();
 $user_id = $_SESSION['user_id'] ?? 0;
 $title = "Pengaturan Akun";
 
-// Get user data
+// ambil data user
 $query = "SELECT * FROM users WHERE id=$user_id";
 $result = mysqli_query($koneksi, $query);
 $user = mysqli_fetch_assoc($result);
@@ -15,7 +15,7 @@ $user = mysqli_fetch_assoc($result);
 $success = '';
 $error = '';
 
-// Handle password change
+// handle ganti password
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
     $password_lama = $_POST['password_lama'] ?? '';
     $password_baru = $_POST['password_baru'] ?? '';
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
     }
 }
 
-// Handle email update
+// handle update email
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
     $email = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
 
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_email'])) {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Format email tidak valid!";
     } else {
-        // Check if email already exists
+        // cek email udah kepake ga
         $check = mysqli_query($koneksi, "SELECT id FROM users WHERE email='$email' AND id != $user_id");
         if (mysqli_num_rows($check) > 0) {
             $error = "Email sudah digunakan oleh akun lain!";

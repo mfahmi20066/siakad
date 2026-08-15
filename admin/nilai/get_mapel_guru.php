@@ -1,14 +1,12 @@
 <?php
-// Mengabaikan error reporting berupa HTML agar tidak merusak fungsi JSON Javascript
+// matiin error reporting html biar ga ngerusak output json
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Set header bahwa file ini wajib mengeluarkan output JSON murni
+// wajib output json murni
 header('Content-Type: application/json; charset=utf-8');
 
-// Sesuaikan path koneksi database Anda
-// Jika file ini berada di dalam folder 'admin/nilai/', gunakan '../../'
-// Jika file ini berada di dalam folder 'admin/', gunakan '../'
+// sesuaikan path koneksi: di folder admin/nilai/ pake ../../
 if (file_exists('../../config/koneksi.php')) {
     include '../../config/koneksi.php';
 } elseif (file_exists('../config/koneksi.php')) {
@@ -21,14 +19,13 @@ if (file_exists('../../config/koneksi.php')) {
 if (isset($_POST['kelas_id'])) {
     $kelas_id = $_POST['kelas_id'];
 
-    // Ambil mapel + guru dari tabel pivot kelas_mapel_guru berdasarkan kelas_id.
-    // Sumber kebenaratan relasi kelas-mapel-guru (bukan jadwal).
+    // ambil mapel + guru dari pivot kelas_mapel_guru by kelas (sumber kebenaran, bukan jadwal)
     $data_mapel = [];
 
     $cek_kolom_guru = mysqli_query($koneksi, "SHOW COLUMNS FROM guru LIKE 'nama_lengkap'");
     $kolom_nama_guru = (mysqli_num_rows($cek_kolom_guru) > 0) ? "nama_lengkap" : "nama";
 
-    // Prepared statement ambil mapel + guru untuk kelas yang dipilih dari tabel pivot kelas_mapel_guru
+    // ambil mapel + guru buat kelas terpilih
     if (!isset($stmt_mapel_guru) || $stmt_mapel_guru === null) {
         $stmt_mapel_guru = mysqli_prepare($koneksi,
             "SELECT kmg.mapel_id, mp.nama_mapel,
@@ -44,7 +41,7 @@ if (isset($_POST['kelas_id'])) {
     $result = mysqli_stmt_get_result($stmt_mapel_guru);
 
     $mapel_seen = [];
-    $list_guru_by_mapel = []; // mapel_id => [guru_id => ['guru_id'=>..., 'nama_guru'=>...]]
+    $list_guru_by_mapel = []; // mapel_id => daftar guru
 
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
@@ -70,7 +67,7 @@ if (isset($_POST['kelas_id'])) {
         }
     }
 
-    // Isi list_guru per mapel (biar multi-guru tidak kacau)
+    // isi list_guru per mapel biar multi-guru ga kacau
     foreach ($data_mapel as &$item) {
         $mid = (int)$item['mapel_id'];
         if (isset($list_guru_by_mapel[$mid])) {

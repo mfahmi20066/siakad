@@ -1,9 +1,5 @@
 <?php
-// =============================================================
-// Helper format tanggal Bahasa Indonesia
-// Contoh full  : 5 Agustus 2026
-// Contoh pendek: 5 Agu 2026
-// =============================================================
+// helper format tanggal indo. contoh: 5 Agustus 2026 (full) / 5 Agu 2026 (pendek)
 
 $GLOBALS['BULAN_INDO'] = [
     1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -27,33 +23,24 @@ $GLOBALS['HARI_INDO'] = [
     'Sunday'    => 'Minggu'
 ];
 
-/**
- * Konversi bulan angka (1-12) menjadi nama bulan Indonesia (full).
- */
+// bulan angka -> nama bulan indo lengkap
 function bulan_indo($n) {
     $n = (int)$n;
     return $GLOBALS['BULAN_INDO'][$n] ?? (string)$n;
 }
 
-/**
- * Konversi bulan angka (1-12) menjadi singkatan bulan Indonesia (Agu, dst).
- */
+// versi singkatnya (Agu, Okt, dst)
 function bulan_indo_pendek($n) {
     $n = (int)$n;
     return $GLOBALS['BULAN_INDO_PENDEK'][$n] ?? (string)$n;
 }
 
-/**
- * Konversi nama hari Inggris ke Bahasa Indonesia.
- */
+// hari inggris -> indo
 function hari_indo($nama) {
     return $GLOBALS['HARI_INDO'][$nama] ?? $nama;
 }
 
-/**
- * Format tanggal penuh Indonesia. Contoh: 5 Agustus 2026
- * Opsional $dengan_hari: Senin, 5 Agustus 2026
- */
+// format lengkap: 5 Agustus 2026, bisa sekalian hari (Senin, 5 Agustus 2026)
 function tanggal_indo($tgl = null, $dengan_hari = false) {
     if ($tgl === null || $tgl === '') {
         $tgl = date('Y-m-d');
@@ -69,10 +56,7 @@ function tanggal_indo($tgl = null, $dengan_hari = false) {
     return $hasil;
 }
 
-/**
- * Format tanggal pendek Indonesia. Contoh: 5 Agu 2026
- * Opsional $dengan_hari: Senin, 5 Agu 2026
- */
+// format pendek: 5 Agu 2026
 function tanggal_indo_pendek($tgl = null, $dengan_hari = false) {
     if ($tgl === null || $tgl === '') {
         $tgl = date('Y-m-d');
@@ -88,9 +72,7 @@ function tanggal_indo_pendek($tgl = null, $dengan_hari = false) {
     return $hasil;
 }
 
-/**
- * Format tanggal + jam. Contoh: 5 Agu 2026, 14:30
- */
+// tanggal + jam, misal: 5 Agu 2026, 14:30
 function tanggal_waktu_indo($tgl = null, $dengan_detik = false) {
     if ($tgl === null || $tgl === '') {
         $tgl = date('Y-m-d H:i:s');

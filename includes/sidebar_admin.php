@@ -130,7 +130,7 @@
         <div class="sidebar-section-label menu-label">Penerimaan Siswa Baru</div>
 
         <?php
-        // Badge jumlah pendaftar menunggu verifikasi untuk SPMB
+        // badge pendaftar spmb yang belum diverifikasi
         $jml_spmb_pending = 0;
         if (isset($koneksi)) {
             $q_spmb_pending = mysqli_query($koneksi,
@@ -217,7 +217,7 @@
         </a>
 
         <?php
-        // Badge jumlah akun pending untuk menu Verifikasi Akun
+        // badge akun pending buat menu verifikasi akun
         $jml_pending = 0;
         if (isset($koneksi)) {
             $q_pending = mysqli_query($koneksi,

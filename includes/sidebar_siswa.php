@@ -1,5 +1,5 @@
 <?php
-// Generate initials for avatar
+// bikin inisial buat avatar
 $nama = e($_SESSION['nama'] ?? 'Siswa');
 $nameParts = explode(' ', $nama);
 $initials = '';

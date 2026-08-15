@@ -1,14 +1,14 @@
 <?php
-// Pastikan jembatan koneksi aman agar tidak memicu error duplikat atau undefined
+// koneksi belum ada? ambil dari config, biar ga error duplikat
 if (!isset($koneksi)) {
     include __DIR__ . '/../config/koneksi.php';
 }
 
-// Mengambil total pengumuman sekolah secara independen dan aman tanpa menggunakan JOIN
+// hitung total pengumuman, sengaja ga pake JOIN biar aman
 $q_count_pengumuman = mysqli_query($koneksi, "SELECT COUNT(*) FROM pengumuman");
 $jml_pengumuman = ($q_count_pengumuman) ? mysqli_fetch_row($q_count_pengumuman)[0] : 0;
 
-// Generate initials for avatar
+// bikin inisial buat avatar
 $nama = e($_SESSION['nama'] ?? 'Guru');
 $nameParts = explode(' ', $nama);
 $initials = '';

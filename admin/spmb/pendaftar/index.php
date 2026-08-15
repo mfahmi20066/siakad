@@ -5,7 +5,7 @@ cekAdmin();
 
 $title = "Data Pendaftar SPMB";
 
-// Filter
+// filter
 $gelombang_filter = isset($_GET['gelombang']) ? (int)$_GET['gelombang'] : '';
 $jalur_filter = isset($_GET['jalur']) ? (int)$_GET['jalur'] : '';
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
@@ -15,29 +15,29 @@ if (!in_array($status_filter, $allowed_status)) {
 }
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
 
-// Query dasar
+// query dasar
 $query = "SELECT sp.*, sg.nama_gelombang, sj.nama_jalur 
           FROM spmb_pendaftar sp
           LEFT JOIN spmb_gelombang sg ON sp.gelombang_id = sg.id
           LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
           WHERE 1=1";
 
-// Filter by gelombang
+// filter by gelombang
 if (!empty($gelombang_filter)) {
     $query .= " AND sp.gelombang_id = $gelombang_filter";
 }
 
-// Filter by jalur
+// filter by jalur
 if (!empty($jalur_filter)) {
     $query .= " AND sp.jalur_id = $jalur_filter";
 }
 
-// Filter by status
+// filter by status
 if (!empty($status_filter)) {
     $query .= " AND sp.status = '$status_filter'";
 }
 
-// Search
+// search
 if (!empty($search)) {
     $query .= " AND (sp.nama_lengkap LIKE '%$search%' OR sp.no_pendaftaran LIKE '%$search%')";
 }
@@ -45,10 +45,10 @@ if (!empty($search)) {
 $query .= " ORDER BY sp.created_at DESC";
 $data = mysqli_query($koneksi, $query);
 
-// Ambil gelombang
+// ambil gelombang
 $query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang WHERE status='aktif' ORDER BY tanggal_mulai ASC");
 
-// Ambil jalur
+// ambil jalur
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 ?>
 <?php include '../../../includes/header.php'; ?>

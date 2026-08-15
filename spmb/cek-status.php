@@ -5,7 +5,7 @@ $title = "Cek Status Pendaftaran";
 $pendaftar = null;
 $error = '';
 
-// Proses form submit
+// proses form submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $no_pendaftaran = mysqli_real_escape_string($koneksi, $_POST['no_pendaftaran'] ?? '');
     $tanggal_lahir = mysqli_real_escape_string($koneksi, $_POST['tanggal_lahir'] ?? '');
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($no_pendaftaran) || empty($tanggal_lahir)) {
         $error = "Harap isi semua field!";
     } else {
-        // Query pendaftar
+        // query pendaftar
         $query = mysqli_query($koneksi, "
             SELECT sp.*, sg.nama_gelombang, sj.nama_jalur 
             FROM spmb_pendaftar sp
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Status badges
+// badge status
 $status_config = [
     'menunggu_dokumen' => ['label' => 'Menunggu Dokumen', 'color' => '#F59E0B', 'icon' => 'fa-hourglass-start'],
     'menunggu_verifikasi' => ['label' => 'Menunggu Verifikasi', 'color' => '#F59E0B', 'icon' => 'fa-hourglass-half'],
@@ -178,8 +178,7 @@ $status_config = [
         
         <div class="status-timeline">
             <?php 
-            // Timeline: untuk yang ditolak, "Diterima" tidak pernah jadi tahap —
-            // jalur finalnya adalah Ditolak (setelah Lolos Seleksi)
+            // timeline: yang ditolak ga pernah masuk tahap 'diterima', jalur finalnya ditolak (setelah lolos seleksi)
             if ($pendaftar['status'] == 'ditolak') {
                 $statuses = ['menunggu_dokumen', 'menunggu_verifikasi', 'diverifikasi', 'lolos_seleksi', 'ditolak'];
             } else {

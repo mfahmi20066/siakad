@@ -6,14 +6,14 @@ $title = "Detail Guru";
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// 1. Ambil data guru secara mandiri tanpa JOIN agar aman
+// 1. ambil data guru mandiri tanpa join biar aman
 $data = [];
 $q_guru = mysqli_query($koneksi, "SELECT * FROM guru WHERE id = '$id'");
 if ($q_guru && mysqli_num_rows($q_guru) > 0) {
     $data = mysqli_fetch_assoc($q_guru);
 }
 
-// Ambil username secara aman dengan memeriksa nama kolom di tabel guru
+// ambil username dengan cek nama kolom dulu biar aman
 $username = '-';
 if (!empty($data)) {
     $id_u = '';
@@ -32,9 +32,9 @@ if (!empty($data)) {
     }
 }
 
-// 2. Ambil mata pelajaran dengan proteksi nama kolom otomatis
+// 2. ambil mapel dengan proteksi nama kolom
 $array_mapel = [];
-// Cek struktur kolom tabel mata_pelajaran terlebih dahulu
+// cek struktur kolom dulu
 $cek_kolom_mapel = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran");
 $kolom_tersedia = [];
 if ($cek_kolom_mapel) {
@@ -59,7 +59,7 @@ if (!empty($query_mapel_text)) {
     }
 }
 
-// 3. Ambil jadwal mengajar guru ini (Proteksi nama kolom jadwal)
+// 3. ambil jadwal mengajar guru ini (proteksi nama kolom)
 $array_jadwal = [];
 $cek_kolom_jadwal = mysqli_query($koneksi, "SHOW COLUMNS FROM jadwal");
 $kolom_jadwal_tersedia = [];
@@ -71,7 +71,7 @@ if ($cek_kolom_jadwal) {
 
 $query_jadwal_text = "";
 
-// Bangun filter guru yang tahan variasi kolom relasi di tabel jadwal
+// filter guru yang tahan variasi kolom relasi di tabel jadwal
 $filters = [];
 if (in_array('guru_id', $kolom_jadwal_tersedia)) {
     $filters[] = "j.guru_id = '$id'";
@@ -99,7 +99,7 @@ if (!empty($filters)) {
 }
 
 
-// 4. Hitung Statistik secara aman
+// 4. hitung statistik secara aman
 $total_kelas = 0;
 if (!empty($array_jadwal)) {
     $kelas_diajar = array_column($array_jadwal, 'kelas_id');

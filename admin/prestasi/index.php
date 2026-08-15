@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Prestasi Siswa";
 
-// â”€â”€ Filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// filter
 $kategori = isset($_GET['kategori']) ? $_GET['kategori'] : '';
 $tingkat  = isset($_GET['tingkat']) ? $_GET['tingkat'] : '';
 

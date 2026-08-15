@@ -60,8 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($aksi === 'kunci') {
-        // Kunci TANPA syarat kelengkapan: admin bebas kunci kapan pun.
-        // Kelengkapan hanya informasi (monitoring + dialog konfirmasi), bukan penghalang.
+        // kunci tanpa syarat kelengkapan: admin bebas kunci kapan aja, kelengkapan cuma info (monitoring)
         $rekap = rekapKelengkapanKelas($koneksi, $taId, (int)$semester, $kelas_id);
         mysqli_query($koneksi,
             "INSERT INTO periode_nilai (tahun_ajaran_id, semester, kelas_id, status, dikunci_oleh, dikunci_pada)

@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = hashPassword($_POST['password']);
     $role     = mysqli_real_escape_string($koneksi, $_POST['role']);
 
-    // Cek username sudah ada
+    // cek username udah ada
     $cek = mysqli_fetch_row(mysqli_query($koneksi,
            "SELECT COUNT(*) FROM users WHERE username='$username'"))[0];
     if ($cek > 0) {

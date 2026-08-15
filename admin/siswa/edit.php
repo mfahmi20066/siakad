@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $kid    = $_POST['kelas_id'];
     $ta     = mysqli_real_escape_string($koneksi, $_POST['tahun_ajaran']);
 
-    // â”€â”€ Email: validasi format + cek duplikat di tabel users â”€â”€
+    // email: validasi format + cek duplikat di users
     $email = mysqli_real_escape_string($koneksi, trim($_POST['email'] ?? ''));
     if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $emailError = "Format email tidak valid!";
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // â”€â”€ Tentukan tahun_ajaran_id dari KELAS terpilih (validasi relasional) â”€â”€
+    // tentuin tahun_ajaran_id dari kelas terpilih (validasi relasional); jangan percaya nilai tahun dari post
     // Jangan percaya nilai tahun dari POST; kelas adalah sumber kebenaran relasi.
     $aktifId = null;
     try { $aktifId = (int) getTahunAjaranAktif(tahun_ajaran_pdo())['id']; }
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($taSiswaTxt === null) $taSiswaTxt = $data['tahun_ajaran'] ?? '';
     }
 
-    // â”€â”€ Upload / Hapus Foto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // upload / hapus foto
     $foto_update = $data['foto'] ?? '';
     $folder_siswa = __DIR__ . '/../../assets/img/foto_siswa/';
 
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $foto_update = '';
     }
 
-    // Update tabel siswa
+    // update tabel siswa
     $taSiswaIdSql = ($taSiswaId !== null && $taSiswaId !== '') ? "'".(int)$taSiswaId."'" : 'NULL';
     $taSiswaTxtSql = "'".mysqli_real_escape_string($koneksi, $taSiswaTxt)."'";
 
@@ -118,13 +118,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     tahun_ajaran_id=$taSiswaIdSql, foto='$foto_update'
                                 WHERE id='$id'");
 
-        // Sinkronkan nama & email ke tabel users (akun terhubung via id_ref / id sama)
+        // sinkron nama & email ke users (akun terhubung via id_ref)
         mysqli_query($koneksi, "UPDATE users SET nama='$nama', email=$emailSql 
                                 WHERE id_ref='$id' AND role='siswa'");
         mysqli_query($koneksi, "UPDATE users SET nama='$nama', email=$emailSql 
                                 WHERE id='$id' AND role='siswa'");
 
-        // Update password hanya jika diisi
+        // update password cuma kalo diisi
         if (!empty($_POST['password'])) {
             $pass = hashPassword($_POST['password']);
             mysqli_query($koneksi, "UPDATE users SET password='$pass' 

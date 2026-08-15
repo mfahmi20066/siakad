@@ -6,17 +6,17 @@ verifyCsrf();
 
 $id = (int) $_GET['id'];
 
-// Cek apakah masih ada siswa di kelas ini
+// cek masih ada siswa di kelas ini ga
 $cek_siswa = mysqli_fetch_row(mysqli_query($koneksi,
              "SELECT COUNT(*) FROM siswa WHERE kelas_id='$id'"))[0];
 
 if ($cek_siswa > 0) {
-    // Tidak boleh diarsipkan jika masih ada siswa
+    // ga boleh diarsip kalo masih ada siswa
     header("Location: index.php?error=Kelas tidak bisa diarsipkan karena masih ada $cek_siswa siswa di kelas ini! Pindahkan siswa terlebih dahulu.");
     exit();
 }
 
-// Arsipkan (soft-delete): status = nonaktif, bukan hapus permanen.
+// arsipkan (soft-delete): status = nonaktif, bukan hapus permanen
 $kelas = mysqli_fetch_assoc(mysqli_query($koneksi,
          "SELECT nama_kelas FROM kelas WHERE id='$id'"));
 

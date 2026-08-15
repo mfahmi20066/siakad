@@ -4,26 +4,26 @@ include '../config/session.php';
 cekSiswa();
 $title = "Dashboard Siswa";
 
-// ── Ambil session ID siswa ────────
+// ambil session id siswa
 $sid = $_SESSION['siswa_id'] ?? $_SESSION['id_ref'] ?? $_SESSION['id_siswa'] ?? $_SESSION['user_id'] ?? 0;
 
-// ── Ambil data siswa dengan deteksi kolom struktur secara aman ────────
+// ambil data siswa dengan deteksi kolom aman
 $cols_siswa = [];
 $cs = mysqli_query($koneksi, "SHOW COLUMNS FROM siswa");
 while ($c = mysqli_fetch_assoc($cs)) {
     $cols_siswa[] = $c['Field'];
 }
 
-// Tentukan kondisi JOIN berdasarkan kolom yang tersedia di database Anda
+// tentuin kondisi join sesuai kolom yang ada
 if (in_array('kelas_id', $cols_siswa)) {
     $join_condition = "s.kelas_id = k.id";
 } elseif (in_array('id_kelas', $cols_siswa)) {
     $join_condition = "s.id_kelas = k.id";
 } else {
-    $join_condition = "1=1"; // Fallback aman jika relasi kelas disimpan di tabel lain
+    $join_condition = "1=1"; // fallback aman kalo relasi kelas disimpan di tabel lain
 }
 
-// Jalankan query siswa
+// jalankan query siswa
 $query_siswa = "SELECT s.*, k.nama_kelas
                 FROM siswa s
                 LEFT JOIN kelas k ON $join_condition
@@ -32,17 +32,17 @@ $siswa = mysqli_fetch_assoc(mysqli_query($koneksi, $query_siswa));
 $siswa = $siswa ?: [];
 $nama = $_SESSION['nama'] ?? ($siswa['nama_lengkap'] ?? ($siswa['nama'] ?? 'Siswa'));
 
-// Deteksi nama variabel kelas_id untuk query selanjutnya
+// deteksi nama variabel kelas_id
 $id_kelas = $siswa['kelas_id'] ?? $siswa['id_kelas'] ?? 0;
 
-// Ambil nama kelas manual jika kolom JOIN ternyata tidak terhubung otomatis
+// ambil nama kelas manual kalo join ga nyambung otomatis
 if (empty($siswa['nama_kelas']) && $id_kelas) {
     $rk = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM kelas WHERE id='$id_kelas'"));
     $siswa['nama_kelas'] = $rk['nama_kelas'] ?? $rk['nama'] ?? '-';
 }
 $siswa['nama_kelas'] = $siswa['nama_kelas'] ?? '-';
 
-// ── Statistik nilai ──────────────────────────────────────────
+// statistik nilai
 $cols_nilai = [];
 $cn = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai");
 while ($c = mysqli_fetch_assoc($cn)) $cols_nilai[] = $c['Field'];
@@ -52,7 +52,7 @@ $col_nilai_mapel = in_array('mapel_id',$cols_nilai) ? 'mapel_id' : (in_array('id
 $jml_nilai = mysqli_fetch_row(mysqli_query($koneksi,
     "SELECT COUNT(*) FROM nilai WHERE $col_nilai_siswa='$sid'"))[0] ?? 0;
 
-// ── Statistik absensi ────────────────────────────────────────
+// statistik absensi
 $cols_abs = [];
 $ca = mysqli_query($koneksi, "SHOW COLUMNS FROM absensi");
 while ($c = mysqli_fetch_assoc($ca)) $cols_abs[] = $c['Field'];
@@ -67,11 +67,11 @@ $total_abs = mysqli_fetch_row(mysqli_query($koneksi,
     "SELECT COUNT(*) FROM absensi WHERE $col_abs_siswa='$sid'"))[0] ?? 0;
 $persen_hadir = $total_abs > 0 ? round(($hadir / $total_abs) * 100, 1) : 0;
 
-// ── Pengumuman ───────────────────────────────────────────────
+// pengumuman
 $pengumuman = mysqli_query($koneksi,
     "SELECT * FROM pengumuman ORDER BY tanggal DESC LIMIT 3");
 
-// ── Nilai terbaru ────────────────────────────────────────────
+// nilai terbaru
 $nilai_terbaru = mysqli_query($koneksi,
     "SELECT n.*, mp.nama_mapel
      FROM nilai n
@@ -79,7 +79,7 @@ $nilai_terbaru = mysqli_query($koneksi,
      WHERE n.$col_nilai_siswa = '$sid'
      ORDER BY n.id DESC LIMIT 5");
 
-// ── Jadwal hari ini ──────────────────────────────────────────
+// jadwal hari ini
 $jadwal_hari_ini = null;
 $hari_map = ['Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu',
              'Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu','Sunday'=>'Minggu'];
@@ -104,7 +104,7 @@ if ($hari_id && $id_kelas) {
          ORDER BY j.jam_mulai");
 }
 
-// ── Jadwal pelajaran lengkap (backend sama seperti siswa/jadwal.php) ──
+// jadwal lengkap (backend sama kayak siswa/jadwal.php)
 $jadwal_pelajaran = [];
 if ($id_kelas) {
     $q_jp = mysqli_query($koneksi,
@@ -119,7 +119,7 @@ if ($id_kelas) {
     }
 }
 
-// Kelompokkan jadwal per hari (urutan Senin–Jumat)
+// kelompokkan jadwal per hari (senin-jumat)
 $urutan_hari = ['Senin','Selasa','Rabu','Kamis','Jumat'];
 $jadwal_group = [];
 foreach ($urutan_hari as $h) $jadwal_group[$h] = [];
@@ -356,7 +356,7 @@ foreach ($jadwal_pelajaran as $jp) {
 </div>
 
 <?php
-// Tampilkan widget chatbot SiA Bot di halaman ini (footer.php bersifat kondisional)
+// tampilkan widget chatbot (footer.php kondisional)
 $show_chatbot = true;
 include '../includes/footer.php';
 ?>

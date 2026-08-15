@@ -10,7 +10,7 @@ if ($id <= 0) {
     exit();
 }
 
-// Query pendaftar dengan detail
+// query pendaftar + detail
 $query = "SELECT sp.*, sg.nama_gelombang, sj.nama_jalur 
           FROM spmb_pendaftar sp
           LEFT JOIN spmb_gelombang sg ON sp.gelombang_id = sg.id
@@ -25,10 +25,10 @@ if (!$data || mysqli_num_rows($data) == 0) {
 
 $pendaftar = mysqli_fetch_assoc($data);
 
-// Query dokumen
+// query dokumen
 $query_dokumen = mysqli_query($koneksi, "SELECT * FROM spmb_dokumen WHERE pendaftar_id=$id ORDER BY jenis_dokumen ASC");
 
-// Status config
+// konfigurasi status
 $status_config = [
     'menunggu_dokumen' => ['label' => 'Menunggu Dokumen', 'color' => 'warning'],
     'menunggu_verifikasi' => ['label' => 'Menunggu Verifikasi', 'color' => 'warning'],
@@ -150,7 +150,7 @@ $status_config = [
                         <tbody>
                             <?php while ($dok = mysqli_fetch_assoc($query_dokumen)): ?>
                             <?php
-                                // Build secure download URL with verification parameters
+                                // bikin url download aman dengan parameter verifikasi
                                 $file_path = e($dok['path_file'] ?? '');
                                 $jenis = $dok['jenis_dokumen'] ?? '';
                                 $download_url = '../../../spmb/download-dokumen.php?id=' . $pendaftar['id'] . '&jenis=' . $jenis . '&no=' . urlencode($pendaftar['no_pendaftaran']) . '&tgl=' . urlencode($pendaftar['tanggal_lahir']);

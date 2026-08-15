@@ -1,8 +1,6 @@
-﻿/* ================================================================
-   Chatbot AI — SiA Bot (SMA Negeri 4 Palopo)
-   ================================================================ */
+﻿/* chatbot AI — SiA Bot (SMA Negeri 4 Palopo) */
 
-/* ---- Tombol mengambang (floating button) ---- */
+/* tombol mengambang (floating button) */
 .chatbot-fab {
     position: fixed;
     right: 22px;
@@ -67,7 +65,7 @@
     border: 2px solid #fff;
 }
 
-/* ---- Panel chat ---- */
+/* panel chat */
 .chatbot-panel {
     position: fixed;
     right: 22px;

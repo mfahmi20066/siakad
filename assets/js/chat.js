@@ -1,7 +1,4 @@
-/* ================================================================
-   CHAT INTERNAL (OPENCODE.md 21-42)
-   Rendering pesan TANPA innerHTML (textContent) — aman XSS.
-   ================================================================ */
+// chat internal — render pesan pake textContent (bukan innerHTML) biar aman xss
 (function () {
     'use strict';
 
@@ -43,7 +40,7 @@
         return fetchJson(API, { method: 'POST', body: data });
     }
 
-    /* ---------- format & avatar ---------- */
+    // format & avatar
 
     function formatWaktu(isoDb) {
         if (!isoDb) return '';
@@ -76,7 +73,7 @@
         return map[role] || role;
     }
 
-    /* ---------- badge unread global ---------- */
+    // badge unread global
 
     function updateBadges(total) {
         ['chatTopBadge', 'chatFabBadge'].forEach(function (id) {
@@ -97,7 +94,7 @@
         }).catch(function () {});
     }
 
-    /* ---------- daftar percakapan ---------- */
+    // daftar percakapan
 
     function renderConvList(rows) {
         var list = document.getElementById('chatConvList');
@@ -166,7 +163,7 @@
         }).catch(function () {});
     }
 
-    /* ---------- format & avatar ---------- */
+    // format & avatar
 
     function formatTanggalPisah(isoDb) {
         if (!isoDb) return '';
@@ -218,9 +215,7 @@
         }
         bubble.appendChild(meta);
 
-        // Tombol hapus untuk pesan milik sendiri (belum dihapus).
-        // Diletakkan sebagai sibling bubble (di gutter kiri bubble milik sendiri)
-        // agar tidak menimpa teks pesan.
+        // tombol hapus pesan milik sendiri, diletakkan sebagai sibling bubble (di gutter kiri) biar ga nutupin teks pesan
         if (mine) {
             var delBtn = el('button', 'msg-del-btn');
             delBtn.type = 'button';
@@ -459,7 +454,7 @@
         });
     }
 
-    /* ---------- poll ---------- */
+    // poll
 
     function resetMsgPoll() {
         if (pollMsgTimer) clearInterval(pollMsgTimer);
@@ -470,8 +465,7 @@
             fetchJson(API + '?action=messages&id=' + state.conv).then(function (res) {
                 if (!res.ok || !state.conv) return;
                 renderMitra(res.data.mitra, false);
-                // Hanya tampilkan pesan yang ID-nya lebih besar dari yang sudah
-                // dirender (jangan re-render penuh agar paginasi & scroll aman).
+                // cuma tampilkan pesan dengan id lebih besar dari yang udah dirender, biar paginasi & scroll aman
                 var box = document.getElementById('chatMessages');
                 if (!box) return;
                 var existing = box.querySelectorAll('.msg-row[data-id]');
@@ -510,7 +504,7 @@
         }, 15000);
     }
 
-    /* ---------- Pesan Baru (modal) ---------- */
+    // Pesan Baru (modal)
 
     function renderUserList(rows) {
         var list = document.getElementById('chatUserList');
@@ -572,7 +566,7 @@
         }).catch(function () {});
     }
 
-    /* ---------- init ---------- */
+    // init
 
     ready(function () {
         var app = document.getElementById('chatApp');

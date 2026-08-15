@@ -63,7 +63,7 @@ function toggleProfileDropdown() {
     dropdown.classList.toggle('show');
 }
 
-// Close dropdown when clicking outside
+// tutup dropdown kalo klik di luar
 document.addEventListener('click', function(e) {
     var toggle = document.getElementById('profileDropdownToggle');
     var dropdown = document.getElementById('profileDropdown');

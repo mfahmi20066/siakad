@@ -5,7 +5,7 @@ cekAdmin();
 
 $jenis = isset($_GET['jenis']) ? $_GET['jenis'] : 'akademik';
 
-// Catat log export
+// catat log export
 if (isset($_SESSION['user_id'])) {
     $jenis_e = mysqli_real_escape_string($koneksi, $jenis);
     mysqli_query($koneksi,
@@ -122,7 +122,7 @@ else:
     $rows[] = ['Jenis laporan tidak dikenal.'];
 endif;
 
-// Tanda tangan
+// tanda tangan
 $rows[] = [];
 $rows[] = ['', '', '', '', 'Palopo, ' . tanggal_indo()];
 $rows[] = ['', '', '', '', 'Mengetahui,'];

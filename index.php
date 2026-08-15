@@ -1,7 +1,7 @@
 ﻿<?php
 session_start();
 
-// Jika sudah login, redirect ke dashboard sesuai role
+// udah login? langsung arahin ke dashboard sesuai role
 if (isset($_SESSION['user_id'])) {
     if ($_SESSION['role'] == 'admin')
         header("Location: /siakad/admin/dashboard.php");
@@ -14,45 +14,44 @@ if (isset($_SESSION['user_id'])) {
 
 include 'config/koneksi.php';
 
-// Ambil data pengaturan
+// ambil pengaturan sekolah
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 
-// Cek SPMB aktif
+// cek spmb lagi aktif ga
 $query_spmb = mysqli_query($koneksi, "SELECT spmb_aktif, spmb_tanggal_buka, spmb_tanggal_tutup, spmb_jalur, spmb_syarat FROM pengaturan WHERE id = 1");
 $spmb_data = mysqli_fetch_assoc($query_spmb);
 $spmb_aktif = $spmb_data['spmb_aktif'] ?? 0;
 $spmb_tanggal_buka = $spmb_data['spmb_tanggal_buka'] ?? '';
 $spmb_tanggal_tutup = $spmb_data['spmb_tanggal_tutup'] ?? '';
 
-// Ambil berita publik (khusus berita_sekolah; pengumuman tidak tampil di section berita)
+// berita publik aja, pengumuman dipisah biar ga campur
 $query_berita = mysqli_query($koneksi,
     "SELECT id, judul, ringkasan, isi, kategori, gambar, tanggal
      FROM berita_sekolah
      ORDER BY tanggal DESC LIMIT 6");
 
-// Ambil pengumuman publik (terpisah dari berita_sekolah)
+// pengumuman publik, beda tabel sama berita
 $query_pengumuman = mysqli_query($koneksi,
     "SELECT id, judul, ringkasan, isi, kategori, gambar, tanggal
      FROM pengumuman
      ORDER BY tanggal DESC LIMIT 6");
 
-// Nama sekolah
 $nama_sekolah = "SMA Negeri 4 Palopo";
 $alamat_sekolah = $setting['alamat_sekolah'] ?? "Jl. Bakau, Balandai, Kota Palopo, Sulawesi Selatan";
 $kepala_sekolah = $setting['nama_kepsek'] ?? "Muzakkir, S.Pd., M.Pd";
 
-// Foto kepala sekolah (kolom 'foto_kepsek' di tabel pengaturan, fallback ke file default)
+// foto kepsek, fallback ke file default
 $foto_kepsek = !empty($setting['foto_kepsek'])
     ? '/siakad/assets/img/' . e($setting['foto_kepsek'])
     : '/siakad/assets/img/kepala-sekolah.jpg';
 
-// Struktur organisasi (kolom 'foto_struktur' di tabel pengaturan, fallback ke file default)
+// foto struktur, fallback default juga
 $foto_struktur = !empty($setting['foto_struktur'])
     ? '/siakad/assets/img/' . e($setting['foto_struktur'])
     : '/siakad/assets/img/struktur-organisasi.png';
 
-// Sambutan kepala sekolah (auto-add kolom bila belum ada)
+// auto-add kolom sambutan kalo tabel lama belum punya
 $cek_sambutan = mysqli_query($koneksi, "SHOW COLUMNS FROM pengaturan LIKE 'sambutan_kepsek'");
 if ($cek_sambutan && mysqli_num_rows($cek_sambutan) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN sambutan_kepsek TEXT NULL");
@@ -67,7 +66,7 @@ if ($sambutan_kepsek === '') {
         . 'Wassalamualaikum warahmatullahi wabarakatuh.';
 }
 
-// Visi & Misi (dinamis dari pengaturan, fallback ke teks default)
+// visi misi dinamis, fallback ke teks default
 $visi_sekolah = trim($setting['visi'] ?? '');
 if ($visi_sekolah === '') {
     $visi_sekolah = 'Menciptakan siswa yang berkarakter, akademik berkompeten, '
@@ -80,14 +79,14 @@ if ($misi_sekolah === '') {
         . "Membina prestasi akademik dan non-akademik secara berkelanjutan.";
 }
 
-// Statistik sekolah (counter di landing)
+// statistik buat counter di landing
 $total_siswa = 0; $total_guru = 0; $total_kelas = 0; $total_prestasi = 0;
 if (($q = mysqli_query($koneksi, "SELECT COUNT(*) AS c FROM siswa")) && $r = mysqli_fetch_assoc($q)) $total_siswa = (int)$r['c'];
 if (($q = mysqli_query($koneksi, "SELECT COUNT(*) AS c FROM guru")) && $r = mysqli_fetch_assoc($q)) $total_guru = (int)$r['c'];
 if (($q = mysqli_query($koneksi, "SELECT COUNT(*) AS c FROM kelas")) && $r = mysqli_fetch_assoc($q)) $total_kelas = (int)$r['c'];
 if (($q = mysqli_query($koneksi, "SELECT COUNT(*) AS c FROM prestasi_siswa")) && $r = mysqli_fetch_assoc($q)) $total_prestasi = (int)$r['c'];
 
-// Jalur SPMB dinamis dari tabel spmb_jalur (fallback ke daftar statis bila tabel kosong)
+// jalur spmb ambil dari tabel, fallback daftar statis
 $spmb_jalur_list = [];
 if ($res = mysqli_query($koneksi, "SELECT nama_jalur, kuota, keterangan FROM spmb_jalur ORDER BY kuota DESC")) {
     while ($row = mysqli_fetch_assoc($res)) $spmb_jalur_list[] = $row;
@@ -102,14 +101,14 @@ if (empty($spmb_jalur_list)) {
 }
 $spmb_jalur_list = array_slice($spmb_jalur_list, 0, 4);
 
-// Prestasi unggulan (tampil di section prestasi)
+// prestasi buat section prestasi
 $query_prestasi = mysqli_query($koneksi,
     "SELECT p.nama_prestasi, p.tingkat, p.kategori, p.tanggal, s.nama AS siswa_nama
      FROM prestasi_siswa p
      LEFT JOIN siswa s ON s.id = p.siswa_id
      ORDER BY p.tanggal DESC, p.id DESC LIMIT 6");
 
-// ==== Helper: scan folder foto di assets/img/ ====
+// helper: scan folder foto di assets/img
 function scan_folder_foto($folder_path) {
     $hasil = [];
     if (is_dir($folder_path)) {
@@ -122,9 +121,7 @@ function scan_folder_foto($folder_path) {
     return $hasil;
 }
 
-// Galeri per kategori — memakai folder yang sudah ada di assets/img/
-// Catatan privasi: kategori foto siswa & guru sengaja tidak ditampilkan di galeri publik.
-// Hanya foto kepala sekolah (identitas resmi/publik sekolah) yang tetap tampil di section Profil.
+// galeri ambil dari folder yang udah ada; foto siswa/guru sengaja ga ditampilin (privasi), cuma foto kepsek yang tampil
 $galeri_kategori = [
     'sekolah' => ['label' => 'Sekolah',           'folder' => 'foto_sekolah', 'files' => []],
     'berita'  => ['label' => 'Kegiatan & Berita', 'folder' => 'foto_berita',  'files' => []],
@@ -135,13 +132,13 @@ foreach ($galeri_kategori as $key => &$kat) {
 }
 unset($kat);
 
-// Dipakai untuk hero slider (kompatibel dengan variabel sebelumnya)
+// buat hero slider
 $galeri_foto = $galeri_kategori['sekolah']['files'];
 
-// Foto untuk section Program Unggulan
+// foto buat program unggulan
 $foto_program = scan_folder_foto(__DIR__ . '/assets/img/foto_program/');
 
-// Daftar program unggulan (dinamis dari tabel program_unggulan, fallback ke data statis)
+// program unggulan dari tabel, fallback statis
 require_once __DIR__ . '/config/helper_program.php';
 program_cek_table($koneksi);
 $program_db = program_get_all($koneksi);
@@ -164,14 +161,14 @@ if (!empty($program_db)) {
     ];
 }
 
-// Caption foto program unggulan di galeri (dari DB) — fallback ke label kategori
+// caption foto program dari DB, fallback label kategori
 foreach ($program_db as $p) {
     if (!empty($p['foto'])) {
         $galeri_kategori['program']['captions'][$p['foto']] = $p['judul'];
     }
 }
 
-// Daftar fasilitas sekolah (statis)
+// fasilitas sekolah, statis aja
 $fasilitas_list = [
     ['title' => 'Laboratorium Komputer', 'desc' => 'Ruangan ber-AC dengan perangkat komputer terbaru dan koneksi internet cepat.', 'icon' => 'fa-laptop'],
     ['title' => 'Ruang Ibadah', 'desc' => 'Tempat ibadah yang nyaman dan representatif bagi seluruh warga sekolah.', 'icon' => 'fa-place-of-worship'],
@@ -181,7 +178,7 @@ $fasilitas_list = [
     ['title' => 'Akses WiFi', 'desc' => 'Akses internet nirkabel kecepatan tinggi di seluruh area sekolah.', 'icon' => 'fa-wifi'],
 ];
 
-// Gambar utama untuk kartu flip Visi & Misi
+// gambar utama kartu flip visi misi
 $foto_profil_utama = !empty($galeri_foto[0])
     ? '/siakad/assets/img/foto_sekolah/' . e($galeri_foto[0])
     : '/siakad/assets/img/logo-sekolah.png';
@@ -219,8 +216,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
     <link rel="stylesheet" href="/siakad/assets/css/landing.css?v=10.0">
 
     <style>
-        /* Alias variabel & utility lama supaya kelas Tailwind kustom (bg-primary, text-accent, dst.)
-           yang dipakai di seluruh halaman tetap konsisten dengan token warna landing.css */
+        /* alias var & utility lama biar kelas tailwind kustom (bg-primary, dst) konsisten sama token landing.css */
         :root {
             --primary-color: var(--primary, #004680);
             --secondary-color: var(--primary-dark, #00345F);
@@ -1206,12 +1202,12 @@ $foto_profil_utama = !empty($galeri_foto[0])
 <script>
     AOS.init({ duration: 900, once: true });
 
-    // Mobile menu toggle
+    // toggle menu mobile
     document.getElementById('menu-toggle').addEventListener('click', function () {
         document.getElementById('mobile-menu').classList.toggle('hidden');
     });
 
-    // Hero slider
+    // hero slider
     const slides = document.querySelectorAll('.slide');
     const dots = document.querySelectorAll('.nav-dot');
     let currentSlide = 0;
@@ -1228,7 +1224,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         setInterval(() => showSlide(currentSlide + 1), 5000);
     }
 
-    // Galeri filter
+    // filter galeri
     const filterBtns = document.querySelectorAll('.filter-btn');
     const galleryItems = document.querySelectorAll('.gallery-item');
     filterBtns.forEach(btn => {
@@ -1246,7 +1242,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         });
     });
 
-    // Back to top
+    // back to top
     const backToTopBtn = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
         if (window.pageYOffset > 300) backToTopBtn.classList.remove('opacity-0', 'invisible');
@@ -1254,7 +1250,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
     });
     backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-    // Galeri lightbox
+    // lightbox galeri
     window.bukaLightbox = function (el) {
         var img = document.getElementById('lightbox-img');
         img.src = el.dataset.src || '';
@@ -1275,7 +1271,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         if (e.target === this) tutupLightbox();
     });
 
-    // Statistik counter (animasi saat section masuk viewport)
+    // animasi counter statistik pas section keliatan
     function animateCounter(el) {
         var target = parseInt(el.dataset.target || '0', 10);
         if (target === 0) return;
@@ -1303,7 +1299,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         obs.observe(statSection);
     }
 
-    // Countdown SPMB
+    // countdown spmb
     var cdBox = document.getElementById('spmb-countdown');
     if (cdBox) {
         var tutup = new Date(cdBox.dataset.tutup + 'T23:59:59');
@@ -1327,7 +1323,7 @@ $foto_profil_utama = !empty($galeri_foto[0])
         setInterval(tickCountdown, 1000);
     }
 
-    // Smooth scroll
+    // smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const target = document.querySelector(this.getAttribute('href'));

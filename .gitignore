@@ -6,7 +6,6 @@ migrations/
 auth/
 uploads/
 TODO.md
-
 logs/
 phinx.php
 laporan.md

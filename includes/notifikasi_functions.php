@@ -1,28 +1,20 @@
 <?php
-/* ================================================================
-   Helper Fungsi Notifikasi — SIA SMA Negeri 4 Palopo
-   ================================================================ */
+// helper fungsi notifikasi
 
-/**
- * Sematkan notifikasi ke tabel notifikasi.
- * Semua insert dilakukan dengan statement yang sudah di-escape oleh periode.
- */
+// simpan notifikasi; input sudah di-escape dulu sebelum diinsert
 function notifikasi_insert($koneksi, $user_id, $judul, $pesan, $link = '') {
     $judul = mysqli_real_escape_string($koneksi, $judul);
     $pesan = mysqli_real_escape_string($koneksi, $pesan);
     $link  = mysqli_real_escape_string($koneksi, $link);
     $uid   = (int) $user_id;
 
-    // Simpan per user. Untuk kecepatan, satu query per user.
+    // simpen per user, sengaja satu query per user biar cepat
     return mysqli_query($koneksi,
         "INSERT INTO notifikasi (user_id, judul, pesan, link)
          VALUES ('$uid', '$judul', '$pesan', '$link')");
 }
 
-/**
- * Ambil ID user berdasarkan role dan id_ref (relasi ke guru/siswa).
- * $id_ref adalah id di tabel guru / siswa.
- */
+// cari user id dari id_ref + role (id di tabel guru/siswa)
 function notifikasi_id_user_by_ref($koneksi, $id_ref, $role) {
     $id_ref = (int) $id_ref;
     $role   = mysqli_real_escape_string($koneksi, $role);
@@ -34,10 +26,7 @@ function notifikasi_id_user_by_ref($koneksi, $id_ref, $role) {
     return null;
 }
 
-/**
- * Kirim notifikasi ke semua user dengan role tertentu.
- * Contoh: notifikasi_ke_role($koneksi, 'guru', $judul, $pesan, $link);
- */
+// kirim notif ke semua user dengan role tertentu, misal ke semua guru
 function notifikasi_ke_role($koneksi, $role, $judul, $pesan, $link = '') {
     $role = mysqli_real_escape_string($koneksi, $role);
     $judul = mysqli_real_escape_string($koneksi, $judul);
@@ -60,9 +49,6 @@ function notifikasi_ke_role($koneksi, $role, $judul, $pesan, $link = '') {
     return $sukses;
 }
 
-/**
- * Ambil daftar notifikasi untuk satu user.
- */
 function notifikasi_get($koneksi, $user_id, $limit = 10) {
     $user_id = (int) $user_id;
     $limit   = (int) $limit;
@@ -78,10 +64,7 @@ function notifikasi_get($koneksi, $user_id, $limit = 10) {
     return $rows;
 }
 
-/**
- * Ambil daftar notifikasi dengan filter & pagination (untuk halaman penuh).
- * $filter: 'all' | 'unread'
- */
+// daftar notif + pagination buat halaman penuh; filter: all/unread
 function notifikasi_get_rows($koneksi, $user_id, $filter = 'all', $limit = 20, $offset = 0) {
     $user_id = (int) $user_id;
     $limit   = (int) $limit;
@@ -101,9 +84,6 @@ function notifikasi_get_rows($koneksi, $user_id, $filter = 'all', $limit = 20, $
     return $rows;
 }
 
-/**
- * Jumlah notifikasi belum dibaca untuk satu user.
- */
 function notifikasi_belum_dibaca($koneksi, $user_id) {
     $user_id = (int) $user_id;
     $q = mysqli_query($koneksi,
@@ -114,9 +94,6 @@ function notifikasi_belum_dibaca($koneksi, $user_id) {
     return 0;
 }
 
-/**
- * Tandai satu notifikasi telah dibaca.
- */
 function notifikasi_tandai_dibaca($koneksi, $id, $user_id) {
     $id      = (int) $id;
     $user_id = (int) $user_id;
@@ -124,9 +101,7 @@ function notifikasi_tandai_dibaca($koneksi, $id, $user_id) {
         "UPDATE notifikasi SET is_read=1 WHERE id='$id' AND user_id='$user_id'");
 }
 
-/**
- * Tandai SEMUA notifikasi user telah dibaca.
- */
+// tandai semua notif user jadi kebaca
 function notifikasi_tandai_semua_dibaca($koneksi, $user_id) {
     $user_id = (int) $user_id;
     return mysqli_query($koneksi,

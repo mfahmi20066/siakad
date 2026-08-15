@@ -8,7 +8,7 @@ $title = "Pengaturan Sekolah";
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taTahun = date('Y') . '/' . (date('Y') + 1); }
 
-// 1. OTOMATISASI STRUKTUR: Buat tabel jika belum ada (Dipastikan kolom langsung lengkap)
+// 1. auto-buat tabel kalo belum ada, kolom langsung lengkap
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS pengaturan (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nama_kepsek VARCHAR(150) NOT NULL,
@@ -18,7 +18,7 @@ mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS pengaturan (
     semester VARCHAR(20) DEFAULT '1 (Ganjil)'
 )");
 
-// AUTO-CREATE: Tabel agenda untuk menyimpan agenda sekolah yang dapat diatur
+// auto-create tabel agenda sekolah
 mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS agenda (
     id INT PRIMARY KEY AUTO_INCREMENT,
     judul VARCHAR(255) NOT NULL,
@@ -32,9 +32,7 @@ mysqli_query($koneksi, "CREATE TABLE IF NOT EXISTS agenda (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
-// Deteksi apakah kolom hari/kategori sudah tersedia (guard utk tabel lama
-// yang belum dimigrasi — jalankan database/migration_agenda_hari_kategori.sql
-// untuk mengaktifkan kolom & notifikasi berbasis kategori).
+// guard tabel lama yang belum dimigrasi: cek kolom hari/kategori ada ga, kalo ga ada jalanin database/migration_agenda_hari_kategori.sql
 $agenda_has_hari     = false;
 $agenda_has_kategori = false;
 $qAgCols = mysqli_query($koneksi, "SHOW COLUMNS FROM agenda");
@@ -45,7 +43,7 @@ if ($qAgCols) {
     }
 }
 
-// 2. PAKSA TAMBAH KOLOM (Double check jika tabel lama sudah terlanjur terbentuk tanpa kolom baru)
+// 2. paksa tambah kolom (double check tabel lama)
 $cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM pengaturan LIKE 'alamat_sekolah'");
 if (mysqli_num_rows($cek_kolom) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN alamat_sekolah TEXT NULL");
@@ -61,16 +59,15 @@ if (mysqli_num_rows($cek_semester) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN semester VARCHAR(20) DEFAULT '1 (Ganjil)'");
 }
 
-// 3. Ambil data baris pertama, jika kosong (tabel baru) isi data default awal
+// 3. ambil baris pertama; kalo kosong (tabel baru) isi default awal
 $cek_isi = mysqli_query($koneksi, "SELECT id FROM pengaturan WHERE id = 1");
 if (mysqli_num_rows($cek_isi) == 0) {
     mysqli_query($koneksi, "INSERT INTO pengaturan (id, nama_kepsek, nip_kepsek, alamat_sekolah, tahun_pelajaran, semester) 
         VALUES (1, 'Hj. Sukmawati, S.Pd., M.Si.', '19710512 199702 2 003', 'Jl. Andi Pangerang Pettarani, Kota Palopo, Sulawesi Selatan', '2024/2025', '1 (Ganjil)')");
 }
 
-// 4. Proses simpan data saat tombol diklik (Ditaruh sebelum penarikan data form agar perubahan langsung tampil)
-// Guard: hanya proses identitas sekolah bila form pengaturan benar-benar di-submit
-// (mencegah warning saat POST dari form lain seperti tambah/edit agenda).
+// 4. proses simpan saat tombol diklik (ditaruh sebelum data form ditarik biar langsung kebaca)
+// guard: cuma proses form pengaturan yang beneran disubmit, biar ga warning pas post dari form lain
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nama_kepsek'])) {
     $nama   = mysqli_real_escape_string($koneksi, $_POST['nama_kepsek'] ?? '');
     $nip    = mysqli_real_escape_string($koneksi, $_POST['nip_kepsek'] ?? '');
@@ -79,12 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nama_kepsek'])) {
     $email   = mysqli_real_escape_string($koneksi, $_POST['email'] ?? '');
     $visi    = mysqli_real_escape_string($koneksi, $_POST['visi'] ?? '');
     $misi    = mysqli_real_escape_string($koneksi, $_POST['misi'] ?? '');
-    // Tahun pelajaran = MIRROR dari master tahun ajaran aktif (bukan sumber kebenaran).
-    // User TIDAK boleh mengubahnya menjadi tahun berbeda.
+    // tahun pelajaran = mirror dari master tahun ajaran aktif, user ga boleh ubah
     $tapel  = $taTahun;
     $sem    = mysqli_real_escape_string($koneksi, $_POST['semester'] ?? '1 (Ganjil)');
 
-    // Query update menyatukan data identitas sekolah beserta status akademik aktif
+    // update gabungan identitas sekolah + status akademik aktif
     $update = mysqli_query($koneksi, "UPDATE pengaturan SET nama_kepsek='$nama', nip_kepsek='$nip', alamat_sekolah='$alamat', telepon='$telepon', email='$email', visi='$visi', misi='$misi', tahun_pelajaran='$tapel', semester='$sem' WHERE id=1");
 
     if ($update) {
@@ -94,15 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nama_kepsek'])) {
     }
 }
 
-// 5. Ambil data pengaturan terbaru untuk ditampilkan di form
+// 5. ambil pengaturan terbaru buat form
 $query = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $skala = mysqli_fetch_assoc($query);
 
-// =====================================================
-// PROSES CRUD AGENDA SEKOLAH
-// =====================================================
+// crud agenda sekolah
 
-// TAMBAH AGENDA
+// tambah agenda
 if (isset($_POST['tambah_agenda'])) {
     $judul   = mysqli_real_escape_string($koneksi, $_POST['judul']);
     $jam_mulai = mysqli_real_escape_string($koneksi, $_POST['jam_mulai']);
@@ -111,8 +105,7 @@ if (isset($_POST['tambah_agenda'])) {
     $status_label = mysqli_real_escape_string($koneksi, $_POST['status_label']);
     $urutan  = intval($_POST['urutan']);
 
-    // Kolom baru (hari & kategori) hanya dipakai bila kolomnya sudah ada
-    // (setelah migration_agenda_hari_kategori.sql dijalankan).
+    // kolom baru (hari & kategori) cuma dipake kalo kolomnya udah ada (setelah migrasi)
     $agenda_cols_extra = '';
     $agenda_vals_extra = '';
     $agenda_kategori   = 'semua';
@@ -133,8 +126,7 @@ if (isset($_POST['tambah_agenda'])) {
     if ($insert) {
         $success_agenda = "Agenda berhasil ditambahkan!";
 
-        // NOTIFIKASI berbasis kategori (fungsi yang sudah ada — tidak dibuat baru).
-        // guru -> hanya guru | siswa -> hanya siswa | semua -> guru & siswa.
+        // notif berbasis kategori: guru -> guru aja, siswa -> siswa aja, semua -> dua-duanya
         if (!function_exists('notifikasi_ke_role')) {
             include __DIR__ . '/../includes/notifikasi_functions.php';
         }
@@ -157,7 +149,7 @@ if (isset($_POST['tambah_agenda'])) {
     }
 }
 
-// EDIT AGENDA
+// edit agenda
 if (isset($_POST['edit_agenda'])) {
     $id_edit   = intval($_POST['id_agenda']);
     $judul     = mysqli_real_escape_string($koneksi, $_POST['judul']);
@@ -167,7 +159,7 @@ if (isset($_POST['edit_agenda'])) {
     $status_label = mysqli_real_escape_string($koneksi, $_POST['status_label']);
     $urutan    = intval($_POST['urutan']);
 
-    // Kolom baru hanya diset bila sudah ada di tabel.
+    // kolom baru cuma diset kalo udah ada
     $agenda_set_extra = '';
     if ($agenda_has_hari) {
         $agenda_set_extra .= ", hari='" . mysqli_real_escape_string($koneksi, $_POST['hari'] ?? '') . "'";
@@ -190,7 +182,7 @@ if (isset($_POST['edit_agenda'])) {
     }
 }
 
-// HAPUS AGENDA
+// hapus agenda
 if (isset($_GET['hapus_agenda'])) {
     verifyCsrf();
     $id_hapus = intval($_GET['hapus_agenda']);

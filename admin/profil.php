@@ -6,12 +6,12 @@ cekAdmin();
 $user_id = $_SESSION['user_id'] ?? 0;
 $title = "Profil Saya";
 
-// Get user data
+// ambil data user
 $query = "SELECT * FROM users WHERE id=$user_id";
 $result = mysqli_query($koneksi, $query);
 $user = mysqli_fetch_assoc($result);
 
-// Handle profile update
+// handle update profil
 $success = '';
 $error = '';
 

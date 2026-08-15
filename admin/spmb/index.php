@@ -5,7 +5,7 @@ cekAdmin();
 
 $title = "Pengaturan SPMB Online";
 
-// 1. Tambah kolom SPMB ke tabel pengaturan jika belum ada
+// 1. tambah kolom spmb ke pengaturan kalo belum ada
 $cek_kolom_spmb = mysqli_query($koneksi, "SHOW COLUMNS FROM pengaturan LIKE 'spmb_aktif'");
 if (mysqli_num_rows($cek_kolom_spmb) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN spmb_aktif TINYINT DEFAULT 0 AFTER quote");
@@ -17,13 +17,13 @@ if (mysqli_num_rows($cek_kolom_spmb) == 0) {
     mysqli_query($koneksi, "ALTER TABLE pengaturan ADD COLUMN spmb_pengumuman_aktif TINYINT DEFAULT 0 AFTER spmb_link_daftar");
 }
 
-// 2. Tambah kolom spmb_dokumen jika belum ada
+// 2. tambah kolom spmb_dokumen kalo belum ada
 $cek_dokumen = mysqli_query($koneksi, "SHOW COLUMNS FROM spmb_dokumen LIKE 'status_verifikasi'");
 if (mysqli_num_rows($cek_dokumen) == 0) {
     mysqli_query($koneksi, "ALTER TABLE spmb_dokumen ADD COLUMN status_verifikasi ENUM('menunggu','valid','tidak_valid') DEFAULT 'menunggu' AFTER path_file");
 }
 
-// 3. Proses CRUD Jalur
+// 3. crud jalur
 if (isset($_POST['tambah_jalur'])) {
     $nama_jalur = mysqli_real_escape_string($koneksi, $_POST['nama_jalur']);
     $kuota = (int)$_POST['kuota'];
@@ -69,7 +69,7 @@ if (isset($_GET['hapus_jalur'])) {
     }
 }
 
-// 3.1 Proses CRUD Gelombang
+// 3.1 crud gelombang
 if (isset($_POST['tambah_gelombang'])) {
     $nama_gelombang = mysqli_real_escape_string($koneksi, $_POST['nama_gelombang']);
     $tanggal_mulai = mysqli_real_escape_string($koneksi, $_POST['tanggal_mulai']);
@@ -115,7 +115,7 @@ if (isset($_GET['hapus_gelombang'])) {
     }
 }
 
-// 4. Proses form update SPMB
+// 4. proses form update spmb
 if (isset($_POST['update_settings']) && !isset($_POST['tambah_jalur']) && !isset($_POST['edit_jalur'])) {
     $spmb_aktif = isset($_POST['spmb_aktif']) ? 1 : 0;
     $spmb_tanggal_buka = mysqli_real_escape_string($koneksi, $_POST['spmb_tanggal_buka'] ?? '');
@@ -142,17 +142,17 @@ if (isset($_POST['update_settings']) && !isset($_POST['tambah_jalur']) && !isset
     }
 }
 
-// 5. Ambil data pengaturan
+// 5. ambil data pengaturan
 $query_settings = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $settings = mysqli_fetch_assoc($query_settings);
 
-// 6. Ambil data jalur
+// 6. ambil data jalur
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 
-// 6.1 Ambil data gelombang
+// 6.1 ambil data gelombang
 $query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang ORDER BY tanggal_mulai ASC");
 
-// 7. Ambil data pendaftar dengan status dokumen
+// 7. ambil pendaftar dengan status dokumen
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
 $filter_status = isset($_GET['filter_status']) ? mysqli_real_escape_string($koneksi, $_GET['filter_status']) : '';
 
@@ -174,7 +174,7 @@ $query_pendaftar = mysqli_query($koneksi, "
     ORDER BY sp.created_at DESC
 ");
 
-// 8. Proses verifikasi dokumen
+// 8. proses verifikasi dokumen
 if (isset($_POST['verifikasi_dokumen'])) {
     $pendaftar_id = (int)$_POST['pendaftar_id'];
     $status_verifikasi = mysqli_real_escape_string($koneksi, $_POST['status_verifikasi']);
@@ -187,7 +187,7 @@ if (isset($_POST['verifikasi_dokumen'])) {
     ");
     
     if ($update_dokumen) {
-        // Cek apakah semua dokumen sudah diverifikasi
+        // cek semua dokumen udah diverifikasi
         $check_all = mysqli_query($koneksi, "
             SELECT COUNT(*) as belum_verifikasi 
             FROM spmb_dokumen 
@@ -196,7 +196,7 @@ if (isset($_POST['verifikasi_dokumen'])) {
         $result_check = mysqli_fetch_assoc($check_all);
         
         if ($result_check['belum_verifikasi'] == 0) {
-            // Update status pendaftar ke diverifikasi
+            // update status pendaftar jadi diverifikasi
             mysqli_query($koneksi, "UPDATE spmb_pendaftar SET status = 'diverifikasi' WHERE id = $pendaftar_id");
         }
         
@@ -206,7 +206,7 @@ if (isset($_POST['verifikasi_dokumen'])) {
     }
 }
 
-// 9. Proses update status pendaftar (diterima/ditolak)
+// 9. update status pendaftar (diterima/ditolak)
 if (isset($_POST['update_status_pendaftar'])) {
     $pendaftar_id = (int)$_POST['pendaftar_id'];
     $status_baru = mysqli_real_escape_string($koneksi, $_POST['status_baru']);
@@ -708,7 +708,7 @@ if (isset($_POST['update_status_pendaftar'])) {
                         if ($query_pendaftar && mysqli_num_rows($query_pendaftar) > 0):
                             $no = 1;
                             while ($pendaftar = mysqli_fetch_assoc($query_pendaftar)):
-                                // Ambil status dokumen
+                                // ambil status dokumen
                                 $doc_query = mysqli_query($koneksi, "
                                     SELECT jenis_dokumen, status_verifikasi 
                                     FROM spmb_dokumen 

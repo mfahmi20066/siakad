@@ -4,7 +4,7 @@ include '../config/session.php';
 cekSiswa();
 $title = "Pengumuman";
 
-// Query alternatif tanpa JOIN langsung pada kolom id admin yang bermasalah
+// query tanpa join langsung ke kolom id admin yang bermasalah
 $data = mysqli_query($koneksi,
         "SELECT *, 'Admin Sekolah' AS admin 
          FROM pengumuman 

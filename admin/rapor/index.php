@@ -60,7 +60,7 @@ $data = mysqli_query($koneksi,
                 if ($data && mysqli_num_rows($data) > 0):
                     while ($r = mysqli_fetch_assoc($data)): 
                         
-                        // Gunakan status_kenaikan (Aktif/Naik Kelas/Tinggal Kelas), bukan status (draft/final)
+                        // pake status_kenaikan (aktif/naik/tinggal), bukan status (draft/final)
                         $raw_status = isset($r['status_kenaikan']) ? strtolower(trim($r['status_kenaikan'])) : '';
                         
                         $status_badge = [
@@ -75,12 +75,12 @@ $data = mysqli_query($koneksi,
                             'tinggal kelas' => 'Tinggal Kelas'
                         ];
 
-                        // Jika status_kenaikan ada di dalam daftar array opsi
+                        // kalo status_kenaikan ada di daftar opsi
                         if (array_key_exists($raw_status, $status_label)) {
                             $badge_class = $status_badge[$raw_status];
                             $text_display = $status_label[$raw_status];
                         } else {
-                            // Jika status kosong (NULL) atau berisi teks lain, berikan tampilan default abu-abu
+                            // kalo status kosong/aneh, tampilkan default abu-abu
                             $badge_class = 'secondary';
                             $text_display = !empty($raw_status) ? ucfirst($r['status_kenaikan']) : 'Diproses';
                         }

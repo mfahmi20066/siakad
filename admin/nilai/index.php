@@ -7,12 +7,12 @@ $title = "Nilai Siswa";
 $filter_kelas = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 $filter_sem   = isset($_GET['semester']) ? $_GET['semester'] : '';
 
-// Memperbaiki klausa filter agar mengacu ke tabel siswa (s.kelas_id)
+// fix filter biar ngacu ke s.kelas_id
 $where = "WHERE 1=1";
 if ($filter_kelas) $where .= " AND s.kelas_id = '$filter_kelas'";
 if ($filter_sem)   $where .= " AND n.semester = '$filter_sem'";
 
-// Memperbaiki query utama dengan melakukan JOIN kelas melalui tabel siswa (s.kelas_id)
+// fix query utama: join kelas lewat s.kelas_id
 $data = mysqli_query($koneksi,
         "SELECT n.*, s.nama AS nama_siswa, s.nis,
                 m.nama_mapel, k.nama_kelas, k.tingkat,
@@ -123,10 +123,10 @@ $kelas_list = mysqli_query($koneksi,
                     <tbody>
                     <?php
                     $no = 1;
-                    $kelas_aktif = null; // untuk mendeteksi pergantian kelas
+                    $kelas_aktif = null; // buat deteksi pergantian kelas
                     if ($data && mysqli_num_rows($data) > 0):
                         while ($r = mysqli_fetch_assoc($data)):
-                            // Mengamankan pemanggilan komponen nilai menggunakan null coalescing
+                            // amankan akses komponen nilai pake null coalescing
                             $harian = $r['nilai_harian'] ?? $r['harian'] ?? $r['tugas'] ?? 0;
                             $uts    = $r['nilai_uts'] ?? $r['uts'] ?? 0;
                             $uas    = $r['nilai_uas'] ?? $r['uas'] ?? 0;
@@ -140,7 +140,7 @@ $kelas_list = mysqli_query($koneksi,
                             elseif ($na >= 60) $predikat = 'D';
                             else $predikat = 'E';
 
-                            // Baris header pemisah setiap kali kelas berganti
+                            // baris header pemisah pas kelas ganti
                             if ($nama_k !== $kelas_aktif):
                                 $kelas_aktif = $nama_k;
                     ?>

@@ -10,10 +10,10 @@ $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
 
-// SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang login
+// pake id_ref sebagai id guru yang login
 $gid = isset($_SESSION['id_ref']) ? $_SESSION['id_ref'] : '';
 
-// Hanya tampilkan kelas yang diajar guru ini (dari pivot kelas_mapel_guru)
+// cuma kelas yang diajar guru ini (dari pivot)
 if (!isset($stmt_guru_kelas) || $stmt_guru_kelas === null) {
     $stmt_guru_kelas = mysqli_prepare($koneksi,
         "SELECT DISTINCT k.* FROM kelas k JOIN kelas_mapel_guru kmg ON kmg.kelas_id = k.id WHERE kmg.guru_id = ? AND k.status = 'aktif'");
@@ -22,7 +22,7 @@ if (!isset($stmt_guru_kelas) || $stmt_guru_kelas === null) {
 mysqli_stmt_execute($stmt_guru_kelas);
 $kelas_list = mysqli_stmt_get_result($stmt_guru_kelas);
 
-// Hanya mapel yang diajar guru ini (dari pivot kelas_mapel_guru)
+// cuma mapel yang diajar guru ini (dari pivot)
 if (!isset($stmt_guru_mapel) || $stmt_guru_mapel === null) {
     $stmt_guru_mapel = mysqli_prepare($koneksi,
         "SELECT DISTINCT m.* FROM mata_pelajaran m JOIN kelas_mapel_guru kmg ON kmg.mapel_id = m.id WHERE kmg.guru_id = ? AND m.status = 'aktif'");
@@ -31,7 +31,7 @@ if (!isset($stmt_guru_mapel) || $stmt_guru_mapel === null) {
 mysqli_stmt_execute($stmt_guru_mapel);
 $mapel_list = mysqli_stmt_get_result($stmt_guru_mapel);
 
-// FITUR AMAN: Cek struktur nama kolom tabel nilai saat ini demi memuaskan Trigger DB
+// cek struktur kolom nilai biar ga bentrok trigger db
 $cek_uh = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
 $pake_uh = (mysqli_num_rows($cek_uh) > 0);
 
@@ -49,13 +49,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uts  = (float) ($_POST['nilai_uts'] ?? 0);
     $uas  = (float) ($_POST['nilai_uas'] ?? 0);
 
-    // Tahun ajaran diambil dari MASTER tahun aktif (bukan POST) + validasi relasi.
+    // ta dari master tahun aktif + validasi relasi
     $taNilaiId = null;
     if ($taId === null || $taTahun === '') {
         $error = "Tidak ada tahun ajaran aktif.";
     } else {
         $taNilaiId = $taId;
-        // Prepared statement untuk kelas
+        // prepared statement kelas
         if (!isset($stmt_tahun_kelas) || $stmt_tahun_kelas === null) {
             $stmt_tahun_kelas = mysqli_prepare($koneksi, "SELECT tahun_ajaran_id FROM kelas WHERE id=?");
             mysqli_stmt_bind_param($stmt_tahun_kelas, "i");
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         mysqli_stmt_fetch($stmt_tahun_kelas);
         $kelasTa = ($kmg_tahun_id !== null && (int)$kmg_tahun_id !== $taId);
 
-        // Prepared statement untuk siswa
+        // prepared statement siswa
         if (!isset($stmt_siswa_tahun) || $stmt_siswa_tahun === null) {
             $stmt_siswa_tahun = mysqli_prepare($koneksi, "SELECT kelas_id, tahun_ajaran_id FROM siswa WHERE id=?");
             mysqli_stmt_bind_param($stmt_siswa_tahun, "i");
@@ -86,16 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Lock periode: guru hanya bisa input ketika periode kelas dibuka admin.
+    // lock periode: guru cuma bisa input kalo periode dibuka admin
     if ($taNilaiId !== null && !isset($error)) {
         if (!isPeriodeBuka($koneksi, $taNilaiId, $sem, $kid)) {
             $error = pesanNilaiTerkunci();
         }
     }
 
-    // Finalisasi rapor: nilai tidak boleh berubah jika rapor semester ini sudah final.
+    // rapor final? nilai ga boleh berubah
     if ($taNilaiId !== null && !isset($error)) {
-        // Prepared statement cek rapor final
+        // cek rapor final
         if (!isset($stmt_rapor_final) || $stmt_rapor_final === null) {
             $stmt_rapor_final = mysqli_prepare($koneksi,
                 "SELECT id FROM rapor WHERE siswa_id=? AND semester=? AND tahun_ajaran_id=? AND status='final' LIMIT 1");
@@ -111,11 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Cek duplikat (berbasis tahun_ajaran_id)
+    // cek duplikat (by tahun_ajaran_id)
     if ($taNilaiId === null) {
         $cek = null;
     } else {
-        // Prepared statement cek duplicate nilai
+        // cek duplikat nilai
         if (!isset($stmt_cek_duplicate) || $stmt_cek_duplicate === null) {
             $stmt_cek_duplicate = mysqli_prepare($koneksi,
                 "SELECT id FROM nilai WHERE siswa_id=? AND mapel_id=? AND semester=? AND tahun_ajaran_id=?");
@@ -127,14 +127,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $duplicate = ($cek_id !== null);
     }
 
-    // Prioritas pesan: error yang sudah ada (periode terkunci, rapor final, validasi)
-    // TIDAK boleh ditimpa oleh pesan duplikat — insert juga hanya boleh jika belum ada error.
+    // prioritas pesan: error yang udah ada (periode terkunci, rapor final, validasi) ga boleh ditimpa pesan duplikat; insert cuma kalo belum ada error
     if (!isset($error) && $taNilaiId !== null && $cek !== null && mysqli_num_rows($cek) > 0) {
         $error = "Nilai untuk siswa, mapel, dan semester ini sudah ada!";
     } elseif ($taNilaiId === null) {
-        // biarkan pesan error dari validasi aktif tampil
+        // biarkan pesan error validasi tampil
     } elseif (!isset($error)) {
-        // Otorisasi server-side: kombinasi kelas + mapel HARUS milik guru ini (via pivot)
+        // otorisasi: kelas + mapel harus milik guru ini (via pivot)
         if (!isset($stmt_kmg_check) || $stmt_kmg_check === null) {
             $stmt_kmg_check = mysqli_prepare($koneksi,
                 "SELECT id FROM kelas_mapel_guru WHERE kelas_id=? AND mapel_id=? AND guru_id=? AND tahun_ajaran_id=? LIMIT 1");
@@ -149,9 +148,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = "Anda tidak mengajar mata pelajaran ini di kelas tersebut.";
         } else {
 
-            // Kehadiran dihitung otomatis dari absensi (ikut 20% nilai akhir)
+            // kehadiran dari absensi (20% nilai akhir)
             $kehadiran = 0;
-            // Prepared statement ambil rekap kehadiran
+            // ambil rekap kehadiran
             if (!isset($stmt_abs_guru) || $stmt_abs_guru === null) {
                 $stmt_abs_guru = mysqli_prepare($koneksi,
                     "SELECT SUM(status = 'Hadir') AS hadir, COUNT(*) AS total
@@ -165,10 +164,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ? round(((int) $hadir / $total_abs) * 100, 2)
                 : 0;
 
-            // RUMUS NILAI AKHIR: Harian 20% + UTS 25% + UAS 35% + Kehadiran 20%
+            // rumus nilai akhir: harian 20% + uts 25% + uas 35% + kehadiran 20%
             $akhir = round(($nh * 0.20) + ($uts * 0.25) + ($uas * 0.35) + ($kehadiran * 0.20), 2);
 
-            // Determine which columns will be inserted
+            // tentuin kolom yang mau diinsert
             $columns = ["siswa_id", "mapel_id", "kelas_mapel_guru_id", "kelas_id", "guru_id", "semester", "tahun_ajaran", "tahun_ajaran_id", "nilai_harian", "nilai_uts", "nilai_uas", "nilai_akhir"];
             $values = ["'$sid'", "'$mid'", $kmg_sql, "'$kid'", "'$gid'", "'$sem'", "'$taTahun'", "'$taNilaiId'", "'$nh'", "'$uts'", "'$uas'", "'$akhir'"];
 
@@ -182,28 +181,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $values[] = "'$kehadiran'";
             }
 
-            // Prepared statement INSERT INTO nilai (dynamic columns)
+            // insert nilai (kolom dinamis)
             $columns_str = implode(", ", $columns);
             $placeholders = implode(", ", array_fill(0, count($values), "?"));
             
             if (!isset($stmt_insert_nilai) || $stmt_insert_nilai === null) {
                 $stmt_insert_nilai = mysqli_prepare($koneksi, "INSERT INTO nilai ($columns_str) VALUES ($placeholders)");
             }
-            // Semua nilai dikirim sebagai string (s) karena nilai float/diproses sebagai string
+            // semua nilai dikirim string (s) karena float diproses sebagai string
             $types = str_repeat("s", count($values));
             $param_list = [];
             foreach ($values as $v) { $param_list[] = $v; }
             call_user_func_array([$stmt_insert_nilai, 'bind_param'], array_merge([$types], $param_list));
             mysqli_stmt_execute($stmt_insert_nilai);
 
-            // Notifikasi otomatis ke siswa atas nilai baru
+            // notif otomatis ke siswa pas nilai baru
             if (!function_exists('notifikasi_id_user_by_ref')) {
                 include __DIR__ . '/../../includes/notifikasi_functions.php';
             }
             $user_siswa = notifikasi_id_user_by_ref($koneksi, $sid, 'siswa');
             if ($user_siswa) {
                 $nama_mapel = '';
-                // Prepared statement ambil nama mapel
+                // ambil nama mapel
                 if (!isset($stmt_nama_mapel) || $stmt_nama_mapel === null) {
                     $stmt_nama_mapel = mysqli_prepare($koneksi, "SELECT nama_mapel FROM mata_pelajaran WHERE id=?");
                     mysqli_stmt_bind_param($stmt_nama_mapel, "i");
@@ -355,7 +354,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 
 <script>
-// Fungsi AJAX mengambil data siswa berdasarkan kelas di folder guru
+// fungsi ajax: ambil data siswa by kelas
 function getSiswaPerKelas() {
     const kelasId = document.getElementById('kelas_id').value;
     const siswaSelect = document.getElementById('siswa_id');

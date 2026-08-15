@@ -5,11 +5,11 @@ cekAdmin();
 
 $title = "Seleksi SPMB";
 
-// Filter by jalur
+// filter by jalur
 $jalur_filter = isset($_GET['jalur']) ? (int)$_GET['jalur'] : '';
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
 
-// Proses aksi seleksi (POST, CSRF otomatis diverifikasi via enforceCsrfOnPost)
+// proses aksi seleksi (post, csrf otomatis diverifikasi)
 $success = null;
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Query pendaftar yang sudah diverifikasi
+// pendaftar yang udah diverifikasi
 $query = "SELECT sp.*, sj.nama_jalur, sg.nama_gelombang 
           FROM spmb_pendaftar sp
           LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
@@ -80,7 +80,7 @@ if (isset($_GET['rank'])) {
     $data = mysqli_query($koneksi, $query);
 }
 
-// Ambil jalur
+// ambil jalur
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 ?>
 <?php include '../../includes/header.php'; ?>

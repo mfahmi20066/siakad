@@ -6,10 +6,10 @@ $title = "Edit Pengumuman";
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// 1. Ambil data pengumuman secara mandiri tanpa JOIN awal agar aman dari fatal error kolom
+// 1. ambil pengumuman mandiri tanpa join awal biar aman dari error kolom
 $data = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM pengumuman WHERE id = '$id'"));
 
-// 2. Deteksi dinamis nama pembuat pengumuman berdasarkan kolom relasi user yang tersedia
+// 2. deteksi nama pembuat pengumuman sesuai kolom relasi user yang ada
 $admin_name = 'Administrator';
 if ($data) {
     $id_u = '';

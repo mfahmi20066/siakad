@@ -9,16 +9,16 @@ $taId = null; $taTahun = '';
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int)$taAktif['id']; $taTahun = $taAktif['tahun']; }
 catch (Throwable $e) { $taId = null; }
 
-// Mengambil list dasar untuk dropdown form (Cadangan jika AJAX tidak mengembalikan data)
+// list dasar buat dropdown, cadangan kalo ajax ga balikin data
 $mapel_list = mysqli_query($koneksi, "SELECT * FROM mata_pelajaran WHERE status='aktif' ORDER BY nama_mapel");
 $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 $guru_list  = mysqli_query($koneksi, "SELECT * FROM guru ORDER BY nama");
 
-// FITUR AMAN: Cek struktur nama kolom tabel nilai saat ini
+// cek struktur kolom tabel nilai
 $cek_uh = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
 $kolom_uh = (mysqli_num_rows($cek_uh) > 0) ? "nilai_uh" : "nilai_harian";
 
-// Siapkan prepared statements reusable
+// siapkan prepared statements reusable
 $stmt_tahun_ajaran = null;
 $stmt_siswa = null;
 $stmt_cek_nilai = null;
@@ -35,13 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uts  = $_POST['nilai_uts'];
     $uas  = $_POST['nilai_uas'];
 
-    // Tahun ajaran diambil dari MASTER tahun aktif (bukan POST) + validasi relasi kelas/siswa.
+    // tahun ajaran dari master tahun aktif + validasi relasi kelas/siswa
     $taNilaiId = null;
     if ($taId === null || $taTahun === '') {
         $error = "Tidak ada tahun ajaran aktif. Tetapkan tahun aktif di Modul Tahun Ajaran.";
     } else {
         $taNilaiId = $taId;
-        // Prepared statement untuk kelas
+        // prepared statement kelas
         if (!isset($stmt_tahun_ajaran) || $stmt_tahun_ajaran === null) {
             $stmt_tahun_ajaran = mysqli_prepare($koneksi, "SELECT tahun_ajaran_id FROM kelas WHERE id=?");
             mysqli_stmt_bind_param($stmt_tahun_ajaran, "i");
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         mysqli_stmt_fetch($stmt_tahun_ajaran);
         $kelasTa = ($kmg_tahun_id !== null && (int)$kmg_tahun_id !== $taId);
 
-        // Prepared statement untuk siswa
+        // prepared statement siswa
         if (!isset($stmt_siswa) || $stmt_siswa === null) {
             $stmt_siswa = mysqli_prepare($koneksi, "SELECT kelas_id, tahun_ajaran_id FROM siswa WHERE id=?");
             mysqli_stmt_bind_param($stmt_siswa, "i");
@@ -73,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($nh < 0 || $nh > 100 || $uts < 0 || $uts > 100 || $uas < 0 || $uas > 100) {
         $error = "Nilai harus antara 0 sampai 100!";
     } elseif ($taNilaiId === null) {
-        // $error sudah di-set oleh blok validasi di atas
+        // $error udah diset di validasi atas
     } else {
-        // Prepared statement cek duplicate nilai
+        // cek duplikat nilai
         if (!isset($stmt_cek_nilai) || $stmt_cek_nilai === null) {
             $stmt_cek_nilai = mysqli_prepare($koneksi,
                 "SELECT id FROM nilai 
@@ -92,12 +92,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = "Nilai siswa ini untuk mata pelajaran dan semester tersebut sudah ada!";
         } else {
 
-            // RUMUS NILAI AKHIR: Harian 20% + UTS 25% + UAS 35% + Kehadiran 20%
+            // rumus nilai akhir: harian 20% + uts 25% + uas 35% + kehadiran 20%
             $akhir = round(($nh * 0.20) + ($uts * 0.25) + ($uas * 0.35) + ($kehadiran * 0.20), 2);
 
-            // Referensi pivot kelas_mapel_guru (kelas + mapel + guru + TA) — sumber kebenaran relasi
+            // pivot kelas_mapel_guru = sumber kebenaran relasi
             $kmg_sql = 'NULL';
-            // Prepared statement cek KMG existence
+            // cek kmg ada ga
             if (!isset($stmt_kmg_check) || $stmt_kmg_check === null) {
                 $stmt_kmg_check = mysqli_prepare($koneksi,
                     "SELECT id FROM kelas_mapel_guru
@@ -109,8 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mysqli_stmt_fetch($stmt_kmg_check);
             $kmg_sql = ($kmg_exist_id !== null) ? (int)$kmg_exist_id : 'NULL';
             if ($kmg_sql === 'NULL') {
-                // Auto-sinkron: buat penugasan pivot bila belum ada, agar nilai selalu terhubung
-                // (lanjut ke blok INSERT yang sudah di-migrasi di atas)
+                // auto-sinkron: bikin pivot kalo belum ada biar nilai selalu nyambung
             }
                 if (!isset($stmt_kmg_kkm) || $stmt_kmg_kkm === null) {
                     $stmt_kmg_kkm = mysqli_prepare($koneksi, "SELECT kkm FROM mata_pelajaran WHERE id=?");
@@ -122,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 mysqli_stmt_fetch($stmt_kmg_kkm);
                 $kkm_p = ($kkm_result !== null) ? (int)$kkm_result : 75;
 
-                // Prepared statement INSERT INTO kelas_mapel_guru
+                // insert pivot kelas_mapel_guru
                 if (!isset($stmt_kmg_insert) || $stmt_kmg_insert === null) {
                     $jam_default = 2;
                     $stmt_kmg_insert = mysqli_prepare($koneksi,
@@ -135,9 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($new_id) $kmg_sql = (int) $new_id;
             }
 
-            // SINKRONISASI COCOK: Memasukkan semua data utuh sesuai struktur database penyeimbang Anda
+            // insert semua data sesuai struktur db
             if ($ada_kolom_kehadiran) {
-                // Prepared statement INSERT INTO nilai dengan kolom kehadiran
+                // insert nilai (dengan kolom kehadiran)
                 if (!isset($stmt_nilai_ch) || $stmt_nilai_ch === null) {
                     $stmt_nilai_ch = mysqli_prepare($koneksi,
                         "INSERT INTO nilai 
@@ -148,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 mysqli_stmt_execute($stmt_nilai_ch);
             } else {
-                // Prepared statement INSERT INTO nilai tanpa kolom kehadiran
+                // insert nilai (tanpa kolom kehadiran)
                 if (!isset($stmt_nilai_nc) || $stmt_nilai_nc === null) {
                     $stmt_nilai_nc = mysqli_prepare($koneksi,
                         "INSERT INTO nilai 
@@ -328,14 +327,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 
 <script>
-// Fungsi Induk untuk memicu semua pengambilan data real-time saat kelas diganti
+// fungsi utama: muat ulang data real-time pas kelas diganti
 function jalankanOtomatisasiKelas() {
     getSiswaPerKelas();
     getMapelDanGuruPerKelas();
     muatKehadiranOtomatis(); // reset info kehadiran karena siswa/mapel berubah
 }
 
-// 1. Ambil data siswa berdasarkan kelas (Fungsi bawaan Anda sebelumnya)
+// 1. ambil data siswa by kelas
 function getSiswaPerKelas() {
     const kelasId = document.getElementById('kelas_id').value;
     const siswaSelect = document.getElementById('siswa_id');
@@ -359,7 +358,7 @@ function getSiswaPerKelas() {
     xhr.send();
 }
 
-// 1b. Ambil rekap kehadiran otomatis dari tabel absensi (Siswa + Mapel harus sudah dipilih)
+// 1b. rekap kehadiran dari absensi (siswa + mapel wajib terpilih)
 function muatKehadiranOtomatis() {
     const sid = document.getElementById('siswa_id').value;
     const mid = document.getElementById('mapel_id').value;
@@ -414,7 +413,7 @@ function muatKehadiranOtomatis() {
     xhr.send();
 }
 
-// 2. Ambil data Mata Pelajaran dan Guru secara otomatis berdasarkan jadwal di kelas tersebut
+// 2. ambil mapel & guru otomatis sesuai jadwal kelas
 function getMapelDanGuruPerKelas() {
     const kelasId = document.getElementById('kelas_id').value;
     const mapelSelect = document.getElementById('mapel_id');
@@ -438,14 +437,14 @@ function getMapelDanGuruPerKelas() {
             try {
                 const response = JSON.parse(xhr.responseText);
 
-                // Atur ulang teks bawaan awal
+                // reset teks bawaan
                 mapelSelect.innerHTML = '<option value="">-- Pilih Mata Pelajaran --</option>';
                 guruSelect.innerHTML = '<option value="">-- Pilih Guru --</option>';
 
                 window.__mapelGuruData = response || [];
 
                 if (response.length > 0) {
-                    // Loop 1: Tempel opsi mata pelajaran otomatis
+                    // loop 1: tempel opsi mapel otomatis
                     response.forEach(function(data) {
                         let optMapel = document.createElement('option');
                         optMapel.value = data.mapel_id;
@@ -453,7 +452,7 @@ function getMapelDanGuruPerKelas() {
                         mapelSelect.appendChild(optMapel);
                     });
 
-                    // Loop 2: isi guru sesuai mapel terpilih sekarang (atau kosong)
+                    // loop 2: isi guru sesuai mapel terpilih
                     updateGuruDropdown();
 
                     // Pastikan ketika mapel dipilih, guru otomatis ikut berubah

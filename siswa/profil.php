@@ -7,18 +7,18 @@ cekSiswa();
 $user_id = $_SESSION['user_id'] ?? 0;
 $title = "Profil Saya";
 
-// Get user data
+// ambil data user
 $query = "SELECT * FROM users WHERE id=$user_id";
 $result = mysqli_query($koneksi, $query);
 $user = mysqli_fetch_assoc($result);
 
-// Get siswa data via users.id_ref -> siswa.id
+// ambil data siswa via users.id_ref -> siswa.id
 $siswa_ref_id = (int)($user['id_ref'] ?? 0);
 $query_siswa = "SELECT * FROM siswa WHERE id=" . $siswa_ref_id;
 $result_siswa = mysqli_query($koneksi, $query_siswa);
 $siswa = $siswa_ref_id > 0 ? mysqli_fetch_assoc($result_siswa) : null;
 
-// â”€â”€ Upload Foto Profil (drag & drop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// upload foto profil (drag & drop)
 $foto_folder = __DIR__ . '/../assets/img/foto_siswa/';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_foto'])) {
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_foto'])) {
         } elseif ($file['size'] > 5 * 1024 * 1024) {
             $error = "Ukuran foto maksimal 5 MB.";
         } else {
-            // Hapus foto lama jika ada
+            // hapus foto lama kalo ada
             $foto_lama = $siswa['foto'] ?? '';
             if (!empty($foto_lama) && file_exists($foto_folder . $foto_lama)) {
                 @unlink($foto_folder . $foto_lama);
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_foto'])) {
                 $_SESSION['foto'] = $nama_file;
                 $siswa['foto'] = $nama_file;
                 $success = "Foto profil berhasil diperbarui!";
-                // PRG: redirect ke GET agar tidak ada "Confirm Form Resubmission"
+                // prg: redirect ke get biar ga ada confirm form resubmission
                 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
                 header("Pragma: no-cache");
                 header("Expires: 0");
@@ -60,22 +60,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_foto'])) {
     }
 }
 
-// â”€â”€ Path foto profil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// path foto profil
 $foto_file = $siswa['foto'] ?? '';
 $foto_src  = (!empty($foto_file) && file_exists($foto_folder . $foto_file))
     ? '/siakad/assets/img/foto_siswa/' . $foto_file
     : '';
 
-// Handle profile update
+// handle update profil
 $success = '';
 $error = '';
 
-// Tampilkan pesan sukses dari redirect (PRG)
+// tampilkan pesan sukses dari redirect (prg)
 if (isset($_GET['success'])) {
     $success = $_GET['success'];
 }
 
-// Handle profile update
+// handle update profil
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
     $nama = mysqli_real_escape_string($koneksi, $_POST['nama'] ?? '');
@@ -83,8 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profil'])) {
     if (empty($nama)) {
         $error = "Nama tidak boleh kosong!";
     } else {
-        // Nama siswa tersimpan di users.nama (akun) & siswa.nama/nama_lengkap
-        // (dipakai login/nav/rapor). Update keduanya agar konsisten & tersimpan.
+        // nama siswa tersimpan di users.nama & siswa.nama/nama_lengkap — update dua-duanya biar konsisten
         $update = mysqli_query($koneksi, "UPDATE users SET nama='$nama' WHERE id=$user_id");
         if ($update && $siswa_ref_id > 0) {
             mysqli_query($koneksi, "UPDATE siswa SET nama='$nama', nama_lengkap='$nama' WHERE id=$siswa_ref_id");
@@ -322,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Konfirmasi sebelum submit
+    // konfirmasi sebelum submit
     form.addEventListener('submit', function (e) {
         if (!input.files.length) {
             e.preventDefault();

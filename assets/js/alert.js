@@ -1,27 +1,16 @@
-/* ================================================================
-   SIA SMA NEGERI 4 PALOPO — alert.js
-   Sistem Alert Modern: Modal Konfirmasi + Toast Notification
-   Tanpa dependensi eksternal (tidak butuh SweetAlert2).
-   API:
-     siToast(type, message, title)
-     siSuccess(message, title) / siError / siWarning / siInfo
-     siConfirm(options)            → Promise<boolean>
-     siConfirmForm(event, options) → confirm lalu submit form
-     siHapus(url, nama)            → confirm lalu redirect
-     siLogout()                    → confirm lalu redirect ke logout
-   ================================================================ */
+// sistem alert modern (modal konfirmasi + toast) tanpa dependensi. api: siToast, siConfirm, siHapus, siLogout
 (function (window, document) {
     'use strict';
 
     var LOGOUT_URL = '/siakad/auth/logout.php';
 
-    /* ── CSRF token (dibaca dari <meta name="csrf-token">) ── */
+    // CSRF token (dibaca dari <meta name="csrf-token">)
     function getCsrfToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
         return meta ? meta.getAttribute('content') : '';
     }
 
-    /* Tambahkan parameter csrf_token ke URL (tidak menggandakan bila sudah ada) */
+    // Tambahkan parameter csrf_token ke URL (tidak menggandakan bila sudah ada)
     function appendCsrfToken(url) {
         var token = getCsrfToken();
         if (!token || !url) return url;
@@ -39,16 +28,14 @@
         logout:   { cls: 'sia-icon-logout',   icon: 'fa-right-from-bracket' }
     };
 
-    /* ── Escape HTML agar aman saat disisipkan ── */
+    // Escape HTML agar aman saat disisipkan
     function esc(str) {
         var d = document.createElement('div');
         d.textContent = (str == null) ? '' : String(str);
         return d.innerHTML;
     }
 
-    /* ════════════════════════════════════════════════════════════
-       MODAL — mengembalikan Promise<boolean>
-       ════════════════════════════════════════════════════════════ */
+    // MODAL — mengembalikan Promise<boolean>
     function modal(options) {
         options = options || {};
         var cfg       = ICONS[options.icon] || ICONS.info;
@@ -112,8 +99,7 @@
             };
             document.addEventListener('keydown', keyHandler, { once: true });
 
-            /* Fokus tombol cancel agar tombol Enter tidak mengeksekusi konfirmasi
-               sebelum pengguna menekan apa-apa (kecuali hanya satu tombol). */
+            // fokus tombol cancel biar tombol enter ga langsung ngejalanin konfirmasi
             var focusBtn = showCancel
                 ? overlay.querySelector('.sia-btn-cancel')
                 : overlay.querySelector('.sia-btn-confirm');
@@ -121,9 +107,7 @@
         });
     }
 
-    /* ════════════════════════════════════════════════════════════
-       TOAST — notifikasi modern di pojok kanan atas
-       ════════════════════════════════════════════════════════════ */
+    // TOAST — notifikasi modern di pojok kanan atas
     function toast(type, message, title, options) {
         options = options || {};
         var cfg    = ICONS[type] || ICONS.info;
@@ -177,16 +161,14 @@
         return el;
     }
 
-    /* ════════════════════════════════════════════════════════════
-       HELPERS PRAKTIS
-       ════════════════════════════════════════════════════════════ */
+    // HELPERS PRAKTIS
 
-    /* Confirm generik → Promise<boolean> */
+    // Confirm generik → Promise<boolean>
     function siConfirm(options) {
         return modal(options || {});
     }
 
-    /* Confirm lalu submit form yang sedang dalam event */
+    // Confirm lalu submit form yang sedang dalam event
     function siConfirmForm(event, options) {
         if (event && event.preventDefault) event.preventDefault();
         var form = null;
@@ -198,9 +180,7 @@
         });
     }
 
-    /* Confirm hapus lalu redirect ke URL.
-       Mengembalikan false agar dipakai aman sebagai `return siHapus(...)`
-       pada elemen <a href="..."> (mencegah navigasi default). */
+    // confirm hapus lalu redirect; return false biar aman dipake di <a href> (cegah navigasi default)
     function siHapus(url, nama) {
         var target = appendCsrfToken(url);
         modal({
@@ -218,8 +198,7 @@
         return false;
     }
 
-    /* Confirm logout lalu redirect ke auth/logout.php.
-       Mengembalikan false agar aman dipakai pada elemen <a>. */
+    // confirm logout lalu redirect; return false biar aman di elemen <a>
     function siLogout() {
         var target = appendCsrfToken(LOGOUT_URL);
         modal({
@@ -241,9 +220,7 @@
     function siWarning(message, title)  { return toast('warning', message, title || 'Perhatian'); }
     function siInfo(message, title)     { return toast('info', message, title || 'Informasi'); }
 
-    /* ════════════════════════════════════════════════════════════
-       EXPOSE — global & namespace
-       ════════════════════════════════════════════════════════════ */
+    // EXPOSE — global & namespace
     var SIAAlert = {
         modal: modal,
         confirm: siConfirm,

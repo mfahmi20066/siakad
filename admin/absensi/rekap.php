@@ -26,7 +26,6 @@ if ($kid) {
              GROUP BY s.id
              ORDER BY s.nama");
 
-    // Ambil nama kelas
     $nama_kelas = mysqli_fetch_assoc(mysqli_query($koneksi,
                   "SELECT nama_kelas FROM kelas WHERE id='$kid'"))['nama_kelas'];
 }

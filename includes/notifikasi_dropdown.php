@@ -1,9 +1,5 @@
 <?php
-/* ================================================================
-   Notifikasi Dropdown — shared partial (hasil mental HTML)
-   Widget ini dipakai di topbar_admin, topbar_guru, topbar_siswa.
-   Membutuhkan $koneksi aktif + session login.
-   ================================================================ */
+// widget notif dropdown, dipakai di topbar admin/guru/siswa. butuh $koneksi + session login
 if (!function_exists('notifikasi_get')) {
     include __DIR__ . '/notifikasi_functions.php';
 }

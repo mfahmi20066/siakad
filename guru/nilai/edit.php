@@ -2,14 +2,14 @@
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_periode_nilai.php';
-cekGuru(); // Memastikan hanya guru yang bisa akses
+cekGuru(); // cuma guru yang bisa akses
 $title = "Edit Nilai";
 
 $id  = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
-// Sesuaikan dengan session id_ref guru Anda
+// sesuaikan dengan session id_ref guru
 $gid = isset($_SESSION['id_ref']) ? $_SESSION['id_ref'] : (isset($_SESSION['guru_id']) ? $_SESSION['guru_id'] : '');
 
-// Prepared statement ambil data nilai dengan hak akses guru
+// ambil data nilai dengan hak akses guru
 if (!isset($stmt_nilai_cek) || $stmt_nilai_cek === null) {
     $stmt_nilai_cek = mysqli_prepare($koneksi,
         "SELECT n.*, s.nama_lengkap AS nama_siswa, s.nis, m.nama_mapel, k.nama_kelas
@@ -26,16 +26,16 @@ mysqli_stmt_execute($stmt_nilai_cek);
 mysqli_stmt_bind_result($stmt_nilai_cek, $n_id, $n_siswa_id, $n_mapel_id, $n_nilai_harian, $n_nilai_uts, $n_nilai_uas, $n_nilai_akhir, $n_nilai_kehadiran, $n_nilai_uh, $n_semester, $n_nama_siswa, $n_nis, $n_nama_mapel, $n_nama_kelas);
 mysqli_stmt_fetch($stmt_nilai_cek);
 
-// Jika data nilai tidak ditemukan atau bukan hak akses guru ini, kembalikan ke index
+// nilai ga ketemu / bukan hak guru ini? balik ke index
 if (!$data) {
     header("Location: index.php");
     exit();
 }
 
-// OTOMATIS: rekap kehadiran diambil langsung dari tabel absensi, untuk ditampilkan sebagai info
+// rekap kehadiran dari absensi, ditampilkan sebagai info
 $kehadiran_info = ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpa' => 0, 'total' => 0, 'persen' => 0];
 if (!empty($data['siswa_id']) && !empty($data['mapel_id'])) {
-    // Prepared statement ambil rekap kehadiran
+    // ambil rekap kehadiran
     if (!isset($stmt_abs_info) || $stmt_abs_info === null) {
         $stmt_abs_info = mysqli_prepare($koneksi,
             "SELECT SUM(status = 'Hadir') AS hadir,
@@ -67,15 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($uh < 0 || $uh > 100 || $uts < 0 || $uts > 100 || $uas < 0 || $uas > 100) {
         $error = "Nilai harus antara 0 sampai 100!";
     } else {
-        // Lock periode: guru hanya bisa edit ketika periode kelas dibuka admin.
+        // lock periode: guru cuma bisa edit kalo periode kelas dibuka admin
         $taData    = (int) ($data['tahun_ajaran_id'] ?? 0);
         $semData   = (int) ($data['semester'] ?? 1);
         $kelasData = (int) ($data['kelas_id'] ?? 0);
         if ($taData > 0 && $kelasData > 0 && !isPeriodeBuka($koneksi, $taData, $semData, $kelasData)) {
             $error = pesanNilaiTerkunci();
 } else {
-            // Finalisasi rapor: nilai tidak boleh berubah jika rapor semester ini sudah final.
-            // Prepared statement cek rapor final
+            // rapor final? nilai ga boleh berubah; cek rapor final
             if (!isset($stmt_rapor_final) || $stmt_rapor_final === null) {
                 $stmt_rapor_final = mysqli_prepare($koneksi,
                     "SELECT id FROM rapor WHERE siswa_id=? AND semester=? AND tahun_ajaran_id=? AND status='final' LIMIT 1");
@@ -89,9 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($rapor_final) {
                 $error = "Nilai tidak dapat diubah: rapor semester ini sudah difinalisasi.";
 } else {
-                // Kehadiran otomatis dari absensi (ikut menentukan 20% nilai akhir)
+                // kehadiran dari absensi (20% nilai akhir)
                 $kehadiran = 0;
-                // Prepared statement ambil rekap kehadiran untuk update
+                // ambil rekap kehadiran buat update
                 if (!isset($stmt_abs_update) || $stmt_abs_update === null) {
                     $stmt_abs_update = mysqli_prepare($koneksi,
                         "SELECT SUM(status = 'Hadir') AS hadir, COUNT(*) AS total
@@ -105,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     ? round(((int) $hadir / $total_abs) * 100, 2)
                     : 0;
 
-                // RUMUS NILAI AKHIR: Harian 20% + UTS 25% + UAS 35% + Kehadiran 20%
+                // rumus nilai akhir: harian 20% + uts 25% + uas 35% + kehadiran 20%
                 $akhir = round(($uh * 0.20) + ($uts * 0.25) + ($uas * 0.35) + ($kehadiran * 0.20), 2);
 
 $cek_uh_col = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
@@ -113,7 +112,7 @@ $cek_uh_col = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_uh'");
                 $cek_had_col = mysqli_query($koneksi, "SHOW COLUMNS FROM nilai LIKE 'nilai_kehadiran'");
                 $set_kehadiran_sql = (mysqli_num_rows($cek_had_col) > 0) ? "nilai_kehadiran='$kehadiran'," : "";
 
-                // Prepared statement UPDATE nilai
+                // update nilai
                 if (!isset($stmt_update_nilai) || $stmt_update_nilai === null) {
                     $stmt_update_nilai = mysqli_prepare($koneksi,
                         "UPDATE nilai SET nilai_harian = ?, nilai_uts = ?, nilai_uas = ?, $kolom_uh_sql nilai_akhir = ? WHERE id = ?");

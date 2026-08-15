@@ -1,5 +1,5 @@
 <?php
-// Path mundur diselaraskan khusus untuk letak folder guru/nilai/
+// path mundur disesuaikan buat letak folder guru/nilai/
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru();
@@ -8,7 +8,7 @@ $gid = isset($_SESSION['id_ref']) ? $_SESSION['id_ref'] : '';
 $kelas_id = isset($_GET['kelas_id']) ? mysqli_real_escape_string($koneksi, $_GET['kelas_id']) : '';
 
 if (!empty($kelas_id) && !empty($gid)) {
-    // Hanya menampilkan siswa yang kelasnya terdaftar di pivot mengajar guru ini
+    // cuma siswa yang kelasnya terdaftar di pivot ngajar guru ini
     $query = mysqli_query($koneksi, 
         "SELECT DISTINCT s.* FROM siswa s
          JOIN kelas_mapel_guru kmg ON kmg.kelas_id = s.kelas_id
@@ -18,7 +18,7 @@ if (!empty($kelas_id) && !empty($gid)) {
     if (mysqli_num_rows($query) > 0) {
         echo '<option value="">-- Pilih Siswa --</option>';
         while ($s = mysqli_fetch_assoc($query)) {
-            // Cek fleksibel keselarasan nama kolom database siswa Anda
+            // cek fleksibel nama kolom di tabel siswa
             $nama_tampil = '';
             if (isset($s['nama'])) { $nama_tampil = $s['nama']; }
             elseif (isset($s['nama_siswa'])) { $nama_tampil = $s['nama_siswa']; }

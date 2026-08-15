@@ -12,7 +12,7 @@ if (!$ekskul) {
     exit();
 }
 
-// â”€â”€ Tambah anggota â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// tambah anggota
 if (isset($_POST['tambah_anggota'])) {
     $siswa_id = (int) $_POST['siswa_id'];
     $tgl      = !empty($_POST['tanggal_bergabung']) ? mysqli_real_escape_string($koneksi, $_POST['tanggal_bergabung']) : 'NULL';

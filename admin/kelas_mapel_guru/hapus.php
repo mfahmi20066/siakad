@@ -18,7 +18,7 @@ if (!$row) {
     exit();
 }
 
-// Cek apakah penugasan sudah dipakai nilai (FK SET NULL, nilai tetap aman)
+// cek penugasan udah kepake nilai ga (fk set null, nilai aman)
 $jml_nilai = mysqli_fetch_row(mysqli_query($koneksi,
     "SELECT COUNT(*) FROM nilai WHERE kelas_mapel_guru_id = $id"))[0];
 

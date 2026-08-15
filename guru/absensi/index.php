@@ -4,19 +4,18 @@ include '../../config/session.php';
 cekGuru();
 $title = "Absensi";
 
-// SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang sah
+// pake id_ref sebagai id guru
 $gid  = $_SESSION['id_ref'];
 
 $filter_kelas = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 $filter_tgl   = isset($_GET['tanggal'])  ? $_GET['tanggal']  : '';
 
-// Perbaikan pembentukan klausa WHERE tanpa menembak langsung kolom a.guru_id
+// fix klausa where, ga nembak langsung a.guru_id
 $where = "WHERE kmg.guru_id = '$gid'";
 if ($filter_kelas) $where .= " AND a.kelas_id = '$filter_kelas'";
 if ($filter_tgl)   $where .= " AND a.tanggal   = '$filter_tgl'";
 
-// Join ke pivot kelas_mapel_guru agar menyaring data berdasarkan guru yang mengajar.
-// Data lama yang mapel_id-nya NULL (hasil input admin) juga tetap tampil selama kelasnya diajar guru ini.
+// join pivot kelas_mapel_guru biar nyaring per guru; data lama yang mapel_id null tetep tampil kalo kelasnya diajar guru ini
 $data = mysqli_query($koneksi,
         "SELECT a.*, s.nama, s.nis, k.nama_kelas
          FROM absensi a
@@ -32,17 +31,17 @@ if (!$data) {
     die("Query Error: " . mysqli_error($koneksi));
 }
 
-// Kelompokkan data per tanggal & kelas
+// kelompokkan data per tanggal & kelas
 $grouped = [];
 while ($r = mysqli_fetch_assoc($data)) {
     $grouped[$r['tanggal']][$r['kelas_id']][] = $r;
 }
 
-// Tampilkan semua kelas untuk filter (tidak dibatasi jadwal)
+// tampilkan semua kelas buat filter (ga dibatasi jadwal)
 $kelas_list = mysqli_query($koneksi,
     "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
-// Helper untuk mengubah status singkat (H/S/I/A) menjadi teks panjang
+// helper: ubah status singkat (H/S/I/A) jadi teks panjang
 function normalStatus($st) {
     if ($st == 'H') return 'Hadir';
     if ($st == 'S') return 'Sakit';

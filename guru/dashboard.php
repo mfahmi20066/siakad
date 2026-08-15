@@ -4,7 +4,7 @@ include '../config/session.php';
 cekGuru();
 $title = "Dashboard Guru";
 
-// ── FIX: ganti $gid → $id_guru ──────────────────────────────
+// fix: pake $id_guru, bukan $gid
 $id_guru = $_SESSION['id_ref'] ?? $_SESSION['guru_id'] ?? $_SESSION['user_id'] ?? 0;
 
 $guru = mysqli_fetch_assoc(mysqli_query($koneksi,
@@ -22,7 +22,7 @@ $jml_kelas  = mysqli_fetch_row(mysqli_query($koneksi,
 $pengumuman = mysqli_query($koneksi,
               "SELECT * FROM pengumuman ORDER BY tanggal DESC LIMIT 5");
 
-// Jadwal hari ini
+// jadwal hari ini
 $hari_map = ['Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu',
              'Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu'];
 $hari_ini = date('l');
@@ -212,7 +212,7 @@ $jadwal_hari_ini = mysqli_query($koneksi,
 </div>
 
 <?php
-// Tampilkan widget chatbot SiA Bot di halaman ini (footer.php bersifat kondisional)
+// tampilkan widget chatbot (footer.php kondisional)
 $show_chatbot = true;
 include '../includes/footer.php';
 ?>

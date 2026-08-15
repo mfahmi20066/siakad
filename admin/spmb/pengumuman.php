@@ -7,18 +7,18 @@ cekAdmin();
 
 $title = "Pengumuman SPMB";
 
-// Tahun ajaran aktif (dinamis dari master, bukan hardcode)
+// ta aktif (dinamis dari master, bukan hardcode)
 include '../../config/helper_tahun_ajaran.php';
 include '../../config/database.php';
 try { $taSpmb = getTahunAjaranAktif(tahun_ajaran_pdo()); $ta_spmb = $taSpmb['tahun']; $taId_spmb = (int)$taSpmb['id']; }
 catch (Throwable $e) { $ta_spmb = date('Y') . '/' . (date('Y') + 1); $taId_spmb = 0; }
 
-// Cek pengumuman aktif
+// cek pengumuman aktif
 $query_setting = mysqli_query($koneksi, "SELECT spmb_pengumuman_aktif FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 $pengumuman_aktif = $setting['spmb_pengumuman_aktif'] ?? 0;
 
-// Proses finalize
+// proses finalize
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
     $pendaftar_ids = $_POST['pendaftar_id'] ?? [];
     $action = $_POST['action'] ?? '';
@@ -32,14 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
         foreach ($pendaftar_ids as $id) {
             $id = (int)$id;
             
-            // Ambil data pendaftar
+            // ambil data pendaftar
             $query = mysqli_query($koneksi, "SELECT * FROM spmb_pendaftar WHERE id=$id");
             $pendaftar = mysqli_fetch_assoc($query);
             
             if (!$pendaftar) continue;
             
-            // Cegah state parsial: email pendaftar tidak boleh sudah dipakai akun users lain
-            // (users.email UNIQUE — INSERT users akan gagal diam-diam)
+            // cegah state parsial: email pendaftar ga boleh kepake akun lain (users.email unique, insert bakal gagal diam-diam)
             if ($action == 'diterima' && !empty($pendaftar['email'])) {
                 $email_cek = mysqli_real_escape_string($koneksi, $pendaftar['email']);
                 $q_dup = mysqli_query($koneksi, "SELECT id FROM users WHERE email='$email_cek'");
@@ -48,8 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                     continue;
                 }
             }
-            
-            // Update status
             $status_baru = ($action == 'diterima') ? 'diterima' : 'ditolak';
             $update = mysqli_query($koneksi, "UPDATE spmb_pendaftar SET status='$status_baru' WHERE id=$id");
             
@@ -57,18 +54,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                 $processed++;
                 
                 if ($action == 'diterima' && $pendaftar['email']) {
-                    // Generate username & password
+                    // generate username & password
                     $username = 'spmb' . date('Y') . $id;
                     $password = 'SiaSPMB' . rand(1000, 9999);
                     $password_hash = password_hash($password, PASSWORD_DEFAULT);
                     
-                    // Cek username unique
+                    // cek username unique
                     $cek_username = mysqli_query($koneksi, "SELECT id FROM users WHERE username='$username'");
                     if (mysqli_num_rows($cek_username) > 0) {
                         $username = 'spmb' . date('Y') . $id . rand(1, 99);
                     }
                     
-                    // Insert ke users
+                    // insert ke users
                     $insert_user = mysqli_query($koneksi, "INSERT INTO users 
                         (username, password, nama, role, status, email, wajib_ganti_password, created_at)
                         VALUES ('$username', '$password_hash', '{$pendaftar['nama_lengkap']}', 'siswa', 'aktif', '{$pendaftar['email']}', 1, NOW())");
@@ -76,13 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                     if ($insert_user) {
                         $user_id = mysqli_insert_id($koneksi);
                         
-                        // Update pendaftar dengan user_id_hasil
+                        // update pendaftar pake user_id_hasil
                         mysqli_query($koneksi, "UPDATE spmb_pendaftar SET user_id_hasil=$user_id WHERE id=$id");
                         
-                        // Insert ke siswa.
-                        // Kelas belum ditentukan di proses pengumuman â†’ kelas_id tetap NULL.
-                        // tahun_ajaran_id = tahun aktif (source of truth); teks = mirror legacy.
-                        // NIS dibangkitkan otomatis (NisGeneratorService).
+                        // insert ke siswa: kelas belum ditentukan (NULL), ta = tahun aktif (source of truth), nis otomatis dari NisGeneratorService
                         $tahunMasuk = ($ta_spmb !== '') ? (int) explode('/', $ta_spmb)[0] : (int) date('Y');
                         $nis_spmb = app_generate_nis_sementara($tahunMasuk);
                         $insert_siswa = mysqli_query($koneksi, "INSERT INTO siswa 
@@ -108,14 +102,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                             )");
                     
                     if ($insert_siswa) {
-                        // Hubungkan akun users ke data siswa (relasi id_ref) —
-                        // pola yang sama dengan akun siswa yang dibuat dari form admin
+                        // hubungkan akun users ke data siswa via id_ref (pola sama kayak akun siswa dari form admin)
                         $siswa_id = mysqli_insert_id($koneksi);
                         mysqli_query($koneksi, "UPDATE users SET id_ref=$siswa_id WHERE id=$user_id AND role='siswa'");
                     }
                     }
                     
-                    // Kirim email
+                    // kirim email
                     $subject = "Selamat! Anda Diterima di SMA Negeri 4 Palopo";
                     $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
                         . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
@@ -146,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['finalize'])) {
                         error_log("[SPMB Pengumuman] Gagal kirim email lolos ke {$pendaftar['email']}: " . $e->getMessage());
                     }
                 } elseif ($action == 'ditolak' && $pendaftar['email']) {
-                    // Kirim email ditolak
+                    // kirim email ditolak
                     $subject = "Hasil Seleksi SPMB - SMA Negeri 4 Palopo";
                     $body = "
                     Halo {$pendaftar['nama_lengkap']},<br><br>

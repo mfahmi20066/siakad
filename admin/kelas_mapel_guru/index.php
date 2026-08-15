@@ -5,17 +5,17 @@ include '../../config/helper_tahun_ajaran.php';
 cekAdmin();
 $title = "Penugasan Mapel per Kelas";
 
-// Tahun ajaran aktif
+// tahun ajaran aktif
 $taId = null;
 try { $taAktif = getTahunAjaranAktif(tahun_ajaran_pdo()); $taId = (int) $taAktif['id']; }
 catch (Throwable $e) { $taId = null; }
 
-// Kelas aktif untuk dropdown filter
+// kelas aktif buat dropdown filter
 $kelas_list = mysqli_query($koneksi, "SELECT * FROM kelas WHERE status='aktif' ORDER BY tingkat, nama_kelas");
 
 $kid = isset($_GET['kelas_id']) ? (int) $_GET['kelas_id'] : 0;
 
-// Data penugasan kelas terpilih
+// data penugasan kelas terpilih
 $data = null;
 $nama_kelas = '';
 $jurusan = '';

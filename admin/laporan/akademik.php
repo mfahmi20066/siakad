@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Laporan Akademik";
 
-// Data rekap: jumlah siswa, guru, kelas, mapel
+// rekap: jumlah siswa, guru, kelas, mapel
 $stat = [
     'siswa'   => (int) mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM siswa"))[0],
     'guru'    => (int) mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM guru"))[0],
@@ -12,7 +12,7 @@ $stat = [
     'mapel'   => (int) mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM mata_pelajaran"))[0],
 ];
 
-// Distribusi siswa per kelas
+// distribusi siswa per kelas
 $distribusi_kelas = mysqli_query($koneksi,
     "SELECT k.nama_kelas, COUNT(s.id) AS jml
      FROM kelas k
@@ -20,7 +20,7 @@ $distribusi_kelas = mysqli_query($koneksi,
      GROUP BY k.id
      ORDER BY k.tingkat, k.nama_kelas");
 
-// Rekap nilai rata-rata per kelas (dari nilai_akhir)
+// rekap rata-rata nilai per kelas
 $rekap_nilai = mysqli_query($koneksi,
     "SELECT k.nama_kelas, m.nama_mapel,
             ROUND(AVG(n.nilai_akhir), 2) AS rata,

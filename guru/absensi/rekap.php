@@ -4,14 +4,11 @@ include '../../config/session.php';
 cekGuru();
 $title = "Rekap Absensi";
 
-// FIX SESSION: Menggunakan id_ref untuk ID Guru agar tidak memicu error undefined
+// fix session: pake id_ref biar ga error undefined
 $gid = $_SESSION['id_ref'];
 $kid = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 
-// Mengambil daftar kelas untuk dropdown.
-// Tujuan: menampilkan semua kelas yang pernah ada datanya pada absensi guru,
-// sambil memastikan kelas tersebut memang milik guru via jadwal (filter guru saja).
-// Sumber kelas dari absensi; filter guru via pivot kelas_mapel_guru.
+// daftar kelas buat dropdown: semua kelas yang punya absensi guru ini (filter via jadwal)
 $kelas_list = mysqli_query($koneksi,
     "SELECT DISTINCT k.*
      FROM absensi a
@@ -26,7 +23,7 @@ $kelas_list = mysqli_query($koneksi,
 if ($kid) {
     $kid_clean = mysqli_real_escape_string($koneksi, $kid);
 
-    // PERBAIKAN QUERY REKAP: Menghubungkan absensi ke jadwal untuk validasi guru mengajar (menghapus a.guru_id)
+    // fix query rekap: hubungkan absensi ke jadwal buat validasi guru ngajar
     $query_rekap = "SELECT s.nis, s.nama,
                         SUM(CASE WHEN a.status='Hadir' OR a.status='H' THEN 1 ELSE 0 END) AS hadir,
                         SUM(CASE WHEN a.status='Sakit' OR a.status='S' THEN 1 ELSE 0 END) AS sakit,
@@ -46,7 +43,7 @@ if ($kid) {
         die("Query Error: " . mysqli_error($koneksi));
     }
 
-    // Mengambil nama kelas aktif
+    // ambil nama kelas aktif
     $q_nama_kelas = mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id='$kid_clean'");
     $res_kelas = mysqli_fetch_assoc($q_nama_kelas);
     $nama_kelas = $res_kelas ? $res_kelas['nama_kelas'] : 'Unknown';

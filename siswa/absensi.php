@@ -5,20 +5,20 @@ cekSiswa();
 
 $id_siswa   = $_SESSION['id_ref'] ?? $_SESSION['id_siswa'] ?? $_SESSION['user_id'] ?? 0;
 
-// Fix: Paksa input bulan menjadi tipe data Integer (Menghilangkan angka 0 di depan seperti '05' menjadi 5)
+// fix: paksa bulan jadi integer (buang nol di depan, '05' -> 5)
 $bulan      = isset($_GET['bulan']) ? (int)$_GET['bulan'] : (int)date('n'); 
 $tahun      = isset($_GET['tahun']) ? (int)$_GET['tahun'] : (int)date('Y');
 
 $bulan_nama = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-// Ambil data siswa
+// ambil data siswa
 $res   = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id='$id_siswa'");
 $siswa = mysqli_fetch_assoc($res) ?: [];
 $siswa['nama_lengkap'] = $siswa['nama_lengkap'] ?? $siswa['nama'] ?? $_SESSION['nama'] ?? '-';
 $siswa['nis']          = $siswa['nis'] ?? '-';
 
-// Ambil nama kelas
+// ambil nama kelas
 $nama_kelas = '-';
 $id_kelas   = $siswa['id_kelas'] ?? $siswa['kelas_id'] ?? 0;
 if ($id_kelas) {
@@ -27,42 +27,42 @@ if ($id_kelas) {
     $nama_kelas = $dk['nama_kelas'] ?? $dk['nama'] ?? '-';
 }
 
-// â”€â”€ Deteksi nama kolom di tabel absensi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// deteksi nama kolom di tabel absensi
 $cols_res = mysqli_query($koneksi, "SHOW COLUMNS FROM absensi");
 $cols = [];
 while ($c = mysqli_fetch_assoc($cols_res)) $cols[] = $c['Field'];
 
-// Tentukan nama kolom id siswa
+// tentuin nama kolom id siswa
 $col_siswa = 'id_siswa';
 foreach (['id_siswa','siswa_id','id_murid','murid_id','nis'] as $try) {
     if (in_array($try, $cols)) { $col_siswa = $try; break; }
 }
 
-// Tentukan nama kolom tanggal
+// tentuin nama kolom tanggal
 $col_tgl = 'tanggal';
 foreach (['tanggal','tgl','tgl_absen','date','tanggal_absen'] as $try) {
     if (in_array($try, $cols)) { $col_tgl = $try; break; }
 }
 
-// Tentukan nama kolom status
+// tentuin nama kolom status
 $col_status = 'status';
 foreach (['status','keterangan_absen','hadir','kehadiran'] as $try) {
     if (in_array($try, $cols)) { $col_status = $try; break; }
 }
 
-// Tentukan kolom mapel (optional)
+// tentuin kolom mapel (opsional)
 $col_mapel = null;
 foreach (['id_mapel','mapel_id','id_mata_pelajaran'] as $try) {
     if (in_array($try, $cols)) { $col_mapel = $try; break; }
 }
 
-// Tentukan kolom keterangan (optional)
+// tentuin kolom keterangan (opsional)
 $col_ket = null;
 foreach (['keterangan','catatan','note'] as $try) {
     if (in_array($try, $cols)) { $col_ket = $try; break; }
 }
 
-// â”€â”€ Ambil absensi siswa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ambil absensi siswa
 $data_absen = [];
 $jumlah     = ['H'=>0,'I'=>0,'S'=>0,'A'=>0];
 

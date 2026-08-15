@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekGuru();
 $title = "Pengumuman";
 
-// QUERY SAPU BERSIH: Tanpa JOIN agar 100% bebas dari error kolom database mana pun
+// query tanpa join biar 100% bebas error kolom
 $data = mysqli_query($koneksi, "SELECT * FROM pengumuman ORDER BY tanggal DESC");
 
 if (!$data) {

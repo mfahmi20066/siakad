@@ -2,25 +2,25 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 include '../config/koneksi.php';
 
-// Auth check: wajib login (admin/guru/siswa) atau token valid
+// auth: wajib login (admin/guru/siswa) atau token valid
 if (!isset($_SESSION['user_id'])) {
     http_response_code(403);
     die('Unauthorized: Silakan login terlebih dahulu.');
 }
 
-// Security: Validate input parameters
+// validasi parameter input
 $pendaftar_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $jenis_dokumen = isset($_GET['jenis']) ? preg_replace('/[^a-z_]/', '', $_GET['jenis']) : '';
 $no_pendaftaran = isset($_GET['no']) ? mysqli_real_escape_string($koneksi, $_GET['no']) : '';
 $tanggal_lahir = isset($_GET['tgl']) ? mysqli_real_escape_string($koneksi, $_GET['tgl']) : '';
 
-// Validasi parameter
+// validasi parameter
 if (!$pendaftar_id || !$jenis_dokumen || !$no_pendaftaran || !$tanggal_lahir) {
     http_response_code(400);
     die('Invalid parameters');
 }
 
-// Verify pendaftar with no_pendaftaran + tanggal_lahir (security check)
+// verifikasi pendaftar pake no_pendaftaran + tanggal_lahir (security check)
 $query = "SELECT sp.id FROM spmb_pendaftar sp 
           WHERE sp.id=$pendaftar_id 
           AND sp.no_pendaftaran='$no_pendaftaran' 
@@ -32,7 +32,7 @@ if (!$result || mysqli_num_rows($result) == 0) {
     die('Unauthorized access');
 }
 
-// Get document file path from database
+// ambil path file dokumen dari db
 $query_doc = "SELECT path_file FROM spmb_dokumen 
               WHERE pendaftar_id=$pendaftar_id 
               AND jenis_dokumen='$jenis_dokumen'";
@@ -46,11 +46,11 @@ if (!$result_doc || mysqli_num_rows($result_doc) == 0) {
 $doc = mysqli_fetch_assoc($result_doc);
 $file_path = $doc['path_file'];
 
-// Build full file path
+// susun path file lengkap
 $base_dir = dirname(__FILE__) . '/../uploads/spmb/' . $pendaftar_id . '/';
 $full_path = $base_dir . $file_path;
 
-// Security: Prevent directory traversal
+// cegah directory traversal
 $real_path = realpath($full_path);
 $real_base = realpath($base_dir);
 
@@ -59,10 +59,10 @@ if (!$real_path || strpos($real_path, $real_base) !== 0 || !file_exists($real_pa
     die('File not found');
 }
 
-// Get file extension
+// ambil ekstensi file
 $file_ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
 
-// Set content type
+// set content type
 $content_types = [
     'pdf' => 'application/pdf',
     'jpg' => 'image/jpeg',
@@ -72,14 +72,14 @@ $content_types = [
 
 $content_type = $content_types[$file_ext] ?? 'application/octet-stream';
 
-// Send file
+// kirim file
 header('Content-Type: ' . $content_type);
 header('Content-Length: ' . filesize($real_path));
 header('Content-Disposition: attachment; filename="' . $file_path . '"');
 header('Cache-Control: no-cache, must-revalidate');
 header('Pragma: no-cache');
 
-// Output file
+// output file
 readfile($real_path);
 exit();
 ?>

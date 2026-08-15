@@ -11,13 +11,13 @@ use Dompdf\Options;
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// Jika tidak ada id, coba cari dari parameter form (nama_kelas, nama, semester, ta)
+// ga ada id? cari dari parameter form (nama_kelas, nama, semester, ta)
 if (!$id && isset($_GET['nama_kelas']) && isset($_GET['nama'])) {
     $nk = mysqli_real_escape_string($koneksi, trim($_GET['nama_kelas']));
     $nm = mysqli_real_escape_string($koneksi, trim($_GET['nama']));
     $sm = mysqli_real_escape_string($koneksi, $_GET['semester'] ?? '1');
     $ta = mysqli_real_escape_string($koneksi, $_GET['ta'] ?? '');
-    // Resolve tahun (legacy string) ke ID master; query utama tetap pakai id.
+    // resolve tahun (string legacy) ke id master; query utama tetep pake id
     $taId = 0;
     if ($ta !== '') {
         $qta = mysqli_query($koneksi, "SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran='$ta' LIMIT 1");
@@ -31,12 +31,12 @@ if (!$id && isset($_GET['nama_kelas']) && isset($_GET['nama'])) {
     $found = mysqli_fetch_assoc($q);
     $id = $found['id'] ?? '';
     if ($ta === '') { $id = ''; }
-    // Tandai bahwa mode ini datang dari form kelas (tanpa id rapor, boleh belum ada record rapor)
+    // mode dari form kelas (tanpa id rapor, boleh belum ada record)
     if (!empty($id)) $mode_form = ['nama_kelas' => $nk, 'nama' => $nm, 'semester' => $sm, 'ta' => $ta];
 }
 
 if (!empty($mode_form)) {
-    // Mode cetak via kelas: ambil siswa (selalu ada), lengkapi data rapor bila tersedia
+    // mode cetak via kelas: ambil siswa, lengkapi rapor kalo ada
     $rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
              "SELECT s.id AS id_siswa, s.nis, s.nisn, s.nama, s.nama_lengkap,
                      s.jenis_kelamin, s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
@@ -57,7 +57,7 @@ if (!empty($mode_form)) {
         die("Data siswa tidak ditemukan.");
     }
 
-    // Fallback semester & tahun ajaran bila belum ada record rapor
+    // fallback semester & ta kalo belum ada record rapor
     $rapor['semester']     = !empty($rapor['semester']) ? $rapor['semester'] : $mode_form['semester'];
     $rapor['tahun_ajaran'] = !empty($rapor['tahun_ajaran']) ? $rapor['tahun_ajaran'] : $mode_form['ta'];
     $rapor['tahun_ajaran_id'] = !empty($rapor['tahun_ajaran_id']) ? $rapor['tahun_ajaran_id'] : $taId;
@@ -118,7 +118,7 @@ function romawi_pdf($n) {
     return $map[$n] ?? (string)$n;
 }
 
-// Bangun baris nilai
+// bangun baris nilai
 $rows = '';
 $no = 1; $total_na = 0; $jml_mapel = 0;
 $kelompok_aktif = null; $urutan_grup = 0;

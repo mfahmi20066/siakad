@@ -6,9 +6,7 @@ cekAdmin();
 $action = isset($_GET['action']) ? $_GET['action'] : 'form';
 $format = isset($_GET['format']) ? $_GET['format'] : 'pdf';
 
-// ===================================================================
-// Halaman FORM — Pilih format cetak
-// ===================================================================
+// halaman form: pilih format cetak
 if ($action === 'form'):
 ?>
 <?php
@@ -78,17 +76,13 @@ include '../../includes/sidebar_admin.php';
 exit;
 endif;
 
-// ===================================================================
-// Halaman CETAK — Menampilkan / mendownload data siswa
-// ===================================================================
+// halaman cetak: menampilkan / download data siswa
 
-// Ambil setting sekolah
+// ambil setting sekolah
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting   = mysqli_fetch_assoc($q_setting);
 
-// ===================================================================
-// MODE EXCEL (XLSX)
-// ===================================================================
+// mode excel (xlsx)
 if ($format === 'excel'):
 
 require_once __DIR__ . '/../../config/helper_xlsx.php';
@@ -127,9 +121,7 @@ export_xlsx('Data_Siswa_' . date('Y-m-d'), ['Data Siswa' => ['rows' => $rows, 'h
 exit;
 endif;
 
-// ===================================================================
-// MODE UNDUH PDF (dompdf) — format seragam dengan cetak rapor
-// ===================================================================
+// mode unduh pdf (dompdf), format seragam sama cetak rapor
 if ($format === 'pdf' && isset($_GET['download']) && $_GET['download'] === '1'):
 
 header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -238,9 +230,7 @@ $dompdf->stream('Data_Siswa_' . date('Y-m-d') . '.pdf', ['Attachment' => true]);
 exit;
 endif;
 
-// ===================================================================
-// MODE PDF (HTML + CSS print-friendly)
-// ===================================================================
+// mode pdf (html + css print-friendly)
 ?>
 <!DOCTYPE html>
 <html lang="id">

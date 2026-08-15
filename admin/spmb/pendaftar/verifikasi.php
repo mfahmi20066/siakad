@@ -10,7 +10,7 @@ if ($id <= 0) {
     exit();
 }
 
-// Query pendaftar
+// query pendaftar
 $query = "SELECT sp.*, sj.dokumen_wajib, sj.nama_jalur 
           FROM spmb_pendaftar sp
           LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
@@ -24,7 +24,7 @@ if (!$data || mysqli_num_rows($data) == 0) {
 
 $pendaftar = mysqli_fetch_assoc($data);
 
-// Ambil status verifikasi dokumen yang sudah ada
+// ambil status verifikasi dokumen yang udah ada
 $query_dokumen = mysqli_query($koneksi, "SELECT * FROM spmb_dokumen WHERE pendaftar_id=$id");
 $uploaded_docs = [];
 $status_verifikasi = [];
@@ -35,7 +35,7 @@ if ($query_dokumen) {
     }
 }
 
-// Proses simpan verifikasi
+// proses simpan verifikasi
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             }
         }
         
-        // Update status pendaftar
+        // update status pendaftar
         if ($all_valid) {
             mysqli_query($koneksi, "UPDATE spmb_pendaftar SET status='diverifikasi' WHERE id=$id");
             $success = "Semua dokumen terverifikasi dan valid!";
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         
         if ($update) {
             $success = "Status pendaftar berhasil diperbarui menjadi: " . ucfirst(str_replace('_', ' ', $status_baru));
-            // Reload data pendaftar
+            // reload data pendaftar
             $query = "SELECT sp.*, sj.dokumen_wajib, sj.nama_jalur 
                       FROM spmb_pendaftar sp
                       LEFT JOIN spmb_jalur sj ON sp.jalur_id = sj.id
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Proses re-upload
+// proses re-upload
 if (isset($_GET['upload'])) {
     header("Location: /siakad/spmb/upload-dokumen.php");
     exit();

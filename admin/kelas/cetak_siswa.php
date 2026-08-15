@@ -6,9 +6,7 @@ cekAdmin();
 $action = isset($_GET['action']) ? $_GET['action'] : 'form';
 $format = isset($_GET['format']) ? $_GET['format'] : 'pdf';
 
-// ===================================================================
-// Halaman FORM — Pilih format cetak
-// ===================================================================
+// halaman form: pilih format cetak
 if ($action === 'form'):
 ?>
 <?php
@@ -73,24 +71,20 @@ include '../../includes/sidebar_admin.php';
 exit;
 endif;
 
-// ===================================================================
-// Halaman CETAK — Menampilkan / mendownload data siswa per kelas
-// ===================================================================
+// halaman cetak: menampilkan / download data siswa per kelas
 
-// Ambil semua kelas diurutkan berdasarkan tingkat dan nama_kelas
+// ambil semua kelas, urut tingkat & nama
 $kelas_list = mysqli_query($koneksi,
     "SELECT k.*, g.nama AS wali 
      FROM kelas k 
      LEFT JOIN guru g ON k.wali_kelas = g.id 
      ORDER BY k.tingkat, k.nama_kelas");
 
-// Ambil setting sekolah
+// ambil setting sekolah
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting   = mysqli_fetch_assoc($q_setting);
 
-// ===================================================================
-// MODE EXCEL (XLSX)
-// ===================================================================
+// mode excel (xlsx)
 if ($format === 'excel'):
 
 require_once __DIR__ . '/../../config/helper_xlsx.php';
@@ -108,7 +102,7 @@ $headerIdx = count($rows);
 
 $no_global = 0;
 while ($kelas = mysqli_fetch_assoc($kelas_list)):
-    // Ambil siswa per kelas
+    // ambil siswa per kelas
     $siswa_query = mysqli_query($koneksi,
         "SELECT * FROM siswa 
          WHERE kelas_id = '{$kelas['id']}' 
@@ -136,9 +130,7 @@ export_xlsx('Data_Siswa_per_Kelas_' . date('Y-m-d'), ['Data Siswa' => ['rows' =>
 exit;
 endif;
 
-// ===================================================================
-// MODE PDF (HTML + CSS print-friendly)
-// ===================================================================
+// mode pdf (html + css print-friendly)
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -154,7 +146,7 @@ body {
     color: #000;
 }
 
-/* â”€â”€ Tombol non-print â”€â”€ */
+/* tombol non-print */
 .no-print {
     margin-bottom: 15px;
 }
@@ -181,7 +173,7 @@ body {
     text-decoration: none;
 }
 
-/* â”€â”€ Kop surat â”€â”€ */
+/* kop surat */
 .kop {
     display: flex;
     align-items: center;
@@ -205,7 +197,7 @@ body {
     margin: 10px 0 15px;
 }
 
-/* â”€â”€ Blok per kelas â”€â”€ */
+/* blok per kelas */
 .kelas-section {
     margin-bottom: 25px;
     page-break-inside: avoid;
@@ -227,7 +219,7 @@ body {
     font-size: 11px;
 }
 
-/* â”€â”€ Tabel â”€â”€ */
+/* tabel */
 table.data-table {
     width: 100%;
     border-collapse: collapse;
@@ -248,7 +240,7 @@ table.data-table {
 }
 .text-center { text-align: center; }
 
-/* â”€â”€ Footer ttd â”€â”€ */
+/* footer ttd */
 .footer-ttd {
     margin-top: 30px;
     width: 100%;
@@ -322,7 +314,7 @@ $no_global = 0;
 $total_seluruh = 0;
 
 while ($kelas = mysqli_fetch_assoc($kelas_list)):
-    // Ambil siswa per kelas
+    // ambil siswa per kelas
     $siswa_query = mysqli_query($koneksi,
         "SELECT * FROM siswa 
          WHERE kelas_id = '{$kelas['id']}' 

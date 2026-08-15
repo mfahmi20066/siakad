@@ -5,10 +5,10 @@ include '../../config/helper_periode_nilai.php';
 cekGuru();
 $title = "Nilai Siswa";
 
-// SINKRONISASI SESSION: Menggunakan id_ref sebagai ID Guru yang login
+// pake id_ref sebagai id guru yang login
 $gid  = $_SESSION['id_ref'];
 
-// Hubungkan relasi lewat pivot kelas_mapel_guru (sumber kebenaran kelas-mapel-guru)
+// hubungkan via pivot kelas_mapel_guru (sumber kebenaran)
 if (!isset($stmt_guru_nilai) || $stmt_guru_nilai === null) {
     $stmt_guru_nilai = mysqli_prepare($koneksi,
         "SELECT n.*, s.nama, s.nis, m.nama_mapel, k.nama_kelas
@@ -25,7 +25,7 @@ if (!isset($stmt_guru_nilai) || $stmt_guru_nilai === null) {
 mysqli_stmt_execute($stmt_guru_nilai);
 $data = mysqli_stmt_get_result($stmt_guru_nilai);
 
-// Cache status periode per (kelas, semester) untuk menghindari query berulang
+// cache status periode per (kelas, semester) biar ga query berulang
 $periode_cache = [];
 while ($row = mysqli_fetch_assoc($data)) {
     $kunci = (int)$row['kelas_id'] . ':' . (int)$row['semester'] . ':' . (int)$row['tahun_ajaran_id'];

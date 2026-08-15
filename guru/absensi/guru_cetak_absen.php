@@ -10,7 +10,7 @@ $id_kelas   = $_GET['id_kelas'] ?? '';
 $bulan_nama = ['','Januari','Februari','Maret','April','Mei','Juni',
                'Juli','Agustus','September','Oktober','November','Desember'];
 
-// Kelas yang diajarkan guru ini (1 baris per kelas — mapel digabung via GROUP_CONCAT)
+// kelas yang diajar guru ini (1 baris per kelas, mapel digabung group_concat)
 $q_jadwal = mysqli_query($koneksi,
     "SELECT k.id AS id_kelas, k.nama_kelas,
             GROUP_CONCAT(DISTINCT mp.nama_mapel ORDER BY mp.nama_mapel SEPARATOR ', ') AS nama_mapel
@@ -35,7 +35,7 @@ if ($id_kelas) {
     $rs = mysqli_query($koneksi, "SELECT * FROM siswa WHERE kelas_id='$id_kelas' ORDER BY nama_lengkap");
     while ($s = mysqli_fetch_assoc($rs)) $data_siswa[] = $s;
 
-    // Data absensi kelas ini milik guru (validasi via EXISTS ke jadwal, mapel NULL ikut tampil)
+    // data absensi milik guru (validasi via exists ke jadwal, mapel null ikut tampil)
     $ra = mysqli_query($koneksi,
         "SELECT a.*, s.nama_lengkap, s.nis
          FROM absensi a

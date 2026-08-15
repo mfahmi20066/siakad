@@ -9,18 +9,18 @@ $error = '';
 $success = '';
 $no_pendaftaran = '';
 
-// Ambil data pengaturan SPMB
+// ambil data pengaturan spmb
 $query_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id = 1");
 $setting = mysqli_fetch_assoc($query_setting);
 $spmb_aktif = $setting['spmb_aktif'] ?? 0;
 
-// Jika SPMB tidak aktif, redirect
+// spmb nonaktif? redirect
 if ($spmb_aktif != 1) {
     header("Location: /siakad/index.php");
     exit();
 }
 
-// Ambil data gelombang aktif yang masih dalam periode buka
+// gelombang aktif yang masih dalam periode buka
 $query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang 
     WHERE status='aktif' 
       AND tanggal_mulai <= CURDATE() 
@@ -28,10 +28,10 @@ $query_gelombang = mysqli_query($koneksi, "SELECT * FROM spmb_gelombang
     ORDER BY tanggal_mulai ASC");
 $query_jalur = mysqli_query($koneksi, "SELECT * FROM spmb_jalur ORDER BY id ASC");
 
-// Proses form submit
+// proses form submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     verifyCsrf();
-    // Validasi input
+    // validasi input
     $nama_lengkap = mysqli_real_escape_string($koneksi, $_POST['nama_lengkap'] ?? '');
     $nisn = mysqli_real_escape_string($koneksi, $_POST['nisn'] ?? '');
     $nik = mysqli_real_escape_string($koneksi, $_POST['nik'] ?? '');
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gelombang_id = (int) $_POST['gelombang_id'];
     $jalur_id = (int) $_POST['jalur_id'];
     
-    // Ambil nama gelombang dan jalur untuk email
+    // ambil nama gelombang & jalur buat email
     $q_gelombang = mysqli_query($koneksi, "SELECT nama_gelombang FROM spmb_gelombang WHERE id=$gelombang_id");
     $gelombang_data = mysqli_fetch_assoc($q_gelombang);
     $gelombang_name = $gelombang_data['nama_gelombang'] ?? 'N/A';
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jalur_data = mysqli_fetch_assoc($q_jalur);
     $jalur_name = $jalur_data['nama_jalur'] ?? 'N/A';
     
-    // Validasi required fields
+    // validasi field wajib
     if (empty($nama_lengkap) || empty($nik) || empty($tanggal_lahir) || empty($email) || empty($gelombang_id) || empty($jalur_id)) {
         $error = "Harap lengkapi semua field yang wajib diisi!";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (strlen($nik) != 16) {
         $error = "NIK harus terdiri dari 16 digit!";
     } else {
-        // Validasi gelombang aktif & periode buka (server-side, jangan percaya UI)
+        // validasi gelombang aktif & periode buka (server-side, jangan percaya ui)
         $q_gel_cek = mysqli_query($koneksi, "SELECT id FROM spmb_gelombang 
             WHERE id=$gelombang_id AND status='aktif' 
               AND tanggal_mulai <= CURDATE() 
@@ -71,19 +71,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!$q_gel_cek || mysqli_num_rows($q_gel_cek) == 0) {
             $error = "Gelombang yang dipilih tidak tersedia atau sudah ditutup.";
         } else {
-        // Cek email sudah terdaftar
+        // cek email udah terdaftar
         $cek_email = mysqli_query($koneksi, "SELECT id FROM spmb_pendaftar WHERE email='$email'");
         if (mysqli_num_rows($cek_email) > 0) {
             $error = "Email sudah terdaftar di sistem SPMB! Gunakan email lain.";
         } else {
-            // Generate nomor pendaftaran
+            // generate nomor pendaftaran
             $query_max = mysqli_query($koneksi, "SELECT MAX(id) as max_id FROM spmb_pendaftar");
             $row = mysqli_fetch_assoc($query_max);
             $next_id = ($row['max_id'] ?? 0) + 1;
             $tahun = date('Y');
             $no_pendaftaran = "SPMB-$tahun-" . str_pad($next_id, 5, '0', STR_PAD_LEFT);
             
-            // Insert ke database
+            // insert ke database
             $insert = mysqli_query($koneksi, "INSERT INTO spmb_pendaftar 
                 (no_pendaftaran, gelombang_id, jalur_id, nama_lengkap, nisn, nik, tempat_lahir, tanggal_lahir, 
                  jenis_kelamin, asal_sekolah, alamat, nama_ortu, no_hp_ortu, email, status)
@@ -93,14 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                  '$email', 'menunggu_dokumen')");
             
             if ($insert) {
-                // Ambil ID pendaftar yang baru saja ditambahkan
+                // ambil id pendaftar yang barusan dibuat
                 $pendaftar_id = mysqli_insert_id($koneksi);
                 
-                // URL dasar dinamis (hindari hardcode localhost)
+                // url dasar dinamis (hindari hardcode localhost)
                 $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
                     . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
                 
-                // Kirim email
+                // kirim email
                 $subject = "Nomor Pendaftaran SPMB SMA Negeri 4 Palopo";
                 $body = "
                 Halo $nama_lengkap,<br><br>
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     kirimEmail($email, $subject, $body);
                 } catch (\RuntimeException $e) {
                     error_log("[SPMB Daftar] Gagal kirim email konfirmasi ke $email: " . $e->getMessage());
-                    // Tetap lanjutkan proses, jangan gagalkan pendaftaran
+                    // tetep lanjut, jangan gagalkan pendaftaran
                 }
                 $success = "Pendaftaran berhasil! Nomor pendaftaran Anda: <strong>$no_pendaftaran</strong>";
                 $show_success = true;

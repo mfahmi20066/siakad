@@ -6,19 +6,19 @@ $title = "Edit Rapor";
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// â”€â”€ Cek kolom yang ada di tabel rapor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// cek kolom yang ada di tabel rapor
 $cols_res = mysqli_query($koneksi, "SHOW COLUMNS FROM rapor");
 $cols = [];
 while ($c = mysqli_fetch_assoc($cols_res)) $cols[] = $c['Field'];
 
-// Tentukan nama kolom catatan yang benar
+// tentuin nama kolom catatan yang bener
 $col_catatan = in_array('catatan_wali', $cols) ? 'catatan_wali'
              : (in_array('catatan', $cols) ? 'catatan' : 'catatan_wali');
 
-// Tentukan nama kolom status yang benar
+// tentuin nama kolom status yang bener
 $col_status = in_array('status', $cols) ? 'status' : 'status';
 
-// â”€â”€ Ambil data rapor dengan LEFT JOIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ambil data rapor dengan left join
 $data = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT r.*,
             COALESCE(s.nama_lengkap, s.nama, '') AS nama_siswa,
@@ -34,7 +34,7 @@ if (!$data) {
     exit();
 }
 
-// â”€â”€ Proses simpan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// proses simpan
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cat = mysqli_real_escape_string($koneksi, $_POST['catatan'] ?? '');
     $st  = mysqli_real_escape_string($koneksi, $_POST['status'] ?? 'draft');
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $ada_kolom_kepribadian = in_array('kerajinan', $cols);
 
-    // Update pakai nama kolom yang benar
+    // update pake nama kolom yang bener
     if ($ada_kolom_kepribadian) {
         $q = mysqli_query($koneksi,
             "UPDATE rapor 
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
-// Nilai catatan saat ini
+// nilai catatan saat ini
 $catatan_saat_ini = $data[$col_catatan] ?? $data['catatan_wali'] ?? $data['catatan'] ?? '';
 $status_saat_ini  = $data[$col_status] ?? 'draft';
 ?>

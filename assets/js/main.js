@@ -1,18 +1,16 @@
-/* ================================================================
-   SIA SMA NEGERI 4 PALOPO — main.js
-   ================================================================ */
+﻿// SIA SMA NEGERI 4 PALOPO — main.js
 
-/* ── Konfirmasi Logout (Alert System modern) ── */
+// Konfirmasi Logout (Alert System modern)
 function konfirmasiLogout() {
     siLogout();
 }
 
-/* ── Konfirmasi Hapus (Alert System modern) ── */
+// Konfirmasi Hapus (Alert System modern)
 function konfirmasiHapus(url, nama) {
     siHapus(url, nama);
 }
 
-/* ── CSRF: sisipkan token ke semua form agar submit aman ── */
+// CSRF: sisipkan token ke semua form agar submit aman
 function initCsrfInjection() {
     var meta = document.querySelector('meta[name="csrf-token"]');
     if (!meta) return;
@@ -30,7 +28,7 @@ function initCsrfInjection() {
 }
 
 
-/* ── Auto-hide alert .alert-auto setelah 3 detik ── */
+// Auto-hide alert .alert-auto setelah 3 detik
 function initAlertAutohide() {
     var alerts = document.querySelectorAll('.alert-auto');
     if (!alerts.length) return;
@@ -47,7 +45,7 @@ function initAlertAutohide() {
 }
 
 
-/* ── Sidebar toggle (mobile) ── */
+// Sidebar toggle (mobile)
 function toggleSidebar() {
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
@@ -57,7 +55,7 @@ function toggleSidebar() {
     if (overlay) overlay.classList.toggle('show');
 }
 
-/* ── Sidebar collapse (desktop) ── */
+// Sidebar collapse (desktop)
 function toggleSidebarCollapse() {
     var body = document.body;
     body.classList.toggle('sidebar-collapsed');
@@ -85,13 +83,10 @@ function toggleSidebarCollapse() {
     }
 })();
 
-/* ════════════════════════════════════════════════════════════════
-   NOTIFIKASI — toggle dropdown, tandai dibaca, update badge
-   ════════════════════════════════════════════════════════════════ */
+// NOTIFIKASI — toggle dropdown, tandai dibaca, update badge
 var NOTIF_API = '/siakad/auth/notification-api.php';
 
-/* Backdrop notifikasi (mobile): dibuat saat dropdown terbuka di layar kecil,
-   diklik untuk menutup; dihapus otomatis saat dropdown ditutup. */
+// Backdrop notifikasi (mobile): dibuat saat dropdown terbuka di layar kecil, diklik untuk menutup; dihapus otomatis saat dropdown ditutup.
 function isMobileLayout() {
     return window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
 }
@@ -118,7 +113,7 @@ function initNotifikasi() {
     var dropdown = document.getElementById('notificationDropdown');
     if (!toggle || !dropdown) return;
 
-    /* Toggle dropdown (+ backdrop semi-transparan di mobile) */
+    // Toggle dropdown (+ backdrop semi-transparan di mobile)
     toggle.addEventListener('click', function (e) {
         e.stopPropagation();
         var akanBuka = !dropdown.classList.contains('show');
@@ -130,7 +125,7 @@ function initNotifikasi() {
         dropdown.classList.toggle('show');
     });
 
-    /* Tandai dibaca saat klik item (kalau link tidak kosong) */
+    // Tandai dibaca saat klik item (kalau link tidak kosong)
     var items = dropdown.querySelectorAll('.notif-item[data-id]');
     items.forEach(function (item) {
         item.addEventListener('click', function (e) {
@@ -146,7 +141,7 @@ function initNotifikasi() {
         });
     });
 
-    /* Tandai semua dibaca */
+    // Tandai semua dibaca
     var readAll = document.getElementById('notifReadAll');
     if (readAll) {
         readAll.addEventListener('click', function (e) {
@@ -167,7 +162,7 @@ function initNotifikasi() {
     }
 }
 
-/* Tambahkan param csrf_token ke URL (dipakai panggilan AJAX yang mengubah data) */
+// Tambahkan param csrf_token ke URL (dipakai panggilan AJAX yang mengubah data)
 function appendCsrfToUrl(url) {
     var meta = document.querySelector('meta[name="csrf-token"]');
     if (!meta) return url;
@@ -189,13 +184,13 @@ function updateNotifBadge(count) {
 }
 
 
-/* ── jQuery ready ── */
+// jQuery ready
 $(document).ready(function () {
 
-    /* CSRF: sisipkan token ke semua form */
+    // CSRF: sisipkan token ke semua form
     initCsrfInjection();
 
-    /* Init DataTables — cek dulu supaya tidak reinitialise */
+    // Init DataTables — cek dulu supaya tidak reinitialise
     if ($.fn.DataTable && $('.dataTable').length) {
         $('.dataTable').each(function () {
             if (!$.fn.DataTable.isDataTable(this)) {
@@ -203,10 +198,7 @@ $(document).ready(function () {
 
                 var $tableEl = $(this);
 
-                /* Empty-state: baris "<td colspan=N>" tunggal di tbody membuat
-                   DataTables error TN/18 "Incorrect column count". Pindahkan
-                   isinya ke language.emptyTable supaya DataTables merender
-                   pesan kosong dengan colspan yang benar. */
+                // empty-state: <td colspan=N> tunggal bikin datatables error column count, jadi isinya dipindah ke language.emptyTable
                 var emptyHtml = null;
                 $tableEl.find('tbody > tr').each(function () {
                     var $td = $(this).children('td[colspan]');
@@ -227,8 +219,7 @@ $(document).ready(function () {
                     lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                     order: [],
                     dom: exportExcel ? 'Bfrtip' : 'lfrtip',
-                    /* Rapikan kontrol DataTables (dropdown "Tampilkan X entri"
-                       dan kotak pencarian) dengan class Bootstrap */
+                    // Rapikan kontrol DataTables (dropdown "Tampilkan X entri" dan kotak pencarian) dengan class Bootstrap
                     initComplete: function () {
                         var $container = $(this.api().table().container());
                         $container.find('.dataTables_length select').addClass('form-select form-select-sm');
@@ -239,16 +230,16 @@ $(document).ready(function () {
                         text: '<i class="fas fa-file-excel"></i> Export Excel',
                         className: 'btn btn-success btn-sm mb-2',
                         title: function () {
-                            // Nama file otomatis ikut kelas yang sedang difilter (kalau ada)
+                            // nama file export ikut kelas yang lagi difilter (kalo ada)
                             var baseTitle  = $tableEl.data('export-title') || 'Data Export';
                             var $filterKls = $('.table-filter-select[data-table="#' + $tableEl.attr('id') + '"]');
                             var kelasAktif = $filterKls.length ? $filterKls.val() : '';
                             return kelasAktif ? baseTitle + ' - Kelas ' + kelasAktif : baseTitle;
                         },
                         exportOptions: {
-                            columns: ':not(:last-child)', // kolom "Aksi" tidak ikut diexport
-                            search: 'applied',            // hanya export baris yang sedang difilter (mis. per kelas)
-                            order: 'applied'               // urutan hasil export ikut urutan tabel saat ini
+                            columns: ':not(:last-child)', // kolom aksi ga ikut diexport
+                            search: 'applied',            // cuma export baris yang lagi difilter
+                            order: 'applied'               // urutan export ngikutin urutan tabel
                         }
                     }] : []
                 };
@@ -261,11 +252,7 @@ $(document).ready(function () {
         });
     }
 
-    /* ── Indikator tabel responsif mobile (BUG.MD) ──
-       - Class .has-overflow : tabel lebih lebar dari viewport → CSS
-         menampilkan gradien "geser ke kanan" + scrollbar tebal
-       - Class .scrolled-end : sudah discroll sampai ujung kanan →
-         gradien memudar (tidak ada kolom tersembunyi lagi) */
+    // indikator tabel responsif mobile (bug.md): .has-overflow = tabel kepotongan, .scrolled-end = udah discroll sampe ujung
     function updateTableOverflow() {
         document.querySelectorAll('.table-responsive').forEach(function (el) {
             var overflow = el.scrollWidth > el.clientWidth + 1;
@@ -287,7 +274,7 @@ $(document).ready(function () {
         resizeTimer = setTimeout(updateTableOverflow, 150);
     });
 
-    /* ── Filter tabel berdasarkan kolom tertentu (dropdown)*/
+    // Filter tabel berdasarkan kolom tertentu (dropdown)
     $('.table-filter-select').on('change', function () {
         var $table       = $($(this).data('table'));
         var columnIndex  = $(this).data('column');
@@ -296,8 +283,7 @@ $(document).ready(function () {
         $table.DataTable().column(columnIndex).search(this.value, false, false).draw();
     });
 
-    /* ── Urutkan tabel berdasarkan kolom tertentu (dropdown) ──
-       value dropdown formatnya "kolom:arah", contoh "2:asc" atau "3:desc" */
+    // urutkan tabel by kolom (dropdown), format value "kolom:arah", contoh "2:asc"
     $('.table-sort-select').on('change', function () {
         var $table = $($(this).data('table'));
         if (!$table.length || $.fn.DataTable.isDataTable($table) === false) return;
@@ -310,18 +296,18 @@ $(document).ready(function () {
         $table.DataTable().order([columnIndex, direction]).draw();
     });
 
-    /* Bootstrap tooltips */
+    // Bootstrap tooltips
     $('[data-bs-toggle="tooltip"]').each(function () {
         new bootstrap.Tooltip(this);
     });
 
-    /* Alert autohide */
+    // Alert autohide
     initAlertAutohide();
 
-    /* Notifikasi */
+    // Notifikasi
     initNotifikasi();
 
-    /* Tutup dropdown notifikasi saat klik di luar (backdrop ikut dihapus) */
+    // Tutup dropdown notifikasi saat klik di luar (backdrop ikut dihapus)
     $(document).on('click', function (e) {
         var $dropdown = $('#notificationDropdown');
         var $toggle   = $('#notificationToggle');
@@ -333,13 +319,13 @@ $(document).ready(function () {
         }
     });
 
-    /* Tutup sidebar saat klik overlay */
+    // Tutup sidebar saat klik overlay
     $('#sidebarOverlay').on('click', function () {
         $('#sidebar').removeClass('show');
         $(this).removeClass('show');
     });
 
-    /* ── Pertahankan posisi scroll menu sidebar antar halaman ── */
+    // Pertahankan posisi scroll menu sidebar antar halaman
     (function () {
         var KEY = 'sidebarMenuScroll';
 
@@ -361,7 +347,7 @@ $(document).ready(function () {
         restoreSidebarScroll();
     })();
 
-    /* ── Pencarian Global (Topbar Search) ── */
+    // Pencarian Global (Topbar Search)
     (function () {
         var $input = $('#topbarSearch');
         if (!$input.length) return;
@@ -468,7 +454,7 @@ $(document).ready(function () {
         filterSidebar(buildIndex(), '');
     })();
 
-    /* ── Zoom kontrol diagram struktur organisasi ── */
+    // Zoom kontrol diagram struktur organisasi
     function initOrgZoom() {
         var stages = document.querySelectorAll('.org-stage');
         for (var i = 0; i < stages.length; i++) {

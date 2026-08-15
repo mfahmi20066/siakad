@@ -19,7 +19,7 @@ if ($row['status'] === 'aktif') {
     exit();
 }
 
-// Cek referensi dari tabel lain (semester/jadwal/kelas/nilai/rapor)
+// cek referensi dari tabel lain (semester/jadwal/kelas/nilai/rapor)
 $terpakai = tahunAjaranTerkait($pdo, $id);
 
 if ($terpakai) {

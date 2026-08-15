@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Ekstrakurikuler";
 
-// Hitung jumlah anggota per ekskul
+// hitung jumlah anggota per ekskul
 $data = mysqli_query($koneksi,
     "SELECT e.*,
             (SELECT COUNT(*) FROM ekstrakurikuler_anggota ea WHERE ea.ekskul_id = e.id) AS jml_anggota

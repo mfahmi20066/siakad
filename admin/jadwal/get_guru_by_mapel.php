@@ -12,9 +12,7 @@ if ($mapel_id <= 0) {
     exit();
 }
 
-// Sumber kebenaran: pivot kelas_mapel_guru.
-// Jika kelas dipilih, tampilkan guru yang mengajar mapel tersebut DI KELAS ITU.
-// Jika kelas tidak dipilih, tampilkan semua guru yang mengajar mapel tersebut.
+// sumber kebenaran: pivot kelas_mapel_guru. kelas dipilih -> guru mapel di kelas itu; ga dipilih -> semua guru mapel itu
 $where = "kmg.mapel_id = $mapel_id";
 if ($kelas_id > 0) $where .= " AND kmg.kelas_id = $kelas_id";
 
@@ -35,7 +33,7 @@ if ($q) {
     }
 }
 
-// Fallback: bila belum ada penugasan di pivot, tampilkan semua guru agar admin tetap bisa mengisi.
+// fallback: pivot kosong -> tampilkan semua guru biar admin tetep bisa ngisi
 if (empty($guru)) {
     $q3 = mysqli_query($koneksi,
         "SELECT g.id, $nama_guru FROM guru g ORDER BY nama");

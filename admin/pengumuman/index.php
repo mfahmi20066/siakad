@@ -4,7 +4,7 @@ include '../../config/session.php';
 cekAdmin();
 $title = "Pengumuman";
 
-// 1. Memeriksa kolom relasi yang tersedia di tabel pengumuman secara dinamis
+// 1. cek kolom relasi yang tersedia di tabel pengumuman
 $cek_kolom = mysqli_query($koneksi, "SHOW COLUMNS FROM pengumuman");
 $kolom_pengumuman = [];
 if ($cek_kolom) {
@@ -13,8 +13,8 @@ if ($cek_kolom) {
     }
 }
 
-// 2. Menentukan query berdasarkan kolom foreign key yang ada di database
-$query_text = "SELECT p.*, 'Admin' AS admin FROM pengumuman p"; // Default fallback jika kolom user tidak ketemu
+// 2. tentuin query sesuai kolom foreign key yang ada
+$query_text = "SELECT p.*, 'Admin' AS admin FROM pengumuman p"; // fallback kalo kolom user ga ketemu
 
 if (in_array('id_user', $kolom_pengumuman)) {
     $query_text = "SELECT p.*, u.nama AS admin FROM pengumuman p LEFT JOIN users u ON p.id_user = u.id";
@@ -24,7 +24,7 @@ if (in_array('id_user', $kolom_pengumuman)) {
     $query_text = "SELECT p.*, u.nama AS admin FROM pengumuman p LEFT JOIN users u ON p.admin_id = u.id";
 }
 
-// Tambahkan pengurutan tanggal
+// urutkan tanggal
 $query_text .= " ORDER BY p.tanggal DESC";
 $data = mysqli_query($koneksi, $query_text);
 ?>

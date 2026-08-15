@@ -6,8 +6,7 @@ cekSiswa();
 header("Cache-Control: no-store, no-cache, must-revalidate");
 header("Pragma: no-cache");
 
-// Halaman ini pakai FORMAT YANG SAMA PERSIS dengan admin/rapor/cetak.php,
-// tapi datanya dikunci ke siswa yang sedang login (tidak bisa lihat rapor siswa lain).
+// format sama persis kayak admin/rapor/cetak.php, tapi datanya dikunci ke siswa yang login
 
 $sid = $_SESSION['id_ref'];
 
@@ -26,7 +25,7 @@ $fix_semester = (!empty($semester) && $semester !== '0')
     : ambil_angka_semester($sys['semester'] ?? '1');
 $fix_ta       = (!empty($ta) && $ta !== '0') ? $ta : '';
 
-// Tahun berbasis ID (source of truth) + kompatibilitas param lama `ta`.
+// tahun berbasis id (source of truth) + kompatibilitas param lama 'ta'
 $taId = (int)($_GET['tahun_ajaran_id'] ?? 0);
 if ($taId <= 0 && !empty($ta)) {
     $qres = mysqli_query($koneksi, "SELECT id FROM tahun_ajaran WHERE nama_tahun_ajaran='$ta' LIMIT 1");
@@ -43,9 +42,7 @@ if ($taId <= 0) {
 $fix_ta = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT nama_tahun_ajaran v FROM tahun_ajaran WHERE id=$taId"))['v'] ?? $fix_ta;
 
-// Ambil rapor milik siswa yang login SAJA (siswa_id dikunci dari session, bukan dari URL)
-// Note: Beberapa data rapor lama memiliki semester='0' karena bug input,
-// jadi kita terima juga semester '0' dan '' sebagai fallback.
+// rapor milik siswa yang login aja (siswa_id dari session, bukan url); terima juga semester '0'/'' karena bug input lama
 $rapor = mysqli_fetch_assoc(mysqli_query($koneksi,
          "SELECT r.*, ta.nama_tahun_ajaran AS nama_tahun, s.nama, s.nis, s.jenis_kelamin,
                  s.tempat_lahir, s.tanggal_lahir, s.alamat, s.no_hp,
@@ -67,13 +64,13 @@ if (!$rapor) {
     die('<p style="font-family:Arial;padding:30px;">Rapor untuk semester/tahun ajaran ini belum tersedia. <a href="rapor.php">Kembali</a></p>');
 }
 
-// Finalisasi: siswa hanya boleh mencetak rapor yang sudah difinalisasi (status = final).
+// siswa cuma boleh cetak rapor yang udah final
 if (strtolower(trim($rapor['status'] ?? 'draft')) !== 'final') {
     header("Location: rapor.php?error=" . urlencode("Rapor belum difinalisasi. Cetak dapat dilakukan setelah rapor final."));
     exit();
 }
 
-// Cek apakah kolom kelompok/kkm sudah tersedia
+// cek kolom kelompok/kkm udah ada
 $cek_kelompok = mysqli_query($koneksi, "SHOW COLUMNS FROM mata_pelajaran LIKE 'kelompok'");
 $ada_kelompok = mysqli_num_rows($cek_kelompok) > 0;
 $select_mapel_extra = $ada_kelompok ? "m.kelompok, m.kkm," : "'Umum' AS kelompok, 75 AS kkm,";

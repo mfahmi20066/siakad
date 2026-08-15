@@ -25,13 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $selesai = $_POST['jam_selesai'];
     $error   = null;
 
-    // Validasi jam
+    // validasi jam
     if (!in_array($hari, ['Senin','Selasa','Rabu','Kamis','Jumat'], true)) {
         $error = "Hari tidak valid. Hanya Senin s.d Jumat yang diizinkan (Sabtu/Minggu ditolak).";
     } elseif ($selesai <= $mulai) {
         $error = "Jam selesai harus lebih dari jam mulai!";
     } else {
-        // Cek bentrok jadwal KELAS, kecuali data diri sendiri
+        // cek bentrok jadwal kelas, kecuali record sendiri
         $cek_bentrok = mysqli_query($koneksi,
             "SELECT id FROM jadwal
              WHERE kelas_id = '$kid'
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = "Jadwal bentrok! Kelas tersebut sudah memiliki jadwal 
                       di hari dan jam yang sama.";
         } else {
-            // Cek bentrok jadwal GURU (mengajar di kelas lain), kecuali data diri sendiri
+            // cek bentrok jadwal guru (di kelas lain), kecuali record sendiri
             if (!empty($gid)) {
                 $cek_guru = mysqli_query($koneksi,
                     "SELECT j.id, k.nama_kelas FROM jadwal j
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                      hari = '$hari', jam_mulai = '$mulai', jam_selesai = '$selesai'
                  WHERE id = '$id'");
 
-            // Auto-sinkron ke pivot kelas_mapel_guru (jadwal => penugasan)
+            // auto-sinkron ke pivot kelas_mapel_guru (jadwal => penugasan)
             $taId = (int) $data['tahun_ajaran_id'];
             if ($taId > 0) {
                 $cek_pivot = mysqli_query($koneksi,

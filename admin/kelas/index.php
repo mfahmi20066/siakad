@@ -10,7 +10,7 @@ $data = mysqli_query($koneksi,
          LEFT JOIN guru g ON k.wali_kelas = g.id 
          ORDER BY k.tingkat, k.nama_kelas");
 
-// Hitung jumlah siswa per kelas
+// hitung jumlah siswa per kelas
 ?>
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar_admin.php'; ?>
@@ -70,7 +70,7 @@ $data = mysqli_query($koneksi,
                 <?php else: ?>
                 <?php $no = 1; while ($r = mysqli_fetch_assoc($data)): ?>
                 <?php
-                    // Hitung siswa di kelas ini
+                    // hitung siswa di kelas ini
                     $jml_siswa = mysqli_fetch_row(mysqli_query($koneksi,
                         "SELECT COUNT(*) FROM siswa WHERE kelas_id='{$r['id']}'"))[0];
                     $jurusan = $r['jurusan'] ?? 'Umum';

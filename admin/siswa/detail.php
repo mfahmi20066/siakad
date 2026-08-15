@@ -6,7 +6,7 @@ $title = "Detail Siswa";
 
 $id = isset($_GET['id']) ? mysqli_real_escape_string($koneksi, $_GET['id']) : '';
 
-// 1. Ambil data siswa dan kelasnya
+// 1. ambil data siswa & kelasnya
 $query_siswa = mysqli_query($koneksi, "
     SELECT s.*, k.nama_kelas 
     FROM siswa s 
@@ -15,7 +15,7 @@ $query_siswa = mysqli_query($koneksi, "
 ");
 $data = mysqli_fetch_assoc($query_siswa);
 
-// 2. Ambil data nilai siswa secara fleksibel
+// 2. ambil nilai siswa secara fleksibel
 $query_nilai = mysqli_query($koneksi, "
     SELECT n.*, m.nama_mapel, m.kode_mapel 
     FROM nilai n 
@@ -23,7 +23,7 @@ $query_nilai = mysqli_query($koneksi, "
     WHERE n.siswa_id = '$id'
 ");
 
-// 3. Ambil rekap absensi (jika ada)
+// 3. ambil rekap absensi (kalo ada)
 $q_absensi = mysqli_query($koneksi, "SELECT status, COUNT(*) as jumlah FROM absensi WHERE siswa_id = '$id' GROUP BY status");
 $rekap_absen = ['Hadir' => 0, 'Sakit' => 0, 'Izin' => 0, 'Alfa' => 0];
 if ($q_absensi) {
@@ -160,7 +160,7 @@ if ($q_absensi) {
                             $no = 1; 
                             if ($query_nilai && mysqli_num_rows($query_nilai) > 0):
                                 while ($r = mysqli_fetch_assoc($query_nilai)): 
-                                    // Mengamankan pemanggilan array key agar tidak memicu Undefined Key Warning
+                                    // amankan akses array key biar ga warning undefined key
                                     $harian = $r['nilai_harian'] ?? $r['harian'] ?? $r['tugas'] ?? 0;
                                     $uts    = $r['uts'] ?? $r['nilai_uts'] ?? 0;
                                     $uas    = $r['uas'] ?? $r['nilai_uas'] ?? 0;
