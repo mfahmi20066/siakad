@@ -1,4 +1,4 @@
-﻿<!-- jQuery (harus LOAD PERTAMA agar DataTables & Bootstrap bisa kerja) -->
+<!-- jQuery (harus LOAD PERTAMA agar DataTables & Bootstrap bisa kerja) -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
     <!-- Bootstrap JS Bundle (includes Popper) - setelah jQuery -->

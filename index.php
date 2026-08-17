@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 
 // udah login? langsung arahin ke dashboard sesuai role

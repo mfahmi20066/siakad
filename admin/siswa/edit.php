@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 include '../../config/helper_auth.php';

@@ -1,4 +1,4 @@
-﻿// SIA SMA NEGERI 4 PALOPO — main.js
+// SIA SMA NEGERI 4 PALOPO — main.js
 
 // Konfirmasi Logout (Alert System modern)
 function konfirmasiLogout() {

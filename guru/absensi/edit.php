@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include '../../config/koneksi.php';
 include '../../config/session.php';
 cekGuru(); // cuma guru yang bisa akses

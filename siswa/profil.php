@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 ob_start();
 include '../config/koneksi.php';
 include '../config/session.php';

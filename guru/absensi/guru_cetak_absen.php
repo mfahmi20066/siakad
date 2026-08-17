@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once '../../config/session.php';
 require_once '../../config/koneksi.php';
 cekGuru();
